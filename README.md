@@ -1,4 +1,4 @@
-# Daily Management — Personal Financial Tracker
+# Daily Management — Personal Financial Tracker 
 
 **Daily Management** adalah aplikasi pelacak keuangan pribadi minimalis yang dibangun menggunakan **React (Vite)**, **Tailwind CSS**, dan **Capacitor CLI**. Aplikasi ini dirancang menggunakan konsep *cross-platform*, sehingga dapat berjalan dengan sangat responsif di web browser sekaligus siap dikompilasi menjadi aplikasi mobile native Android (`.apk`).
 
