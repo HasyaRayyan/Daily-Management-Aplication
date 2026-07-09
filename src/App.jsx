@@ -2,11 +2,16 @@ import { useState, useEffect, useCallback } from 'react';
 import TaskList from './components/TaskList';
 import FinanceTracker from './components/FinanceTracker';
 import Summary from './components/Summary';
+import Auth from './components/Auth';
 import { getTasks, getTransactions } from './utils/storage';
 import { getDateKey, formatDateIndo, isToday } from './utils/helpers';
+import { getSession, onAuthStateChange, logout } from './lib/auth';
 import './index.css';
 
 function App() {
+  const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
   // Current date state
   const [currentDate, setCurrentDate] = useState(new Date());
   const dateKey = getDateKey(currentDate);
@@ -17,10 +22,25 @@ function App() {
   // Data state
   const [tasks, setTasks] = useState([]);
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  // Load data from Supabase when date changes
+  // Check initial session
+  useEffect(() => {
+    getSession().then(({ session }) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
+
+    const { data: { subscription } } = onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Load data from Supabase when date changes or user logs in
   const loadData = useCallback(async () => {
+    if (!session) return;
     setLoading(true);
     try {
       const [tasksData, transactionsData] = await Promise.all([
@@ -34,7 +54,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, [dateKey]);
+  }, [dateKey, session]);
 
   useEffect(() => {
     loadData();
@@ -53,11 +73,31 @@ function App() {
 
   const todayCheck = isToday(dateKey);
 
+  const handleLogout = async () => {
+    await logout();
+  };
+
+  if (authLoading) {
+    return (
+      <div className="auth-container">
+        <div className="empty-state">
+          <div className="empty-icon pulse">⏳</div>
+          <p className="empty-text">Memuat...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <Auth />;
+  }
+
   return (
     <>
       {/* Header */}
       <header className="app-header">
         <h1>Daily Manager ✨</h1>
+        <button className="logout-btn" onClick={handleLogout}>Logout</button>
 
         {/* Date Navigator */}
         <div className="date-navigator">
@@ -88,7 +128,7 @@ function App() {
         )}
       </header>
 
-      {/* Loading State */}
+      {/* Loading State for Data */}
       {loading ? (
         <div className="main-content">
           <div className="empty-state">
