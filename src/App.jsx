@@ -1,122 +1,133 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState, useEffect, useCallback } from 'react';
+import TaskList from './components/TaskList';
+import FinanceTracker from './components/FinanceTracker';
+import Summary from './components/Summary';
+import { getTasks, saveTasks, getTransactions, saveTransactions } from './utils/storage';
+import { getDateKey, formatDateIndo, isToday } from './utils/helpers';
+import './index.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  // Current date state
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const dateKey = getDateKey(currentDate);
+
+  // Active tab: 'tasks' | 'finance' | 'summary'
+  const [activeTab, setActiveTab] = useState('tasks');
+
+  // Data state
+  const [tasks, setTasks] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+
+  // Load data when date changes
+  useEffect(() => {
+    setTasks(getTasks(dateKey));
+    setTransactions(getTransactions(dateKey));
+  }, [dateKey]);
+
+  // Save tasks
+  const handleUpdateTasks = useCallback((newTasks) => {
+    setTasks(newTasks);
+    saveTasks(dateKey, newTasks);
+  }, [dateKey]);
+
+  // Save transactions
+  const handleUpdateTransactions = useCallback((newTransactions) => {
+    setTransactions(newTransactions);
+    saveTransactions(dateKey, newTransactions);
+  }, [dateKey]);
+
+  // Date navigation
+  const goToDay = (offset) => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(newDate.getDate() + offset);
+    setCurrentDate(newDate);
+  };
+
+  const goToToday = () => {
+    setCurrentDate(new Date());
+  };
+
+  const todayCheck = isToday(dateKey);
 
   return (
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+      {/* Header */}
+      <header className="app-header">
+        <h1>Daily Manager ✨</h1>
+
+        {/* Date Navigator */}
+        <div className="date-navigator">
+          <button onClick={() => goToDay(-1)} aria-label="Hari sebelumnya">
+            ‹
+          </button>
+          <button
+            className={`date-display ${todayCheck ? 'is-today' : ''}`}
+            onClick={goToToday}
+            title="Klik untuk ke hari ini"
+          >
+            {todayCheck ? '📅 Hari ini' : formatDateIndo(currentDate)}
+          </button>
+          <button onClick={() => goToDay(1)} aria-label="Hari berikutnya">
+            ›
+          </button>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
+
+        {/* Show full date below if today */}
+        {todayCheck && (
+          <p style={{
+            fontSize: 'var(--text-xs)',
+            color: 'var(--text-muted)',
+            marginTop: 'var(--space-2)',
+          }}>
+            {formatDateIndo(currentDate)}
           </p>
-        </div>
+        )}
+      </header>
+
+      {/* Main Content */}
+      {activeTab === 'tasks' && (
+        <TaskList tasks={tasks} onUpdate={handleUpdateTasks} />
+      )}
+      {activeTab === 'finance' && (
+        <FinanceTracker
+          transactions={transactions}
+          onUpdate={handleUpdateTransactions}
+        />
+      )}
+      {activeTab === 'summary' && (
+        <Summary
+          tasks={tasks}
+          transactions={transactions}
+          dateDisplay={formatDateIndo(currentDate)}
+        />
+      )}
+
+      {/* Bottom Navigation */}
+      <nav className="bottom-nav">
         <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+          className={`nav-item ${activeTab === 'tasks' ? 'active' : ''}`}
+          onClick={() => setActiveTab('tasks')}
         >
-          Count is {count}
+          <span className="nav-icon">📋</span>
+          Tugas
         </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+        <button
+          className={`nav-item ${activeTab === 'finance' ? 'active' : ''}`}
+          onClick={() => setActiveTab('finance')}
+        >
+          <span className="nav-icon">💰</span>
+          Keuangan
+        </button>
+        <button
+          className={`nav-item ${activeTab === 'summary' ? 'active' : ''}`}
+          onClick={() => setActiveTab('summary')}
+        >
+          <span className="nav-icon">📊</span>
+          Ringkasan
+        </button>
+      </nav>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
