@@ -8,40 +8,48 @@ import {
   INCOME_CATEGORIES,
   getCategoryInfo,
 } from '../utils/helpers';
+import { addTransaction, deleteTransaction } from '../utils/storage';
 
-export default function FinanceTracker({ transactions, onUpdate }) {
-  const [activeTab, setActiveTab] = useState('expense'); // 'expense' or 'income'
+export default function FinanceTracker({ transactions, dateKey, onRefresh }) {
+  const [activeTab, setActiveTab] = useState('expense');
   const [showModal, setShowModal] = useState(false);
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const expenses = transactions.filter(t => t.type === 'expense');
   const incomes = transactions.filter(t => t.type === 'income');
 
-  const totalExpense = expenses.reduce((sum, t) => sum + t.amount, 0);
-  const totalIncome = incomes.reduce((sum, t) => sum + t.amount, 0);
+  const totalExpense = expenses.reduce((sum, t) => sum + Number(t.amount), 0);
+  const totalIncome = incomes.reduce((sum, t) => sum + Number(t.amount), 0);
 
   const currentList = activeTab === 'expense' ? expenses : incomes;
   const categories = activeTab === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const numAmount = parseFloat(amount.replace(/[^0-9]/g, ''));
-    if (!numAmount || !description.trim() || !category) return;
+    if (!numAmount || !description.trim() || !category || saving) return;
 
+    setSaving(true);
     const newTransaction = {
       id: generateId(),
+      date_key: dateKey,
       type: activeTab,
       amount: numAmount,
       description: description.trim(),
       category,
       time: getCurrentTime(),
-      createdAt: Date.now(),
+      created_at: Date.now(),
     };
 
-    onUpdate([newTransaction, ...transactions]);
-    resetForm();
+    const result = await addTransaction(newTransaction);
+    if (result) {
+      resetForm();
+      await onRefresh();
+    }
+    setSaving(false);
   };
 
   const resetForm = () => {
@@ -51,12 +59,12 @@ export default function FinanceTracker({ transactions, onUpdate }) {
     setShowModal(false);
   };
 
-  const deleteTransaction = (id) => {
-    onUpdate(transactions.filter(t => t.id !== id));
+  const handleDelete = async (id) => {
+    await deleteTransaction(id);
+    await onRefresh();
   };
 
   const handleAmountChange = (e) => {
-    // Only allow numbers
     const val = e.target.value.replace(/[^0-9]/g, '');
     setAmount(val);
   };
@@ -114,8 +122,8 @@ export default function FinanceTracker({ transactions, onUpdate }) {
       ) : (
         <>
           <div className="transaction-list">
-            {currentList
-              .sort((a, b) => b.createdAt - a.createdAt)
+            {[...currentList]
+              .sort((a, b) => b.created_at - a.created_at)
               .map((transaction, index) => {
                 const catInfo = getCategoryInfo(transaction.category);
                 return (
@@ -139,7 +147,7 @@ export default function FinanceTracker({ transactions, onUpdate }) {
                     </span>
                     <button
                       className="transaction-delete"
-                      onClick={() => deleteTransaction(transaction.id)}
+                      onClick={() => handleDelete(transaction.id)}
                       aria-label="Hapus transaksi"
                     >
                       ✕
@@ -231,9 +239,9 @@ export default function FinanceTracker({ transactions, onUpdate }) {
           <button
             type="submit"
             className="btn-primary"
-            disabled={!amount || !description.trim() || !category}
+            disabled={!amount || !description.trim() || !category || saving}
           >
-            {activeTab === 'expense' ? 'Catat Pengeluaran' : 'Catat Pemasukan'}
+            {saving ? 'Menyimpan...' : (activeTab === 'expense' ? 'Catat Pengeluaran' : 'Catat Pemasukan')}
           </button>
           <button
             type="button"

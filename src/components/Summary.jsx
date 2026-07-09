@@ -7,8 +7,8 @@ export default function Summary({ tasks, transactions, dateDisplay }) {
   const expenses = transactions.filter(t => t.type === 'expense');
   const incomes = transactions.filter(t => t.type === 'income');
 
-  const totalExpense = expenses.reduce((sum, t) => sum + t.amount, 0);
-  const totalIncome = incomes.reduce((sum, t) => sum + t.amount, 0);
+  const totalExpense = expenses.reduce((sum, t) => sum + Number(t.amount), 0);
+  const totalIncome = incomes.reduce((sum, t) => sum + Number(t.amount), 0);
   const balance = totalIncome - totalExpense;
 
   // Get top expense categories
@@ -17,7 +17,7 @@ export default function Summary({ tasks, transactions, dateDisplay }) {
     if (!expenseByCategory[e.category]) {
       expenseByCategory[e.category] = 0;
     }
-    expenseByCategory[e.category] += e.amount;
+    expenseByCategory[e.category] += Number(e.amount);
   });
   const topExpenses = Object.entries(expenseByCategory)
     .sort(([, a], [, b]) => b - a)

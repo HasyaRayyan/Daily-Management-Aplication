@@ -1,83 +1,143 @@
-// localStorage utility functions for Daily Manager
+// Supabase storage functions for Daily Manager
+import { supabase } from '../lib/supabase';
 
-const STORAGE_KEYS = {
-  TASKS: 'dm_tasks',
-  TRANSACTIONS: 'dm_transactions',
-};
+// ==========================================
+// TASKS
+// ==========================================
 
 /**
  * Get all tasks for a specific date
  * @param {string} dateKey - format: YYYY-MM-DD
- * @returns {Array}
+ * @returns {Promise<Array>}
  */
-export function getTasks(dateKey) {
-  try {
-    const all = JSON.parse(localStorage.getItem(STORAGE_KEYS.TASKS) || '{}');
-    return all[dateKey] || [];
-  } catch {
+export async function getTasks(dateKey) {
+  const { data, error } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('date_key', dateKey)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching tasks:', error);
     return [];
   }
+  return data || [];
 }
 
 /**
- * Save tasks for a specific date
- * @param {string} dateKey
- * @param {Array} tasks
+ * Add a new task
+ * @param {object} task - { id, date_key, text, completed, time, created_at }
+ * @returns {Promise<object|null>}
  */
-export function saveTasks(dateKey, tasks) {
-  try {
-    const all = JSON.parse(localStorage.getItem(STORAGE_KEYS.TASKS) || '{}');
-    all[dateKey] = tasks;
-    localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(all));
-  } catch (e) {
-    console.error('Failed to save tasks:', e);
+export async function addTask(task) {
+  const { data, error } = await supabase
+    .from('tasks')
+    .insert(task)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error adding task:', error);
+    return null;
   }
+  return data;
 }
+
+/**
+ * Update a task (e.g. toggle completed)
+ * @param {string} id
+ * @param {object} updates
+ * @returns {Promise<object|null>}
+ */
+export async function updateTask(id, updates) {
+  const { data, error } = await supabase
+    .from('tasks')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating task:', error);
+    return null;
+  }
+  return data;
+}
+
+/**
+ * Delete a task
+ * @param {string} id
+ * @returns {Promise<boolean>}
+ */
+export async function deleteTask(id) {
+  const { error } = await supabase
+    .from('tasks')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting task:', error);
+    return false;
+  }
+  return true;
+}
+
+// ==========================================
+// TRANSACTIONS
+// ==========================================
 
 /**
  * Get all transactions for a specific date
  * @param {string} dateKey - format: YYYY-MM-DD
- * @returns {Array}
+ * @returns {Promise<Array>}
  */
-export function getTransactions(dateKey) {
-  try {
-    const all = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRANSACTIONS) || '{}');
-    return all[dateKey] || [];
-  } catch {
+export async function getTransactions(dateKey) {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .eq('date_key', dateKey)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching transactions:', error);
     return [];
   }
+  return data || [];
 }
 
 /**
- * Save transactions for a specific date
- * @param {string} dateKey
- * @param {Array} transactions
+ * Add a new transaction
+ * @param {object} transaction
+ * @returns {Promise<object|null>}
  */
-export function saveTransactions(dateKey, transactions) {
-  try {
-    const all = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRANSACTIONS) || '{}');
-    all[dateKey] = transactions;
-    localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(all));
-  } catch (e) {
-    console.error('Failed to save transactions:', e);
+export async function addTransaction(transaction) {
+  const { data, error } = await supabase
+    .from('transactions')
+    .insert(transaction)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error adding transaction:', error);
+    return null;
   }
+  return data;
 }
 
 /**
- * Get all data (for summary across dates)
+ * Delete a transaction
+ * @param {string} id
+ * @returns {Promise<boolean>}
  */
-export function getAllTasks() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.TASKS) || '{}');
-  } catch {
-    return {};
-  }
-}
+export async function deleteTransaction(id) {
+  const { error } = await supabase
+    .from('transactions')
+    .delete()
+    .eq('id', id);
 
-export function getAllTransactions() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.TRANSACTIONS) || '{}');
-  } catch {
-    return {};
+  if (error) {
+    console.error('Error deleting transaction:', error);
+    return false;
   }
+  return true;
 }

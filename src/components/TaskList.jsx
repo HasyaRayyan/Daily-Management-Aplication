@@ -1,40 +1,48 @@
 import { useState } from 'react';
 import Modal from './Modal';
 import { generateId, getCurrentTime } from '../utils/helpers';
+import { addTask, updateTask, deleteTask } from '../utils/storage';
 
-export default function TaskList({ tasks, onUpdate }) {
+export default function TaskList({ tasks, dateKey, onRefresh }) {
   const [showModal, setShowModal] = useState(false);
   const [taskText, setTaskText] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const completedCount = tasks.filter(t => t.completed).length;
   const totalCount = tasks.length;
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
-  const handleAddTask = (e) => {
+  const handleAddTask = async (e) => {
     e.preventDefault();
-    if (!taskText.trim()) return;
+    if (!taskText.trim() || saving) return;
 
+    setSaving(true);
     const newTask = {
       id: generateId(),
+      date_key: dateKey,
       text: taskText.trim(),
       completed: false,
       time: getCurrentTime(),
-      createdAt: Date.now(),
+      created_at: Date.now(),
     };
 
-    onUpdate([newTask, ...tasks]);
-    setTaskText('');
-    setShowModal(false);
+    const result = await addTask(newTask);
+    if (result) {
+      setTaskText('');
+      setShowModal(false);
+      await onRefresh();
+    }
+    setSaving(false);
   };
 
-  const toggleTask = (id) => {
-    onUpdate(tasks.map(t =>
-      t.id === id ? { ...t, completed: !t.completed } : t
-    ));
+  const handleToggle = async (id, currentCompleted) => {
+    await updateTask(id, { completed: !currentCompleted });
+    await onRefresh();
   };
 
-  const deleteTask = (id) => {
-    onUpdate(tasks.filter(t => t.id !== id));
+  const handleDelete = async (id) => {
+    await deleteTask(id);
+    await onRefresh();
   };
 
   return (
@@ -76,11 +84,10 @@ export default function TaskList({ tasks, onUpdate }) {
         </div>
       ) : (
         <div className="task-list">
-          {tasks
+          {[...tasks]
             .sort((a, b) => {
-              // Uncompleted first, then by creation time
               if (a.completed !== b.completed) return a.completed ? 1 : -1;
-              return b.createdAt - a.createdAt;
+              return b.created_at - a.created_at;
             })
             .map((task, index) => (
               <div
@@ -90,7 +97,7 @@ export default function TaskList({ tasks, onUpdate }) {
               >
                 <button
                   className={`task-checkbox ${task.completed ? 'checked' : ''}`}
-                  onClick={() => toggleTask(task.id)}
+                  onClick={() => handleToggle(task.id, task.completed)}
                   aria-label={task.completed ? 'Tandai belum selesai' : 'Tandai selesai'}
                 >
                   {task.completed && '✓'}
@@ -101,7 +108,7 @@ export default function TaskList({ tasks, onUpdate }) {
                 </div>
                 <button
                   className="task-delete"
-                  onClick={() => deleteTask(task.id)}
+                  onClick={() => handleDelete(task.id)}
                   aria-label="Hapus tugas"
                 >
                   ✕
@@ -132,9 +139,9 @@ export default function TaskList({ tasks, onUpdate }) {
           <button
             type="submit"
             className="btn-primary"
-            disabled={!taskText.trim()}
+            disabled={!taskText.trim() || saving}
           >
-            Tambah Tugas
+            {saving ? 'Menyimpan...' : 'Tambah Tugas'}
           </button>
           <button
             type="button"

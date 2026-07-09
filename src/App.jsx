@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import TaskList from './components/TaskList';
 import FinanceTracker from './components/FinanceTracker';
 import Summary from './components/Summary';
-import { getTasks, saveTasks, getTransactions, saveTransactions } from './utils/storage';
+import { getTasks, getTransactions } from './utils/storage';
 import { getDateKey, formatDateIndo, isToday } from './utils/helpers';
 import './index.css';
 
@@ -17,24 +17,28 @@ function App() {
   // Data state
   const [tasks, setTasks] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Load data when date changes
+  // Load data from Supabase when date changes
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [tasksData, transactionsData] = await Promise.all([
+        getTasks(dateKey),
+        getTransactions(dateKey),
+      ]);
+      setTasks(tasksData);
+      setTransactions(transactionsData);
+    } catch (err) {
+      console.error('Failed to load data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [dateKey]);
+
   useEffect(() => {
-    setTasks(getTasks(dateKey));
-    setTransactions(getTransactions(dateKey));
-  }, [dateKey]);
-
-  // Save tasks
-  const handleUpdateTasks = useCallback((newTasks) => {
-    setTasks(newTasks);
-    saveTasks(dateKey, newTasks);
-  }, [dateKey]);
-
-  // Save transactions
-  const handleUpdateTransactions = useCallback((newTransactions) => {
-    setTransactions(newTransactions);
-    saveTransactions(dateKey, newTransactions);
-  }, [dateKey]);
+    loadData();
+  }, [loadData]);
 
   // Date navigation
   const goToDay = (offset) => {
@@ -84,22 +88,31 @@ function App() {
         )}
       </header>
 
-      {/* Main Content */}
-      {activeTab === 'tasks' && (
-        <TaskList tasks={tasks} onUpdate={handleUpdateTasks} />
-      )}
-      {activeTab === 'finance' && (
-        <FinanceTracker
-          transactions={transactions}
-          onUpdate={handleUpdateTransactions}
-        />
-      )}
-      {activeTab === 'summary' && (
-        <Summary
-          tasks={tasks}
-          transactions={transactions}
-          dateDisplay={formatDateIndo(currentDate)}
-        />
+      {/* Loading State */}
+      {loading ? (
+        <div className="main-content">
+          <div className="empty-state">
+            <div className="empty-icon pulse">⏳</div>
+            <p className="empty-text">Memuat data...</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Main Content */}
+          {activeTab === 'tasks' && (
+            <TaskList tasks={tasks} dateKey={dateKey} onRefresh={loadData} />
+          )}
+          {activeTab === 'finance' && (
+            <FinanceTracker transactions={transactions} dateKey={dateKey} onRefresh={loadData} />
+          )}
+          {activeTab === 'summary' && (
+            <Summary
+              tasks={tasks}
+              transactions={transactions}
+              dateDisplay={formatDateIndo(currentDate)}
+            />
+          )}
+        </>
       )}
 
       {/* Bottom Navigation */}
