@@ -30,9 +30,12 @@ export async function getTasks(dateKey) {
  * @returns {Promise<object|null>}
  */
 export async function addTask(task) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return null;
+
   const { data, error } = await supabase
     .from('tasks')
-    .insert(task)
+    .insert({ ...task, user_id: session.user.id })
     .select()
     .single();
 
@@ -111,9 +114,12 @@ export async function getTransactions(dateKey) {
  * @returns {Promise<object|null>}
  */
 export async function addTransaction(transaction) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return null;
+
   const { data, error } = await supabase
     .from('transactions')
-    .insert(transaction)
+    .insert({ ...transaction, user_id: session.user.id })
     .select()
     .single();
 
