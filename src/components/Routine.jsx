@@ -45,7 +45,6 @@ export default function Routine() {
 
   const handleToggle = async (routineId) => {
     const isCompleted = isRoutineCompleted(routineId);
-    // Optimistic UI update
     setLogs(prev => {
       const existing = prev.find(l => l.routine_id === routineId);
       if (existing) {
@@ -67,59 +66,64 @@ export default function Routine() {
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   return (
-    <div className="main-content">
-      <div className="section-header">
-        <h2>
-          <span className="section-icon">🔄</span>
-          Rutinitas Harian
+    <div className="flex flex-col gap-6 px-5 pt-2 pb-8 animate-fade-in">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-extrabold tracking-tight flex items-center gap-3">
+          <span>🔄</span> Rutinitas
         </h2>
-        <button className="btn-add" onClick={() => setShowModal(true)}>
-          <span className="plus-icon">+</span> Tambah
+        <button onClick={() => setShowModal(true)} className="bg-brand-950 dark:bg-white text-white dark:text-brand-950 font-bold px-4 py-2 rounded-xl shadow-sm hover:scale-105 transition-transform text-sm">
+          + Tambah
         </button>
       </div>
 
       {totalCount > 0 && (
-        <div className="progress-container">
-          <div className="progress-info">
-            <span className="progress-label">Progres hari ini</span>
-            <span className="progress-value">{completedCount}/{totalCount} selesai</span>
+        <div className="card">
+          <div className="flex justify-between text-sm font-semibold mb-3">
+            <span className="text-brand-500 dark:text-brand-400">Progres hari ini</span>
+            <span>{completedCount}/{totalCount} selesai</span>
           </div>
-          <div className="progress-bar">
-            <div className="progress-fill" style={{ width: `${progressPercent}%` }} />
+          <div className="h-3 w-full bg-brand-100 dark:bg-brand-800 rounded-full overflow-hidden shadow-inner">
+            <div className="h-full bg-brand-950 dark:bg-white rounded-full transition-all duration-1000 ease-out" style={{ width: `${progressPercent}%` }} />
           </div>
         </div>
       )}
 
       {loading ? (
-        <p>Memuat rutinitas...</p>
+        <div className="text-center font-bold animate-pulse text-brand-500 py-10">Memuat rutinitas...</div>
       ) : totalCount === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">📝</div>
-          <p className="empty-text">Belum ada rutinitas</p>
-          <p className="empty-subtext">Tambahkan rutinitas harianmu (misal: Mandi, Olahraga)</p>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="text-6xl mb-4 grayscale opacity-50">📝</div>
+          <p className="font-extrabold text-xl mb-2">Belum ada rutinitas</p>
+          <p className="text-brand-500 text-sm max-w-[200px]">Tambahkan rutinitas harianmu seperti mandi atau olahraga.</p>
         </div>
       ) : (
-        <div className="task-list">
+        <div className="flex flex-col gap-3">
           {routines.map((routine, index) => {
             const completed = isRoutineCompleted(routine.id);
             return (
               <div
                 key={routine.id}
-                className={`task-item ${completed ? 'completed' : ''}`}
-                style={{ animationDelay: `${index * 0.05}s` }}
+                className="flex items-center justify-between p-4 bg-white dark:bg-brand-900 rounded-2xl shadow-sm border border-brand-100 dark:border-brand-800 animate-slide-up"
+                style={{ animationDelay: `${index * 0.05}s`, animationFillMode: 'both' }}
               >
-                <button
-                  className={`task-checkbox ${completed ? 'checked' : ''}`}
-                  onClick={() => handleToggle(routine.id)}
-                >
-                  {completed && '✓'}
-                </button>
-                <div className="task-content">
-                  <p className="task-text">{routine.title}</p>
+                <div className="flex items-center gap-4 flex-1">
+                  <button
+                    onClick={() => handleToggle(routine.id)}
+                    className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all ${
+                      completed 
+                        ? 'bg-brand-950 border-brand-950 text-white dark:bg-white dark:border-white dark:text-black scale-110' 
+                        : 'border-brand-300 dark:border-brand-700 hover:border-brand-500'
+                    }`}
+                  >
+                    {completed && <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>}
+                  </button>
+                  <p className={`font-bold text-lg transition-all ${completed ? 'line-through text-brand-400 dark:text-brand-600' : 'text-brand-900 dark:text-brand-50'}`}>
+                    {routine.title}
+                  </p>
                 </div>
                 <button
-                  className="task-delete"
                   onClick={() => handleDeleteRoutine(routine.id)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-brand-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
                 >
                   ✕
                 </button>
@@ -130,12 +134,12 @@ export default function Routine() {
       )}
 
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="✏️ Tambah Rutinitas">
-        <form onSubmit={handleAddRoutine}>
-          <div className="form-group">
-            <label className="form-label">Nama Rutinitas</label>
+        <form onSubmit={handleAddRoutine} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider">NAMA RUTINITAS</label>
             <input
               type="text"
-              className="form-input"
+              className="input-field"
               placeholder="Contoh: Skincare malam"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
@@ -143,7 +147,7 @@ export default function Routine() {
               required
             />
           </div>
-          <button type="submit" className="btn-primary" disabled={!newTitle.trim() || saving}>
+          <button type="submit" className="btn-primary mt-2" disabled={!newTitle.trim() || saving}>
             {saving ? 'Menyimpan...' : 'Simpan'}
           </button>
         </form>

@@ -62,114 +62,105 @@ export default function Profile({ session }) {
     setResettingPassword(false);
   };
 
+  const [isDarkMode, setIsDarkMode] = useState(
+    typeof window !== 'undefined' ? document.documentElement.classList.contains('dark') : false
+  );
+
+  const toggleTheme = () => {
+    if (isDarkMode) {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+      setIsDarkMode(false);
+    } else {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      setIsDarkMode(true);
+    }
+  };
+
   const displayName = profile?.display_name || session?.user?.user_metadata?.username || 'User';
   const avatarUrl = profile?.avatar_url;
 
   return (
-    <div className="main-content profile-page">
-      <div className="section-header">
-        <h2>
-          <span className="section-icon">👤</span>
-          Profil Saya
+    <div className="flex flex-col gap-6 px-5 pt-2 pb-8 animate-fade-in">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-extrabold tracking-tight flex items-center gap-3">
+          <span>👤</span> Profil Saya
         </h2>
       </div>
 
       {loading && !profile ? (
-        <p>Memuat profil...</p>
+        <div className="text-center font-bold animate-pulse text-brand-500 py-10">Memuat profil...</div>
       ) : (
-        <div className="profile-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '2rem' }}>
+        <div className="flex flex-col items-center mt-4">
           
-          <div className="avatar-wrapper" style={{ position: 'relative', marginBottom: '1rem' }}>
-            <div className="user-avatar" style={{ width: '100px', height: '100px', fontSize: '3rem', margin: '0' }}>
+          <div className="relative mb-6">
+            <div className="w-28 h-28 rounded-full bg-brand-100 dark:bg-brand-800 flex items-center justify-center font-bold text-4xl shadow-xl overflow-hidden border-4 border-white dark:border-brand-900">
               {avatarUrl ? (
-                <img src={avatarUrl} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
                 displayName.charAt(0).toUpperCase()
               )}
             </div>
             <button 
               onClick={() => fileInputRef.current?.click()}
-              style={{
-                position: 'absolute', bottom: '0', right: '0',
-                background: 'var(--primary)', color: 'white',
-                border: 'none', borderRadius: '50%',
-                width: '32px', height: '32px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-              }}
+              className="absolute bottom-0 right-0 bg-brand-950 dark:bg-white text-white dark:text-brand-950 rounded-full w-10 h-10 flex items-center justify-center shadow-lg hover:scale-110 transition-transform border-2 border-white dark:border-brand-900"
             >
-              📷
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
             </button>
             <input 
               type="file" 
               accept="image/*" 
               ref={fileInputRef} 
-              style={{ display: 'none' }} 
+              className="hidden" 
               onChange={handleAvatarChange}
             />
           </div>
 
-          <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>{displayName}</h3>
-          <p style={{ color: 'var(--text-light)', marginBottom: '2rem' }}>{session?.user?.email}</p>
+          <h3 className="text-2xl font-extrabold mb-1">{displayName}</h3>
+          <p className="text-brand-500 dark:text-brand-400 font-semibold mb-8">{session?.user?.email}</p>
 
-          <div className="settings-list" style={{ width: '100%', maxWidth: '400px' }}>
-            <h4 style={{ fontSize: '0.875rem', color: 'var(--text-light)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Pengaturan</h4>
+          <div className="w-full flex flex-col gap-3">
+            <h4 className="text-xs font-bold text-brand-400 uppercase tracking-widest mb-1 px-2">Pengaturan</h4>
             
-            <button className="settings-item" onClick={() => { setNewName(displayName); setShowNameModal(true); }}>
-              <span>✏️ Ubah Nama</span>
-              <span>›</span>
+            <button onClick={toggleTheme} className="flex justify-between items-center w-full p-4 bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 rounded-2xl hover:bg-brand-50 dark:hover:bg-brand-800 transition-colors shadow-sm">
+              <span className="font-bold flex items-center gap-3">
+                {isDarkMode ? '☀️ Mode Terang' : '🌙 Mode Gelap'}
+              </span>
             </button>
 
-            <button className="settings-item" onClick={handleResetPassword} disabled={resettingPassword}>
-              <span>🔑 {resettingPassword ? 'Mengirim Link...' : 'Ubah Kata Sandi'}</span>
-              <span>›</span>
+            <button onClick={() => { setNewName(displayName); setShowNameModal(true); }} className="flex justify-between items-center w-full p-4 bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 rounded-2xl hover:bg-brand-50 dark:hover:bg-brand-800 transition-colors shadow-sm">
+              <span className="font-bold flex items-center gap-3">✏️ Ubah Nama</span>
             </button>
 
-            <button className="settings-item" onClick={() => logout()} style={{ color: '#ef4444', marginTop: '1rem' }}>
-              <span>🚪 Keluar (Logout)</span>
+            <button onClick={handleResetPassword} disabled={resettingPassword} className="flex justify-between items-center w-full p-4 bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 rounded-2xl hover:bg-brand-50 dark:hover:bg-brand-800 transition-colors shadow-sm">
+              <span className="font-bold flex items-center gap-3">🔑 {resettingPassword ? 'Mengirim Link...' : 'Ubah Kata Sandi'}</span>
+            </button>
+
+            <button onClick={() => logout()} className="flex justify-between items-center w-full p-4 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 rounded-2xl hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors shadow-sm mt-4">
+              <span className="font-bold text-red-600 dark:text-red-400 flex items-center gap-3">🚪 Keluar (Logout)</span>
             </button>
           </div>
         </div>
       )}
 
       <Modal isOpen={showNameModal} onClose={() => setShowNameModal(false)} title="✏️ Ubah Nama">
-        <form onSubmit={handleUpdateName}>
-          <div className="form-group">
-            <label className="form-label">Nama Lengkap</label>
+        <form onSubmit={handleUpdateName} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider">NAMA LENGKAP</label>
             <input
               type="text"
-              className="form-input"
+              className="input-field"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               required
             />
           </div>
-          <button type="submit" className="btn-primary" disabled={!newName.trim() || saving}>
-            {saving ? 'Menyimpan...' : 'Simpan'}
+          <button type="submit" className="btn-primary mt-2" disabled={!newName.trim() || saving}>
+            {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
           </button>
         </form>
       </Modal>
-
-      <style>{`
-        .settings-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          width: 100%;
-          padding: 1rem;
-          background: var(--bg-card);
-          border: 1px solid var(--border-light);
-          border-radius: 12px;
-          margin-bottom: 0.5rem;
-          cursor: pointer;
-          font-size: 1rem;
-          color: var(--text-dark);
-          transition: all 0.2s;
-        }
-        .settings-item:hover {
-          background: var(--bg-main);
-        }
-      `}</style>
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { formatRupiah, getDateKey, getCategoryInfo } from '../utils/helpers';
+import { formatRupiah, getDateKey } from '../utils/helpers';
 import { getProfile, getRoutines, getRoutineLogs, getSchedules, getTransactions } from '../utils/storage';
 
-const IconRefresh = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 2.6-6.4L2 9"/></svg>;
+const IconRefresh = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 2.6-6.4L2 9"/></svg>;
 
 export default function Dashboard({ session, setActiveTab }) {
   const [profile, setProfile] = useState(null);
@@ -38,114 +38,106 @@ export default function Dashboard({ session, setActiveTab }) {
   const displayName = profile?.display_name || session?.user?.user_metadata?.username || 'Mahasiswa';
   const avatarUrl = profile?.avatar_url;
 
-  // Routines summary
   const completedCount = routines.filter(r => logs.find(l => l.routine_id === r.id)?.completed).length;
   const totalCount = routines.length;
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-
-  // Transactions summary (3 latest)
   const latestTransactions = transactions.slice(0, 3);
 
-  // Schedule status helper
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
+  if (loading) {
+    return <div className="p-6 text-center text-sm font-bold animate-pulse">Memuat dashboard...</div>;
+  }
+
   return (
-    <div className="main-content" style={{ padding: '0', background: 'transparent' }}>
-      
-      {/* Top Header */}
-      <header className="top-header">
-        <div className="user-info">
-          <div className="user-avatar" onClick={() => setActiveTab('profile')} style={{ cursor: 'pointer' }}>
-            {avatarUrl ? (
-              <img src={avatarUrl} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-            ) : (
-              displayName.charAt(0).toUpperCase()
-            )}
+    <div className="flex flex-col gap-6 px-5 pt-2 pb-8">
+      {/* Header */}
+      <div className="flex justify-between items-center bg-white dark:bg-brand-900 p-5 rounded-2xl shadow-sm border border-brand-100 dark:border-brand-800">
+        <div className="flex items-center gap-4">
+          <div 
+            onClick={() => setActiveTab('profile')} 
+            className="w-14 h-14 rounded-full bg-brand-100 dark:bg-brand-800 flex items-center justify-center font-bold text-xl cursor-pointer overflow-hidden border-2 border-brand-200 dark:border-brand-700 hover:border-brand-950 dark:hover:border-white transition-colors"
+          >
+            {avatarUrl ? <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" /> : displayName.charAt(0).toUpperCase()}
           </div>
           <div>
-            <div className="user-greeting">Selamat datang,</div>
-            <div className="user-name">{displayName}</div>
+            <p className="text-xs font-bold text-brand-500 dark:text-brand-400 tracking-wider">SELAMAT DATANG</p>
+            <h1 className="text-xl font-extrabold leading-tight">{displayName}</h1>
           </div>
         </div>
-        <button className="icon-btn" onClick={fetchData}>
+        <button onClick={fetchData} className="w-10 h-10 rounded-full bg-brand-50 dark:bg-brand-950 flex items-center justify-center hover:bg-brand-100 dark:hover:bg-brand-800 transition-colors">
           <IconRefresh />
         </button>
-      </header>
+      </div>
 
-      <div style={{ padding: '0 24px 100px 24px' }}>
-        
-        {/* Routines Summary */}
-        <div className="card" onClick={() => setActiveTab('routine')} style={{ cursor: 'pointer', marginBottom: '1.5rem' }}>
-          <div className="section-header" style={{ marginBottom: '1rem' }}>
-            <h2 style={{ fontSize: '1rem' }}>✅ Ringkasan Rutinitas</h2>
-            <span style={{ fontSize: '0.875rem', color: 'var(--text-light)' }}>Lihat Detail ›</span>
+      {/* Routine Progress */}
+      <div onClick={() => setActiveTab('routine')} className="card group cursor-pointer">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="font-bold flex items-center gap-2"><span className="text-xl">✅</span> Rutinitas Harian</h2>
+          <span className="text-xs font-bold text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white transition-colors">Lihat ›</span>
+        </div>
+        <div className="bg-brand-50 dark:bg-brand-950 p-4 rounded-xl">
+          <div className="flex justify-between text-sm font-semibold mb-2">
+            <span>Progres Hari Ini</span>
+            <span>{completedCount}/{totalCount} ({progressPercent}%)</span>
           </div>
-          <div className="progress-container" style={{ margin: 0 }}>
-            <div className="progress-info">
-              <span className="progress-label">{completedCount}/{totalCount} Rutinitas Selesai</span>
-              <span className="progress-value">{progressPercent}%</span>
-            </div>
-            <div className="progress-bar">
-              <div className="progress-fill" style={{ width: `${progressPercent}%` }} />
-            </div>
+          <div className="h-2 w-full bg-brand-200 dark:bg-brand-800 rounded-full overflow-hidden">
+            <div className="h-full bg-brand-950 dark:bg-white rounded-full transition-all duration-1000 ease-out" style={{ width: `${progressPercent}%` }} />
           </div>
         </div>
+      </div>
 
-        {/* Schedule Summary */}
-        <div className="card" onClick={() => setActiveTab('schedule')} style={{ cursor: 'pointer', marginBottom: '1.5rem' }}>
-          <div className="section-header" style={{ marginBottom: '1rem' }}>
-            <h2 style={{ fontSize: '1rem' }}>📅 Jadwal Hari Ini</h2>
-            <span style={{ fontSize: '0.875rem', color: 'var(--text-light)' }}>Lihat Detail ›</span>
-          </div>
+      {/* Schedules */}
+      <div onClick={() => setActiveTab('schedule')} className="card group cursor-pointer">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="font-bold flex items-center gap-2"><span className="text-xl">📅</span> Jadwal Hari Ini</h2>
+          <span className="text-xs font-bold text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white transition-colors">Lihat ›</span>
+        </div>
+        <div className="flex flex-col gap-2">
           {schedules.length === 0 ? (
-            <p style={{ color: 'var(--text-light)', fontSize: '0.875rem' }}>Tidak ada jadwal hari ini.</p>
+            <p className="text-sm font-semibold text-brand-400 text-center py-2">Tidak ada jadwal hari ini</p>
           ) : (
-            <div className="transaction-list">
-              {schedules.map((schedule) => {
-                const [startH, startM] = schedule.time_start.split(':').map(Number);
-                const [endH, endM] = schedule.time_end.split(':').map(Number);
-                const startMins = startH * 60 + startM;
-                const endMins = endH * 60 + endM;
-                let isActive = currentMinutes >= startMins && currentMinutes <= endMins;
-                
-                return (
-                  <div key={schedule.id} className="transaction-item" style={{ padding: '12px', border: isActive ? '1px solid var(--primary)' : '1px solid var(--border-light)', background: isActive ? 'rgba(79, 70, 229, 0.05)' : 'white' }}>
-                    <div className="transaction-content">
-                      <p className="transaction-desc" style={{ color: isActive ? 'var(--primary)' : 'var(--text-dark)' }}>{schedule.title}</p>
-                      <span className="transaction-category">{schedule.time_start} - {schedule.time_end} {isActive && '• Sedang Berlangsung'}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+            schedules.map((schedule) => {
+              const [startH, startM] = schedule.time_start.split(':').map(Number);
+              const [endH, endM] = schedule.time_end.split(':').map(Number);
+              const startMins = startH * 60 + startM;
+              const endMins = endH * 60 + endM;
+              const isActive = currentMinutes >= startMins && currentMinutes <= endMins;
 
-        {/* Finance Summary */}
-        <div className="card" onClick={() => setActiveTab('finance')} style={{ cursor: 'pointer', marginBottom: '1.5rem' }}>
-          <div className="section-header" style={{ marginBottom: '1rem' }}>
-            <h2 style={{ fontSize: '1rem' }}>💰 Transaksi Terbaru</h2>
-            <span style={{ fontSize: '0.875rem', color: 'var(--text-light)' }}>Lihat Detail ›</span>
-          </div>
-          {latestTransactions.length === 0 ? (
-            <p style={{ color: 'var(--text-light)', fontSize: '0.875rem' }}>Belum ada transaksi hari ini.</p>
-          ) : (
-            <div className="transaction-list">
-              {latestTransactions.map((t) => (
-                <div key={t.id} className="transaction-item" style={{ padding: '12px' }}>
-                  <div className="transaction-content">
-                    <p className="transaction-desc">{t.title}</p>
-                  </div>
-                  <span className={`transaction-amount ${t.type}`}>
-                    {t.type === 'expense' ? '-' : '+'}{formatRupiah(t.amount)}
-                  </span>
+              return (
+                <div key={schedule.id} className={`p-3 rounded-xl border flex flex-col gap-1 transition-all ${isActive ? 'bg-brand-950 text-white border-brand-950 dark:bg-white dark:text-brand-950 dark:border-white shadow-md scale-[1.02]' : 'bg-brand-50 dark:bg-brand-950 border-transparent hover:border-brand-200 dark:hover:border-brand-800'}`}>
+                  <p className="font-bold text-sm">{schedule.title}</p>
+                  <p className={`text-xs font-semibold ${isActive ? 'opacity-90' : 'text-brand-500'}`}>
+                    {schedule.time_start} - {schedule.time_end} {isActive && '• Sedang Berlangsung'}
+                  </p>
                 </div>
-              ))}
-            </div>
+              );
+            })
           )}
         </div>
+      </div>
 
+      {/* Finances */}
+      <div onClick={() => setActiveTab('finance')} className="card group cursor-pointer mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="font-bold flex items-center gap-2"><span className="text-xl">💰</span> Transaksi Terbaru</h2>
+          <span className="text-xs font-bold text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white transition-colors">Lihat ›</span>
+        </div>
+        <div className="flex flex-col gap-2">
+          {latestTransactions.length === 0 ? (
+            <p className="text-sm font-semibold text-brand-400 text-center py-2">Belum ada transaksi</p>
+          ) : (
+            latestTransactions.map((t) => (
+              <div key={t.id} className="flex justify-between items-center p-3 bg-brand-50 dark:bg-brand-950 rounded-xl">
+                <p className="font-bold text-sm truncate max-w-[60%]">{t.title}</p>
+                <p className={`font-bold text-sm ${t.type === 'expense' ? 'text-red-500 dark:text-red-400' : 'text-green-500 dark:text-green-400'}`}>
+                  {t.type === 'expense' ? '-' : '+'}{formatRupiah(t.amount)}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

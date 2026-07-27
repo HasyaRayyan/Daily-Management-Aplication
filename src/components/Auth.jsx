@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { login, register, sendPasswordResetOtp } from '../lib/auth';
 
 export default function Auth() {
-  const [view, setView] = useState('login'); // 'login', 'register', 'forgot_password'
+  const [view, setView] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -19,13 +19,7 @@ export default function Auth() {
     let result;
     if (view === 'login') {
       result = await login(email, password);
-      if (result.error) {
-        let errorMsg = result.error.message;
-        if (errorMsg.includes('Invalid login credentials')) {
-          errorMsg = 'Email atau password salah.';
-        }
-        setError(new Error(errorMsg));
-      }
+      if (result.error) setError(new Error('Email atau password salah.'));
     } else if (view === 'register') {
       if (!displayName.trim()) {
         setError(new Error('Nama tidak boleh kosong.'));
@@ -33,120 +27,96 @@ export default function Auth() {
         return;
       }
       result = await register(email, password, displayName.trim());
-      if (result.error) {
-        let errorMsg = result.error.message;
-        if (errorMsg.includes('User already registered')) {
-          errorMsg = 'Email ini sudah terdaftar.';
-        } else if (errorMsg.includes('Password should be at least')) {
-          errorMsg = 'Password minimal 6 karakter.';
-        }
-        setError(new Error(errorMsg));
-      } else if (result.user) {
+      if (result.error) setError(new Error(result.error.message));
+      else if (result.user) {
         alert('Pendaftaran berhasil! Silakan masuk dengan akun baru Anda.');
         setView('login');
       }
     } else if (view === 'forgot_password') {
       result = await sendPasswordResetOtp(email);
-      if (result.error) {
-        setError(new Error(result.error.message));
-      } else {
-        setSuccessMsg('Link reset password telah dikirim ke email Anda. Silakan cek kotak masuk atau folder spam dan klik link tersebut.');
-        // Tetap di halaman ini agar user bisa membaca pesannya
-      }
+      if (result.error) setError(new Error(result.error.message));
+      else setSuccessMsg('Link reset password telah dikirim ke email Anda.');
     }
-    
     setLoading(false);
   };
 
-  const renderHeader = () => {
-    switch (view) {
-      case 'login': return { title: 'Selamat Datang Kembali', subtitle: 'Silakan masuk menggunakan email akun Anda.' };
-      case 'register': return { title: 'Buat Akun Baru', subtitle: 'Daftarkan email Anda untuk mulai mengelola hari.' };
-      case 'forgot_password': return { title: 'Lupa Kata Sandi', subtitle: 'Masukkan email Anda untuk menerima link reset password.' };
-      default: return { title: '', subtitle: '' };
-    }
+  const titles = {
+    login: { title: 'Selamat Datang', sub: 'Silakan masuk menggunakan email Anda.' },
+    register: { title: 'Buat Akun Baru', sub: 'Daftarkan email Anda untuk mulai mengelola hari.' },
+    forgot_password: { title: 'Lupa Kata Sandi', sub: 'Masukkan email Anda untuk menerima link reset.' }
   };
 
-  const { title, subtitle } = renderHeader();
-
   return (
-    <div className="auth-page">
-      {view !== 'login' && view !== 'register' && (
-        <div className="auth-back-btn" onClick={() => { setView('login'); setError(null); setSuccessMsg(null); }} style={{cursor: 'pointer'}}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </div>
-      )}
-      {(view === 'login' || view === 'register') && (
-        <div className="auth-back-btn">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </div>
-      )}
-
-      <div className="auth-logo-container">
-        <div className="auth-logo">
-          <div style={{ textAlign: 'center', fontSize: '10px', fontWeight: '800', lineHeight: '1' }}>
-            <div style={{transform: 'rotate(-20deg)'}}>DAILY</div>
-            <div style={{transform: 'rotate(10deg)'}}>MANAGER</div>
-            <div style={{transform: 'rotate(-5deg)'}}>APP</div>
-          </div>
-        </div>
-      </div>
-
-      <div className="auth-header-text">
-        <h1 className="auth-title">{title}</h1>
-        <p className="auth-subtitle">{subtitle}</p>
-      </div>
-
-      {error && <div className="auth-error-msg">{error.message}</div>}
-      {successMsg && <div className="auth-success-msg" style={{color: '#10b981', fontSize: '0.875rem', marginBottom: '1rem', textAlign: 'center', backgroundColor: '#ecfdf5', padding: '10px', borderRadius: '8px'}}>{successMsg}</div>}
-
-      <form onSubmit={handleSubmit} className="auth-form">
-        {view === 'register' && (
-          <div className="form-group">
-            <label className="form-label">NAMA LENGKAP</label>
-            <input type="text" className="form-input" placeholder="Contoh: Hasya Rayyan" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />
-          </div>
+    <div className="flex flex-col min-h-screen bg-brand-50 dark:bg-brand-950 p-6 md:p-12 items-center justify-center animate-fade-in">
+      <div className="w-full max-w-sm">
+        
+        {/* Back Button */}
+        {view !== 'login' && (
+          <button 
+            onClick={() => { setView('login'); setError(null); }} 
+            className="w-10 h-10 flex items-center justify-center rounded-full border border-brand-200 dark:border-brand-800 bg-white dark:bg-brand-900 mb-8 hover:bg-brand-100 dark:hover:bg-brand-800 transition-colors"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
+          </button>
         )}
 
-        <div className="form-group">
-          <label className="form-label">ALAMAT EMAIL</label>
-          <input type="email" className="form-input" placeholder="email@contoh.com" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+        {/* Logo */}
+        <div className="flex justify-center mb-8">
+          <div className="w-24 h-24 rounded-full bg-white dark:bg-black shadow-xl flex items-center justify-center border border-brand-100 dark:border-brand-800 overflow-hidden">
+            <span className="font-extrabold text-2xl tracking-tighter">DAILY</span>
+          </div>
         </div>
 
+        {/* Text Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-extrabold tracking-tight mb-2">{titles[view].title}</h1>
+          <p className="text-brand-500 dark:text-brand-400 text-sm">{titles[view].sub}</p>
+        </div>
+
+        {/* Messages */}
+        {error && <div className="bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 p-3 rounded-xl text-sm font-semibold text-center mb-6">{error.message}</div>}
+        {successMsg && <div className="bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400 p-3 rounded-xl text-sm font-semibold text-center mb-6">{successMsg}</div>}
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {view === 'register' && (
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-brand-700 dark:text-brand-300 tracking-wider">NAMA LENGKAP</label>
+              <input type="text" className="input-field" placeholder="Hasya Rayyan" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />
+            </div>
+          )}
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-bold text-brand-700 dark:text-brand-300 tracking-wider">ALAMAT EMAIL</label>
+            <input type="email" className="input-field" placeholder="email@contoh.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </div>
+          {(view === 'login' || view === 'register') && (
+            <div className="flex flex-col gap-2">
+              <div className="flex justify-between items-end">
+                <label className="text-xs font-bold text-brand-700 dark:text-brand-300 tracking-wider">KATA SANDI</label>
+                {view === 'login' && (
+                  <button type="button" className="text-xs font-bold text-brand-500 hover:text-brand-900 dark:hover:text-white" onClick={() => setView('forgot_password')}>Lupa kata sandi?</button>
+                )}
+              </div>
+              <input type="password" className="input-field" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+            </div>
+          )}
+          
+          <button type="submit" className="btn-primary mt-4" disabled={loading}>
+            {loading ? 'Memproses...' : view === 'login' ? 'Masuk' : view === 'register' ? 'Daftar' : 'Kirim Link Reset'}
+          </button>
+        </form>
+
+        {/* Footer */}
         {(view === 'login' || view === 'register') && (
-          <div className="form-group">
-            <label className="form-label">KATA SANDI</label>
-            <input type="password" className="form-input" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} autoComplete={view === 'login' ? "current-password" : "new-password"} />
-            {view === 'login' && (
-              <button type="button" className="auth-forgot-link" onClick={() => { setView('forgot_password'); setError(null); setSuccessMsg(null); }}>
-                Lupa kata sandi?
-              </button>
-            )}
-          </div>
-        )}
-
-        <button type="submit" className="btn-primary" disabled={loading}>
-          {loading ? 'Memproses...' : 
-           view === 'login' ? 'Masuk Sekarang' : 
-           view === 'register' ? 'Daftar Sekarang' : 
-           'Kirim Link Reset'}
-        </button>
-      </form>
-
-      {(view === 'login' || view === 'register') && (
-        <div className="auth-footer">
-          <p>
-            {view === 'login' ? 'Belum punya akun?' : 'Sudah punya akun?'}
-            <button type="button" className="auth-link" onClick={() => { setView(view === 'login' ? 'register' : 'login'); setError(null); }}>
+          <div className="text-center mt-8 text-sm text-brand-500">
+            {view === 'login' ? 'Belum punya akun? ' : 'Sudah punya akun? '}
+            <button onClick={() => setView(view === 'login' ? 'register' : 'login')} className="font-bold text-brand-900 dark:text-white hover:underline">
               {view === 'login' ? 'Daftar di sini' : 'Masuk di sini'}
             </button>
-          </p>
-        </div>
-      )}
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }
