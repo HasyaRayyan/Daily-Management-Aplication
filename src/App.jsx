@@ -5,7 +5,7 @@ import Summary from './components/Summary';
 import Auth from './components/Auth';
 import { getTasks, getTransactions } from './utils/storage';
 import { getDateKey, formatDateIndo, isToday } from './utils/helpers';
-import { getSession, onAuthStateChange, logout } from './lib/auth';
+import { getSession, onAuthStateChange, logout, updatePassword } from './lib/auth';
 import './index.css';
 
 // SVG Icons
@@ -23,6 +23,10 @@ const IconChevronRight = () => <svg width="20" height="20" viewBox="0 0 24 24" f
 function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [recoveryMode, setRecoveryMode] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [updatingPassword, setUpdatingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState(null);
 
   // Active tab: 'home' | 'tasks' | 'finance' | 'summary' | 'profile'
   const [activeTab, setActiveTab] = useState('home');
@@ -37,8 +41,11 @@ function App() {
       setAuthLoading(false);
     });
 
-    const { data: { subscription } } = onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = onAuthStateChange((event, session) => {
       setSession(session);
+      if (event === 'PASSWORD_RECOVERY') {
+        setRecoveryMode(true);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -58,6 +65,39 @@ function App() {
 
   if (!session) {
     return <Auth />;
+  }
+
+  if (recoveryMode) {
+    return (
+      <div className="auth-page">
+        <div className="auth-header-text" style={{marginTop: '2rem'}}>
+          <h1 className="auth-title">Buat Kata Sandi Baru</h1>
+          <p className="auth-subtitle">Silakan masukkan kata sandi baru Anda.</p>
+        </div>
+        {passwordError && <div className="auth-error-msg">{passwordError}</div>}
+        <form className="auth-form" onSubmit={async (e) => {
+          e.preventDefault();
+          setUpdatingPassword(true);
+          setPasswordError(null);
+          const { error } = await updatePassword(newPassword);
+          if (error) {
+            setPasswordError(error.message);
+          } else {
+            alert('Kata sandi berhasil diubah! Anda bisa mulai menggunakan aplikasi.');
+            setRecoveryMode(false);
+          }
+          setUpdatingPassword(false);
+        }}>
+          <div className="form-group">
+            <label className="form-label">KATA SANDI BARU</label>
+            <input type="password" className="form-input" placeholder="********" value={newPassword} onChange={e => setNewPassword(e.target.value)} required minLength={6} />
+          </div>
+          <button type="submit" className="btn-primary" disabled={updatingPassword}>
+            {updatingPassword ? 'Menyimpan...' : 'Simpan Kata Sandi'}
+          </button>
+        </form>
+      </div>
+    );
   }
 
   return (

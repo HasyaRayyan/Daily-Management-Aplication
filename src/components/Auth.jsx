@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { login, register, sendPasswordResetOtp, verifyOtpAndResetPassword } from '../lib/auth';
+import { login, register, sendPasswordResetOtp } from '../lib/auth';
 
 export default function Auth() {
-  const [view, setView] = useState('login'); // 'login', 'register', 'forgot_password', 'reset_password'
+  const [view, setView] = useState('login'); // 'login', 'register', 'forgot_password'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
@@ -51,20 +50,8 @@ export default function Auth() {
       if (result.error) {
         setError(new Error(result.error.message));
       } else {
-        setSuccessMsg('OTP telah dikirim ke email Anda. Silakan cek kotak masuk atau spam.');
-        setView('reset_password');
-      }
-    } else if (view === 'reset_password') {
-      result = await verifyOtpAndResetPassword(email, otp, password);
-      if (result.error) {
-        let errorMsg = result.error.message;
-        if (errorMsg.includes('Token has expired or is invalid')) {
-           errorMsg = 'OTP salah atau sudah kedaluwarsa.';
-        }
-        setError(new Error(errorMsg));
-      } else {
-        alert('Kata sandi berhasil direset! Silakan login dengan kata sandi baru.');
-        setView('login');
+        setSuccessMsg('Link reset password telah dikirim ke email Anda. Silakan cek kotak masuk atau folder spam dan klik link tersebut.');
+        // Tetap di halaman ini agar user bisa membaca pesannya
       }
     }
     
@@ -75,8 +62,7 @@ export default function Auth() {
     switch (view) {
       case 'login': return { title: 'Selamat Datang Kembali', subtitle: 'Silakan masuk menggunakan email akun Anda.' };
       case 'register': return { title: 'Buat Akun Baru', subtitle: 'Daftarkan email Anda untuk mulai mengelola hari.' };
-      case 'forgot_password': return { title: 'Lupa Kata Sandi', subtitle: 'Masukkan email Anda untuk menerima kode OTP reset password.' };
-      case 'reset_password': return { title: 'Reset Kata Sandi', subtitle: 'Masukkan kode OTP yang dikirim ke email dan kata sandi baru Anda.' };
+      case 'forgot_password': return { title: 'Lupa Kata Sandi', subtitle: 'Masukkan email Anda untuk menerima link reset password.' };
       default: return { title: '', subtitle: '' };
     }
   };
@@ -126,32 +112,17 @@ export default function Auth() {
           </div>
         )}
 
-        {view !== 'reset_password' && (
-          <div className="form-group">
-            <label className="form-label">ALAMAT EMAIL</label>
-            <input type="email" className="form-input" placeholder="email@contoh.com" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
-          </div>
-        )}
-
-        {view === 'reset_password' && (
-          <>
-            <div className="form-group">
-              <label className="form-label">KODE OTP</label>
-              <input type="text" className="form-input" placeholder="Masukkan 6 digit OTP" value={otp} onChange={(e) => setOtp(e.target.value)} required />
-            </div>
-            <div className="form-group">
-              <label className="form-label">KATA SANDI BARU</label>
-              <input type="password" className="form-input" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
-            </div>
-          </>
-        )}
+        <div className="form-group">
+          <label className="form-label">ALAMAT EMAIL</label>
+          <input type="email" className="form-input" placeholder="email@contoh.com" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+        </div>
 
         {(view === 'login' || view === 'register') && (
           <div className="form-group">
             <label className="form-label">KATA SANDI</label>
             <input type="password" className="form-input" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} autoComplete={view === 'login' ? "current-password" : "new-password"} />
             {view === 'login' && (
-              <button type="button" className="auth-forgot-link" onClick={() => { setView('forgot_password'); setError(null); }}>
+              <button type="button" className="auth-forgot-link" onClick={() => { setView('forgot_password'); setError(null); setSuccessMsg(null); }}>
                 Lupa kata sandi?
               </button>
             )}
@@ -162,7 +133,7 @@ export default function Auth() {
           {loading ? 'Memproses...' : 
            view === 'login' ? 'Masuk Sekarang' : 
            view === 'register' ? 'Daftar Sekarang' : 
-           view === 'forgot_password' ? 'Kirim OTP' : 'Reset Kata Sandi'}
+           'Kirim Link Reset'}
         </button>
       </form>
 

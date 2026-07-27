@@ -70,27 +70,12 @@ export async function sendPasswordResetOtp(email) {
 }
 
 /**
- * Verify OTP and update to new password
- * @param {string} email 
- * @param {string} otp 
+ * Update password (used after user clicks magic link and is logged in)
  * @param {string} newPassword 
  */
-export async function verifyOtpAndResetPassword(email, otp, newPassword) {
-  // 1. Verify the OTP
-  const { data, error: verifyError } = await supabase.auth.verifyOtp({
-    email,
-    token: otp,
-    type: 'recovery',
-  });
-  
-  if (verifyError) {
-    return { error: verifyError };
-  }
-
-  // 2. Update the password
-  const { error: updateError } = await supabase.auth.updateUser({
+export async function updatePassword(newPassword) {
+  const { error } = await supabase.auth.updateUser({
     password: newPassword
   });
-
-  return { error: updateError };
+  return { error };
 }
