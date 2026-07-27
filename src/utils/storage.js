@@ -2,98 +2,150 @@
 import { supabase } from '../lib/supabase';
 
 // ==========================================
-// TASKS
+// PROFILES
 // ==========================================
+export async function getProfile() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return null;
 
-/**
- * Get all tasks for a specific date
- * @param {string} dateKey - format: YYYY-MM-DD
- * @returns {Promise<Array>}
- */
-export async function getTasks(dateKey) {
-  const { data, error } = await supabase
-    .from('tasks')
+  let { data, error } = await supabase
+    .from('profiles')
     .select('*')
-    .eq('date_key', dateKey)
-    .order('created_at', { ascending: false });
+    .eq('id', session.user.id)
+    .maybeSingle();
 
   if (error) {
-    console.error('Error fetching tasks:', error);
+    console.error('Error fetching profile:', error);
+    return null;
+  }
+  return data;
+}
+
+export async function updateProfile(updates) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return null;
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .upsert({ id: session.user.id, ...updates, updated_at: new Date().toISOString() })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating profile:', error);
+    return null;
+  }
+  return data;
+}
+
+// ==========================================
+// ROUTINES
+// ==========================================
+export async function getRoutines() {
+  const { data, error } = await supabase
+    .from('routines')
+    .select('*')
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching routines:', error);
     return [];
   }
   return data || [];
 }
 
-/**
- * Add a new task
- * @param {object} task - { id, date_key, text, completed, time, created_at }
- * @returns {Promise<object|null>}
- */
-export async function addTask(task) {
+export async function addRoutine(title) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return null;
 
   const { data, error } = await supabase
-    .from('tasks')
-    .insert({ ...task, user_id: session.user.id })
+    .from('routines')
+    .insert({ title, user_id: session.user.id })
     .select()
     .single();
 
-  if (error) {
-    console.error('Error adding task:', error);
-    return null;
-  }
+  if (error) return null;
   return data;
 }
 
-/**
- * Update a task (e.g. toggle completed)
- * @param {string} id
- * @param {object} updates
- * @returns {Promise<object|null>}
- */
-export async function updateTask(id, updates) {
+export async function deleteRoutine(id) {
+  await supabase.from('routines').delete().eq('id', id);
+}
+
+// ROUTINE LOGS
+export async function getRoutineLogs(dateKey) {
   const { data, error } = await supabase
-    .from('tasks')
-    .update(updates)
-    .eq('id', id)
+    .from('routine_logs')
+    .select('*')
+    .eq('date_key', dateKey);
+
+  if (error) {
+    console.error('Error fetching routine logs:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function toggleRoutineLog(routineId, dateKey, completed) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return null;
+
+  const { data, error } = await supabase
+    .from('routine_logs')
+    .upsert({ 
+      routine_id: routineId, 
+      user_id: session.user.id, 
+      date_key: dateKey, 
+      completed 
+    }, { onConflict: 'routine_id,date_key' })
     .select()
     .single();
 
   if (error) {
-    console.error('Error updating task:', error);
+    console.error('Error toggling routine:', error);
     return null;
   }
   return data;
 }
 
-/**
- * Delete a task
- * @param {string} id
- * @returns {Promise<boolean>}
- */
-export async function deleteTask(id) {
-  const { error } = await supabase
-    .from('tasks')
-    .delete()
-    .eq('id', id);
+// ==========================================
+// SCHEDULES
+// ==========================================
+export async function getSchedules(dateKey) {
+  const { data, error } = await supabase
+    .from('schedules')
+    .select('*')
+    .eq('date_key', dateKey)
+    .order('time_start', { ascending: true });
 
   if (error) {
-    console.error('Error deleting task:', error);
-    return false;
+    console.error('Error fetching schedules:', error);
+    return [];
   }
-  return true;
+  return data || [];
+}
+
+export async function addSchedule(schedule) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return null;
+
+  const { data, error } = await supabase
+    .from('schedules')
+    .insert({ ...schedule, user_id: session.user.id })
+    .select()
+    .single();
+
+  if (error) return null;
+  return data;
+}
+
+export async function deleteSchedule(id) {
+  await supabase.from('schedules').delete().eq('id', id);
 }
 
 // ==========================================
 // TRANSACTIONS
 // ==========================================
-
-/**
- * Get all transactions for a specific date
- * @param {string} dateKey - format: YYYY-MM-DD
- * @returns {Promise<Array>}
- */
 export async function getTransactions(dateKey) {
   const { data, error } = await supabase
     .from('transactions')
@@ -108,11 +160,6 @@ export async function getTransactions(dateKey) {
   return data || [];
 }
 
-/**
- * Add a new transaction
- * @param {object} transaction
- * @returns {Promise<object|null>}
- */
 export async function addTransaction(transaction) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return null;
@@ -130,20 +177,31 @@ export async function addTransaction(transaction) {
   return data;
 }
 
-/**
- * Delete a transaction
- * @param {string} id
- * @returns {Promise<boolean>}
- */
 export async function deleteTransaction(id) {
-  const { error } = await supabase
-    .from('transactions')
-    .delete()
-    .eq('id', id);
+  const { error } = await supabase.from('transactions').delete().eq('id', id);
+  return !error;
+}
+
+// ==========================================
+// STORAGE UPLOADS
+// ==========================================
+export async function uploadFile(bucket, path, file) {
+  const { data, error } = await supabase.storage
+    .from(bucket)
+    .upload(path, file, {
+      cacheControl: '3600',
+      upsert: true
+    });
 
   if (error) {
-    console.error('Error deleting transaction:', error);
-    return false;
+    console.error('Upload error:', error);
+    return null;
   }
-  return true;
+
+  // Get public URL
+  const { data: { publicUrl } } = supabase.storage
+    .from(bucket)
+    .getPublicUrl(path);
+    
+  return publicUrl;
 }
