@@ -54,13 +54,13 @@ export async function getRoutines() {
   return data || [];
 }
 
-export async function addRoutine(title) {
+export async function addRoutine(title, timeOfDay = 'kapan_saja') {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return null;
 
   const { data, error } = await supabase
     .from('routines')
-    .insert({ title, user_id: session.user.id })
+    .insert({ title, time_of_day: timeOfDay, user_id: session.user.id })
     .select()
     .single();
 
@@ -86,7 +86,7 @@ export async function getRoutineLogs(dateKey) {
   return data || [];
 }
 
-export async function toggleRoutineLog(routineId, dateKey, completed) {
+export async function toggleRoutineLog(routineId, dateKey, completed, notes = null) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return null;
 
@@ -97,6 +97,7 @@ export async function toggleRoutineLog(routineId, dateKey, completed) {
       user_id: session.user.id, 
       date_key: dateKey, 
       completed,
+      notes,
       completed_at: completed ? new Date().toISOString() : null
     }, { onConflict: 'routine_id,date_key' })
     .select()
@@ -115,7 +116,7 @@ export async function getRoutineHistory(startDateKey, endDateKey) {
 
   const { data, error } = await supabase
     .from('routine_logs')
-    .select('date_key, completed')
+    .select('routine_id, date_key, completed, notes')
     .eq('user_id', session.user.id)
     .gte('date_key', startDateKey)
     .lte('date_key', endDateKey);
