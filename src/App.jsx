@@ -61,25 +61,42 @@ function App() {
 
   // Schedule Reminder Logic
   useEffect(() => {
-    if (!session) return;
-    const checkSchedules = async () => {
-      const todayDateKey = getDateKey(new Date());
-      const schedules = await getSchedules(todayDateKey);
-      const now = new Date();
-      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    if (session) {
+      // Request notification permission
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
 
-      const upcoming = schedules.find(sch => {
-        const [startH, startM] = sch.time_start.split(':').map(Number);
-        const startMins = startH * 60 + startM;
-        return startMins > currentMinutes && startMins - currentMinutes <= 15;
-      });
-      setAlertSchedule(upcoming || null);
-    };
+      const checkSchedules = async () => {
+        const todayKey = getDateKey(new Date());
+        const { data } = await supabase.from('schedules').select('*').eq('date_key', todayKey);
+        if (!data) return;
 
-    checkSchedules();
-    const interval = setInterval(checkSchedules, 60000);
-    return () => clearInterval(interval);
-  }, [session]);
+        const now = new Date();
+        const currentH = now.getHours();
+        const currentM = now.getMinutes();
+
+        data.forEach(schedule => {
+          const [h, m] = schedule.time_start.split(':').map(Number);
+          if (h === currentH && m === currentM && !alertSchedule) {
+            setAlertSchedule(schedule);
+            
+            // Show browser notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification('Jadwal Dimulai!', {
+                body: `"${schedule.title}" dimulai sekarang (${schedule.time_start} - ${schedule.time_end})`,
+                icon: '/favicon.ico'
+              });
+            }
+          }
+        });
+      };
+
+      const interval = setInterval(checkSchedules, 60000);
+      checkSchedules();
+      return () => clearInterval(interval);
+    }
+  }, [session, alertSchedule]);
 
   const goHome = () => setActiveTab('dashboard');
 
