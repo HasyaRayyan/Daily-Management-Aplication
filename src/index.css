@@ -46,7 +46,11 @@
 @layer components {
   /* Layout Wrapper */
   .app-wrapper {
-    @apply w-full max-w-4xl mx-auto bg-white dark:bg-brand-950 min-h-screen relative shadow-2xl overflow-x-hidden md:border-x border-brand-200 dark:border-brand-800;
+    @apply w-full h-screen flex bg-white dark:bg-brand-950 relative overflow-hidden;
+  }
+  
+  .content-area {
+    @apply flex-1 h-full overflow-y-auto pb-24 md:pb-8 relative;
   }
 
   /* Form Elements */
@@ -61,7 +65,7 @@
 
   /* Glass Bottom Nav */
   .glass-nav {
-    @apply fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-4xl bg-white/80 dark:bg-brand-950/80 backdrop-blur-md border-t md:border-x border-brand-100 dark:border-brand-800 flex justify-around items-center pt-3 pb-6 z-50;
+    @apply md:hidden fixed bottom-0 left-0 w-full bg-white/80 dark:bg-brand-950/80 backdrop-blur-md border-t border-brand-100 dark:border-brand-800 flex justify-around items-center pt-3 pb-6 z-50;
   }
 
   /* Cards */

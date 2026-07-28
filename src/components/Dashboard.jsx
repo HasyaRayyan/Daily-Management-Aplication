@@ -71,73 +71,80 @@ export default function Dashboard({ session, setActiveTab }) {
         </button>
       </div>
 
-      {/* Routine Progress */}
-      <div onClick={() => setActiveTab('routine')} className="card group cursor-pointer">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-extrabold flex items-center gap-2">Rutinitas Harian</h2>
-          <span className="text-xs font-bold text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white transition-colors">Lihat ›</span>
-        </div>
-        <div className="bg-brand-50 dark:bg-brand-950 p-4 rounded-2xl border border-brand-100 dark:border-brand-800">
-          <div className="flex justify-between text-sm font-bold mb-3">
-            <span>Progres Hari Ini</span>
-            <span>{completedCount}/{totalCount} ({progressPercent}%)</span>
-          </div>
-          <div className="h-3 w-full bg-brand-200 dark:bg-brand-800 rounded-full overflow-hidden shadow-inner">
-            <div className="h-full bg-brand-950 dark:bg-white rounded-full transition-all duration-1000 ease-out" style={{ width: `${progressPercent}%` }} />
-          </div>
-        </div>
-      </div>
-
-      {/* Schedules */}
-      <div onClick={() => setActiveTab('schedule')} className="card group cursor-pointer">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-extrabold flex items-center gap-2">Jadwal Hari Ini</h2>
-          <span className="text-xs font-bold text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white transition-colors">Lihat ›</span>
-        </div>
-        <div className="flex flex-col gap-3">
-          {schedules.length === 0 ? (
-            <p className="text-sm font-semibold text-brand-400 text-center py-4 bg-brand-50 dark:bg-brand-950 rounded-2xl border border-dashed border-brand-200 dark:border-brand-800">Tidak ada jadwal hari ini</p>
-          ) : (
-            schedules.map((schedule) => {
-              const [startH, startM] = schedule.time_start.split(':').map(Number);
-              const [endH, endM] = schedule.time_end.split(':').map(Number);
-              const startMins = startH * 60 + startM;
-              const endMins = endH * 60 + endM;
-              const isActive = currentMinutes >= startMins && currentMinutes <= endMins;
-
-              return (
-                <div key={schedule.id} className={`p-4 rounded-2xl border flex flex-col gap-1 transition-all ${isActive ? 'bg-brand-950 text-white border-brand-950 dark:bg-white dark:text-brand-950 dark:border-white shadow-lg scale-[1.02]' : 'bg-brand-50 dark:bg-brand-950 border-brand-100 dark:border-brand-800'}`}>
-                  <p className="font-black text-[15px]">{schedule.title}</p>
-                  <p className={`text-xs font-bold ${isActive ? 'opacity-90' : 'text-brand-500'}`}>
-                    {schedule.time_start} - {schedule.time_end} {isActive && '• Sedang Berlangsung'}
-                  </p>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </div>
-
-      {/* Finances */}
-      <div onClick={() => setActiveTab('finance')} className="card group cursor-pointer mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-extrabold flex items-center gap-2">Transaksi Terbaru</h2>
-          <span className="text-xs font-bold text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white transition-colors">Lihat ›</span>
-        </div>
-        <div className="flex flex-col gap-3">
-          {latestTransactions.length === 0 ? (
-            <p className="text-sm font-semibold text-brand-400 text-center py-4 bg-brand-50 dark:bg-brand-950 rounded-2xl border border-dashed border-brand-200 dark:border-brand-800">Belum ada transaksi</p>
-          ) : (
-            latestTransactions.map((t) => (
-              <div key={t.id} className="flex justify-between items-center p-4 bg-brand-50 dark:bg-brand-950 rounded-2xl border border-brand-100 dark:border-brand-800">
-                <p className="font-bold text-[15px] truncate max-w-[60%]">{t.title}</p>
-                <p className={`font-black text-[15px] ${t.type === 'expense' ? 'text-red-500 dark:text-red-400' : 'text-green-500 dark:text-green-400'}`}>
-                  {t.type === 'expense' ? '-' : '+'}{formatRupiah(t.amount)}
-                </p>
+      {/* Responsive Grid for Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full pb-8">
+        
+        <div className="flex flex-col gap-6">
+          {/* Routine Progress */}
+          <div onClick={() => setActiveTab('routine')} className="card group cursor-pointer h-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="font-extrabold flex items-center gap-2">Rutinitas Harian</h2>
+              <span className="text-xs font-bold text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white transition-colors">Lihat ›</span>
+            </div>
+            <div className="bg-brand-50 dark:bg-brand-950 p-4 rounded-2xl border border-brand-100 dark:border-brand-800">
+              <div className="flex justify-between text-sm font-bold mb-3">
+                <span>Progres Hari Ini</span>
+                <span>{completedCount}/{totalCount} ({progressPercent}%)</span>
               </div>
-            ))
-          )}
+              <div className="h-3 w-full bg-brand-200 dark:bg-brand-800 rounded-full overflow-hidden shadow-inner">
+                <div className="h-full bg-brand-950 dark:bg-white rounded-full transition-all duration-1000 ease-out" style={{ width: `${progressPercent}%` }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Finances */}
+          <div onClick={() => setActiveTab('finance')} className="card group cursor-pointer h-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="font-extrabold flex items-center gap-2">Transaksi Terbaru</h2>
+              <span className="text-xs font-bold text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white transition-colors">Lihat ›</span>
+            </div>
+            <div className="flex flex-col gap-3">
+              {latestTransactions.length === 0 ? (
+                <p className="text-sm font-semibold text-brand-400 text-center py-4 bg-brand-50 dark:bg-brand-950 rounded-2xl border border-dashed border-brand-200 dark:border-brand-800">Belum ada transaksi</p>
+              ) : (
+                latestTransactions.map((t) => (
+                  <div key={t.id} className="flex justify-between items-center p-4 bg-brand-50 dark:bg-brand-950 rounded-2xl border border-brand-100 dark:border-brand-800">
+                    <p className="font-bold text-[15px] truncate max-w-[60%]">{t.title}</p>
+                    <p className={`font-black text-[15px] ${t.type === 'expense' ? 'text-red-500 dark:text-red-400' : 'text-green-500 dark:text-green-400'}`}>
+                      {t.type === 'expense' ? '-' : '+'}{formatRupiah(t.amount)}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
+
+        {/* Schedules */}
+        <div onClick={() => setActiveTab('schedule')} className="card group cursor-pointer h-full">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-extrabold flex items-center gap-2">Jadwal Hari Ini</h2>
+            <span className="text-xs font-bold text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white transition-colors">Lihat ›</span>
+          </div>
+          <div className="flex flex-col gap-3">
+            {schedules.length === 0 ? (
+              <p className="text-sm font-semibold text-brand-400 text-center py-4 bg-brand-50 dark:bg-brand-950 rounded-2xl border border-dashed border-brand-200 dark:border-brand-800">Tidak ada jadwal hari ini</p>
+            ) : (
+              schedules.map((schedule) => {
+                const [startH, startM] = schedule.time_start.split(':').map(Number);
+                const [endH, endM] = schedule.time_end.split(':').map(Number);
+                const startMins = startH * 60 + startM;
+                const endMins = endH * 60 + endM;
+                const isActive = currentMinutes >= startMins && currentMinutes <= endMins;
+
+                return (
+                  <div key={schedule.id} className={`p-4 rounded-2xl border flex flex-col gap-1 transition-all ${isActive ? 'bg-brand-950 text-white border-brand-950 dark:bg-white dark:text-brand-950 dark:border-white shadow-lg scale-[1.02]' : 'bg-brand-50 dark:bg-brand-950 border-brand-100 dark:border-brand-800'}`}>
+                    <p className="font-black text-[15px]">{schedule.title}</p>
+                    <p className={`text-xs font-bold ${isActive ? 'opacity-90' : 'text-brand-500'}`}>
+                      {schedule.time_start} - {schedule.time_end} {isActive && '• Sedang Berlangsung'}
+                    </p>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
       </div>
     </div>
   );

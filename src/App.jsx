@@ -116,11 +116,19 @@ function App() {
     );
   }
 
+  const navItems = [
+    { id: 'dashboard', icon: <IconHome />, label: 'Beranda' },
+    { id: 'routine', icon: <IconCheckSquare />, label: 'Rutinitas' },
+    { id: 'schedule', icon: <IconCalendar />, label: 'Jadwal' },
+    { id: 'finance', icon: <IconWallet />, label: 'Keuangan' },
+    { id: 'profile', icon: <IconUser />, label: 'Profil' },
+  ];
+
   return (
     <div className="app-wrapper animate-fade-in">
       {/* Global Alert */}
       {alertSchedule && (
-        <div className="fixed top-4 left-4 right-4 z-[100] max-w-2xl mx-auto bg-brand-950 dark:bg-white text-white dark:text-black p-4 rounded-2xl shadow-xl flex justify-between items-center animate-slide-up">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl z-[100] bg-brand-950 dark:bg-white text-white dark:text-black p-4 rounded-2xl shadow-xl flex justify-between items-center animate-slide-up">
           <div>
             <strong className="block text-sm">Peringatan Jadwal!</strong>
             <span className="text-xs opacity-80">"{alertSchedule.title}" akan dimulai pada {alertSchedule.time_start}</span>
@@ -129,24 +137,41 @@ function App() {
         </div>
       )}
 
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex flex-col w-64 h-full border-r border-brand-200 dark:border-brand-800 bg-brand-50 dark:bg-brand-950 p-6 z-40 shrink-0">
+        <h1 className="text-2xl font-black mb-10 text-center tracking-tight">Daily<br/><span className="text-brand-500">Manager</span></h1>
+        <nav className="flex flex-col gap-3">
+          {navItems.map(item => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
+                activeTab === item.id
+                  ? 'bg-brand-950 dark:bg-white text-white dark:text-brand-950 shadow-md'
+                  : 'text-brand-600 dark:text-brand-400 hover:bg-brand-200 dark:hover:bg-brand-900'
+              }`}
+            >
+              <div className="[&>svg]:w-6 [&>svg]:h-6">{item.icon}</div>
+              <span className="text-sm">{item.label}</span>
+            </button>
+          ))}
+        </nav>
+      </aside>
+
       {/* Pages Content */}
-      <div className="pb-24 h-full overflow-y-auto">
-        {activeTab === 'dashboard' && <Dashboard session={session} setActiveTab={setActiveTab} />}
-        {activeTab === 'routine' && <Routine onBack={goHome} />}
-        {activeTab === 'schedule' && <Schedule onBack={goHome} />}
-        {activeTab === 'finance' && <Finance onBack={goHome} />}
-        {activeTab === 'profile' && <Profile session={session} onBack={goHome} />}
+      <div className="content-area w-full">
+        <div className="max-w-4xl mx-auto w-full h-full">
+          {activeTab === 'dashboard' && <Dashboard session={session} setActiveTab={setActiveTab} />}
+          {activeTab === 'routine' && <Routine onBack={goHome} />}
+          {activeTab === 'schedule' && <Schedule onBack={goHome} />}
+          {activeTab === 'finance' && <Finance onBack={goHome} />}
+          {activeTab === 'profile' && <Profile session={session} onBack={goHome} />}
+        </div>
       </div>
 
-      {/* Glass Bottom Nav */}
+      {/* Glass Bottom Nav (Mobile) */}
       <nav className="glass-nav">
-        {[
-          { id: 'dashboard', icon: <IconHome />, label: 'Beranda' },
-          { id: 'routine', icon: <IconCheckSquare />, label: 'Rutinitas' },
-          { id: 'schedule', icon: <IconCalendar />, label: 'Jadwal' },
-          { id: 'finance', icon: <IconWallet />, label: 'Keuangan' },
-          { id: 'profile', icon: <IconUser />, label: 'Profil' },
-        ].map(item => (
+        {navItems.map(item => (
           <button 
             key={item.id}
             onClick={() => setActiveTab(item.id)}
