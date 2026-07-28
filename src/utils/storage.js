@@ -96,7 +96,8 @@ export async function toggleRoutineLog(routineId, dateKey, completed) {
       routine_id: routineId, 
       user_id: session.user.id, 
       date_key: dateKey, 
-      completed 
+      completed,
+      completed_at: completed ? new Date().toISOString() : null
     }, { onConflict: 'routine_id,date_key' })
     .select()
     .single();
@@ -106,6 +107,24 @@ export async function toggleRoutineLog(routineId, dateKey, completed) {
     return null;
   }
   return data;
+}
+
+export async function getRoutineHistory(startDateKey, endDateKey) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return [];
+
+  const { data, error } = await supabase
+    .from('routine_logs')
+    .select('date_key, completed')
+    .eq('user_id', session.user.id)
+    .gte('date_key', startDateKey)
+    .lte('date_key', endDateKey);
+
+  if (error) {
+    console.error('Error fetching routine history:', error);
+    return [];
+  }
+  return data || [];
 }
 
 // ==========================================

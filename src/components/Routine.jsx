@@ -1,15 +1,19 @@
 import { useState, useEffect } from 'react';
 import Modal from './Modal';
-import { getRoutines, addRoutine, deleteRoutine, getRoutineLogs, toggleRoutineLog } from '../utils/storage';
+import { getRoutines, addRoutine, deleteRoutine, getRoutineLogs, toggleRoutineLog, getRoutineHistory } from '../utils/storage';
 import { getDateKey } from '../utils/helpers';
+import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export default function Routine() {
   const [routines, setRoutines] = useState([]);
   const [logs, setLogs] = useState([]);
+  const [historyData, setHistoryData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [saving, setSaving] = useState(false);
+  const [chartPeriod, setChartPeriod] = useState('weekly'); // 'weekly' or 'monthly'
+  const [isDarkMode, setIsDarkMode] = useState(false);
   
   const todayDateKey = getDateKey(new Date());
 
@@ -17,14 +21,55 @@ export default function Routine() {
     setLoading(true);
     const fetchedRoutines = await getRoutines();
     const fetchedLogs = await getRoutineLogs(todayDateKey);
+    
+    // Fetch History Data
+    const daysCount = chartPeriod === 'weekly' ? 7 : 30;
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - daysCount + 1);
+    
+    const startKey = getDateKey(startDate);
+    const endKey = getDateKey(endDate);
+    
+    const historyLogs = await getRoutineHistory(startKey, endKey);
+    
+    // Process History Data into array of objects for Recharts
+    const chartData = [];
+    for (let i = 0; i < daysCount; i++) {
+      const d = new Date(startDate);
+      d.setDate(d.getDate() + i);
+      const dKey = getDateKey(d);
+      
+      const dayLogs = historyLogs.filter(l => l.date_key === dKey && l.completed);
+      
+      // Format label
+      const label = chartPeriod === 'weekly' 
+        ? d.toLocaleDateString('id-ID', { weekday: 'short' })
+        : d.getDate().toString();
+        
+      chartData.push({
+        date: label,
+        fullDate: dKey,
+        completed: dayLogs.length
+      });
+    }
+
+    setHistoryData(chartData);
     setRoutines(fetchedRoutines);
     setLogs(fetchedLogs);
+    setIsDarkMode(document.documentElement.classList.contains('dark'));
     setLoading(false);
   };
 
   useEffect(() => {
     fetchData();
-  }, []);
+    
+    const observer = new MutationObserver(() => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, [chartPeriod]);
 
   const handleAddRoutine = async (e) => {
     e.preventDefault();
@@ -45,94 +90,154 @@ export default function Routine() {
 
   const handleToggle = async (routineId) => {
     const isCompleted = isRoutineCompleted(routineId);
+    
+    // Optimistic Update
     setLogs(prev => {
       const existing = prev.find(l => l.routine_id === routineId);
       if (existing) {
-        return prev.map(l => l.routine_id === routineId ? { ...l, completed: !isCompleted } : l);
+        return prev.map(l => l.routine_id === routineId ? { ...l, completed: !isCompleted, completed_at: !isCompleted ? new Date().toISOString() : null } : l);
       } else {
-        return [...prev, { routine_id: routineId, completed: !isCompleted }];
+        return [...prev, { routine_id: routineId, completed: !isCompleted, completed_at: !isCompleted ? new Date().toISOString() : null }];
       }
     });
+
     await toggleRoutineLog(routineId, todayDateKey, !isCompleted);
+    // Refresh history chart slightly later to avoid blocking UI toggle
+    setTimeout(fetchData, 500); 
   };
 
-  const isRoutineCompleted = (routineId) => {
-    const log = logs.find(l => l.routine_id === routineId);
-    return log ? log.completed : false;
+  const getRoutineLog = (routineId) => logs.find(l => l.routine_id === routineId);
+  const isRoutineCompleted = (routineId) => getRoutineLog(routineId)?.completed || false;
+  const getCompletionTime = (routineId) => {
+    const log = getRoutineLog(routineId);
+    if (log && log.completed && log.completed_at) {
+      const d = new Date(log.completed_at);
+      return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+    }
+    return null;
   };
 
-  const completedCount = routines.filter(r => isRoutineCompleted(r.id)).length;
-  const totalCount = routines.length;
-  const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const textColor = isDarkMode ? '#a1a1aa' : '#71717a';
 
   return (
-    <div className="flex flex-col gap-6 px-5 pt-2 pb-8 animate-fade-in">
-      <div className="flex justify-between items-center">
+    <div className="flex flex-col gap-6 px-5 pt-2 pb-24 animate-fade-in relative min-h-full">
+      <div className="flex justify-between items-center mb-2">
         <h2 className="text-2xl font-extrabold tracking-tight flex items-center gap-3">
           <span>🔄</span> Rutinitas
         </h2>
-        <button onClick={() => setShowModal(true)} className="bg-brand-950 dark:bg-white text-white dark:text-brand-950 font-bold px-4 py-2 rounded-xl shadow-sm hover:scale-105 transition-transform text-sm">
-          + Tambah
-        </button>
       </div>
 
-      {totalCount > 0 && (
-        <div className="card">
-          <div className="flex justify-between text-sm font-semibold mb-3">
-            <span className="text-brand-500 dark:text-brand-400">Progres hari ini</span>
-            <span>{completedCount}/{totalCount} selesai</span>
-          </div>
-          <div className="h-3 w-full bg-brand-100 dark:bg-brand-800 rounded-full overflow-hidden shadow-inner">
-            <div className="h-full bg-brand-950 dark:bg-white rounded-full transition-all duration-1000 ease-out" style={{ width: `${progressPercent}%` }} />
+      {/* Chart Section */}
+      <div className="card w-full">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-bold text-sm tracking-wide text-brand-900 dark:text-white">PROGRES PENYELESAIAN</h3>
+          <div className="flex bg-brand-100 dark:bg-brand-900 rounded-lg p-1">
+            <button 
+              className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${chartPeriod === 'weekly' ? 'bg-white dark:bg-brand-950 shadow-sm text-brand-900 dark:text-white' : 'text-brand-500 hover:text-brand-900 dark:hover:text-white'}`}
+              onClick={() => setChartPeriod('weekly')}
+            >
+              Mingguan
+            </button>
+            <button 
+              className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${chartPeriod === 'monthly' ? 'bg-white dark:bg-brand-950 shadow-sm text-brand-900 dark:text-white' : 'text-brand-500 hover:text-brand-900 dark:hover:text-white'}`}
+              onClick={() => setChartPeriod('monthly')}
+            >
+              Bulanan
+            </button>
           </div>
         </div>
-      )}
+        
+        <div className="w-full h-[180px]">
+          {loading && historyData.length === 0 ? (
+            <div className="w-full h-full flex items-center justify-center animate-pulse text-xs font-bold text-brand-400">Memuat grafik...</div>
+          ) : (
+            <ResponsiveContainer>
+              <BarChart data={historyData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                <XAxis dataKey="date" tick={{fontSize: 10, fill: textColor, fontWeight: 600}} axisLine={false} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{fontSize: 10, fill: textColor, fontWeight: 600}} axisLine={false} tickLine={false} />
+                <RechartsTooltip 
+                  cursor={{fill: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}}
+                  contentStyle={{ backgroundColor: isDarkMode ? '#18181b' : '#ffffff', border: 'none', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', color: isDarkMode ? '#fff' : '#000', fontWeight: 'bold' }} 
+                  labelFormatter={(label, payload) => payload?.[0]?.payload?.fullDate || label}
+                  formatter={(value) => [`${value} Rutinitas`, 'Selesai']}
+                />
+                <Bar dataKey="completed" radius={[4, 4, 0, 0]} maxBarSize={40}>
+                  {historyData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fullDate === todayDateKey ? (isDarkMode ? '#ffffff' : '#000000') : (isDarkMode ? '#3f3f46' : '#a1a1aa')} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </div>
 
-      {loading ? (
+      {/* Routine List Header */}
+      <h3 className="font-bold text-sm tracking-wide text-brand-900 dark:text-white mt-2 border-b border-brand-200 dark:border-brand-800 pb-2">DAFTAR RUTINITAS HARI INI</h3>
+
+      {/* Routine List */}
+      {loading && routines.length === 0 ? (
         <div className="text-center font-bold animate-pulse text-brand-500 py-10">Memuat rutinitas...</div>
-      ) : totalCount === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="text-6xl mb-4 grayscale opacity-50">📝</div>
-          <p className="font-extrabold text-xl mb-2">Belum ada rutinitas</p>
-          <p className="text-brand-500 text-sm max-w-[200px]">Tambahkan rutinitas harianmu seperti mandi atau olahraga.</p>
+      ) : routines.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-10 text-center">
+          <p className="font-extrabold text-lg mb-2">Belum ada rutinitas</p>
+          <p className="text-brand-500 text-sm max-w-[200px]">Tekan tombol + di bawah untuk mulai menambahkan.</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 pb-6">
           {routines.map((routine, index) => {
             const completed = isRoutineCompleted(routine.id);
+            const time = getCompletionTime(routine.id);
             return (
               <div
                 key={routine.id}
-                className="flex items-center justify-between p-4 bg-white dark:bg-brand-900 rounded-2xl shadow-sm border border-brand-100 dark:border-brand-800 animate-slide-up"
+                className={`flex items-center justify-between p-4 bg-brand-50 dark:bg-brand-900 rounded-2xl border transition-all animate-slide-up ${
+                  completed ? 'border-brand-300 dark:border-brand-600 shadow-sm' : 'border-transparent'
+                }`}
                 style={{ animationDelay: `${index * 0.05}s`, animationFillMode: 'both' }}
               >
-                <div className="flex items-center gap-4 flex-1">
-                  <button
-                    onClick={() => handleToggle(routine.id)}
-                    className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all ${
-                      completed 
-                        ? 'bg-brand-950 border-brand-950 text-white dark:bg-white dark:border-white dark:text-black scale-110' 
-                        : 'border-brand-300 dark:border-brand-700 hover:border-brand-500'
-                    }`}
-                  >
-                    {completed && <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>}
-                  </button>
-                  <p className={`font-bold text-lg transition-all ${completed ? 'line-through text-brand-400 dark:text-brand-600' : 'text-brand-900 dark:text-brand-50'}`}>
+                <div className="flex flex-col gap-1 flex-1 pr-4">
+                  <p className={`font-extrabold text-lg transition-all truncate ${completed ? 'line-through text-brand-400 dark:text-brand-500' : 'text-brand-900 dark:text-brand-50'}`}>
                     {routine.title}
                   </p>
+                  <p className={`text-xs font-bold ${completed ? 'text-brand-600 dark:text-brand-400' : 'text-brand-400 dark:text-brand-600'}`}>
+                    {completed ? `(${time}) check` : 'none'}
+                  </p>
                 </div>
-                <button
-                  onClick={() => handleDeleteRoutine(routine.id)}
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-brand-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                >
-                  ✕
-                </button>
+                
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => handleToggle(routine.id)}
+                    className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${
+                      completed 
+                        ? 'bg-brand-950 border-brand-950 text-white dark:bg-white dark:border-white dark:text-black scale-110' 
+                        : 'border-brand-300 dark:border-brand-700 hover:border-brand-500 bg-white dark:bg-brand-950'
+                    }`}
+                  >
+                    {completed && <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteRoutine(routine.id)}
+                    className="text-brand-300 hover:text-red-500 transition-colors"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
+                </div>
               </div>
             );
           })}
         </div>
       )}
 
+      {/* Floating Action Button (FAB) */}
+      <button 
+        onClick={() => setShowModal(true)} 
+        className="fixed bottom-24 right-5 w-14 h-14 bg-brand-200 dark:bg-brand-800 text-brand-900 dark:text-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform z-[150] border-2 border-brand-100 dark:border-brand-900"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+
+      {/* Add Routine Modal */}
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="✏️ Tambah Rutinitas">
         <form onSubmit={handleAddRoutine} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
