@@ -5,8 +5,9 @@ import Schedule from './components/Schedule';
 import Finance from './components/Finance';
 import Profile from './components/Profile';
 import Auth from './components/Auth';
+import Modal from './components/Modal';
 import { getSession, onAuthStateChange, updatePassword } from './lib/auth';
-import { getSchedules } from './utils/storage';
+import { getSchedules, getAppVersion } from './utils/storage';
 import { getDateKey } from './utils/helpers';
 import './index.css';
 
@@ -25,6 +26,7 @@ function App() {
   const [updatingPassword, setUpdatingPassword] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [alertSchedule, setAlertSchedule] = useState(null);
+  const [needsUpdate, setNeedsUpdate] = useState(false);
 
   useEffect(() => {
     // Initialize Theme
@@ -43,6 +45,16 @@ function App() {
       setSession(session);
       if (event === 'PASSWORD_RECOVERY') setRecoveryMode(true);
     });
+
+    // Check App Version
+    const checkVersion = async () => {
+      const latestVersion = await getAppVersion();
+      const currentVersion = import.meta.env.VITE_APP_VERSION;
+      if (latestVersion && currentVersion && latestVersion !== currentVersion) {
+        setNeedsUpdate(true);
+      }
+    };
+    checkVersion();
 
     return () => subscription.unsubscribe();
   }, []);
@@ -68,6 +80,8 @@ function App() {
     const interval = setInterval(checkSchedules, 60000);
     return () => clearInterval(interval);
   }, [session]);
+
+  const goHome = () => setActiveTab('dashboard');
 
   if (authLoading) {
     return <div className="app-wrapper flex items-center justify-center font-semibold animate-pulse">Memuat...</div>;
@@ -106,7 +120,7 @@ function App() {
     <div className="app-wrapper animate-fade-in">
       {/* Global Alert */}
       {alertSchedule && (
-        <div className="fixed top-4 left-4 right-4 z-[100] max-w-md mx-auto bg-brand-950 dark:bg-white text-white dark:text-black p-4 rounded-2xl shadow-xl flex justify-between items-center animate-slide-up">
+        <div className="fixed top-4 left-4 right-4 z-[100] max-w-2xl mx-auto bg-brand-950 dark:bg-white text-white dark:text-black p-4 rounded-2xl shadow-xl flex justify-between items-center animate-slide-up">
           <div>
             <strong className="block text-sm">Peringatan Jadwal!</strong>
             <span className="text-xs opacity-80">"{alertSchedule.title}" akan dimulai pada {alertSchedule.time_start}</span>
@@ -116,12 +130,12 @@ function App() {
       )}
 
       {/* Pages Content */}
-      <div className="pb-24 pt-4 h-full overflow-y-auto">
+      <div className="pb-24 h-full overflow-y-auto">
         {activeTab === 'dashboard' && <Dashboard session={session} setActiveTab={setActiveTab} />}
-        {activeTab === 'routine' && <Routine />}
-        {activeTab === 'schedule' && <Schedule />}
-        {activeTab === 'finance' && <Finance />}
-        {activeTab === 'profile' && <Profile session={session} />}
+        {activeTab === 'routine' && <Routine onBack={goHome} />}
+        {activeTab === 'schedule' && <Schedule onBack={goHome} />}
+        {activeTab === 'finance' && <Finance onBack={goHome} />}
+        {activeTab === 'profile' && <Profile session={session} onBack={goHome} />}
       </div>
 
       {/* Glass Bottom Nav */}
@@ -149,6 +163,22 @@ function App() {
           </button>
         ))}
       </nav>
+
+      {/* Force Update Modal */}
+      <Modal isOpen={needsUpdate} onClose={() => {}} title="Update Aplikasi">
+        <div className="flex flex-col items-center gap-4 text-center pb-4">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center mb-2">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+          </div>
+          <p className="font-bold text-lg">Versi Baru Tersedia!</p>
+          <p className="text-sm text-brand-500 dark:text-brand-400">
+            Aplikasi versi baru telah dirilis. Silakan muat ulang (Refresh / Clear Cache) halaman web Anda untuk menggunakan versi terbaru.
+          </p>
+          <button onClick={() => window.location.reload(true)} className="btn-primary mt-4">
+            Muat Ulang Aplikasi
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }

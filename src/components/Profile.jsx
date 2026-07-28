@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import Modal from './Modal';
+import Header from './Header';
 import { getProfile, updateProfile, uploadFile } from '../utils/storage';
 import { logout, sendPasswordResetOtp } from '../lib/auth';
 
-export default function Profile({ session }) {
+export default function Profile({ session, onBack }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showNameModal, setShowNameModal] = useState(false);
@@ -82,12 +83,8 @@ export default function Profile({ session }) {
   const avatarUrl = profile?.avatar_url;
 
   return (
-    <div className="flex flex-col gap-6 px-5 pt-2 pb-8 animate-fade-in">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-extrabold tracking-tight flex items-center gap-3">
-          <span>👤</span> Profil Saya
-        </h2>
-      </div>
+    <div className="flex flex-col gap-6 px-5 pt-6 pb-24 animate-fade-in">
+      <Header title="Profile" onBack={onBack} />
 
       {loading && !profile ? (
         <div className="text-center font-bold animate-pulse text-brand-500 py-10">Memuat profil...</div>
@@ -125,26 +122,29 @@ export default function Profile({ session }) {
             
             <button onClick={toggleTheme} className="flex justify-between items-center w-full p-4 bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 rounded-2xl hover:bg-brand-50 dark:hover:bg-brand-800 transition-colors shadow-sm">
               <span className="font-bold flex items-center gap-3">
-                {isDarkMode ? '☀️ Mode Terang' : '🌙 Mode Gelap'}
+                {isDarkMode ? 'Mode Terang' : 'Mode Gelap'}
               </span>
             </button>
 
             <button onClick={() => { setNewName(displayName); setShowNameModal(true); }} className="flex justify-between items-center w-full p-4 bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 rounded-2xl hover:bg-brand-50 dark:hover:bg-brand-800 transition-colors shadow-sm">
-              <span className="font-bold flex items-center gap-3">✏️ Ubah Nama</span>
+              <span className="font-bold flex items-center gap-3">Ubah Nama</span>
             </button>
 
             <button onClick={handleResetPassword} disabled={resettingPassword} className="flex justify-between items-center w-full p-4 bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 rounded-2xl hover:bg-brand-50 dark:hover:bg-brand-800 transition-colors shadow-sm">
-              <span className="font-bold flex items-center gap-3">🔑 {resettingPassword ? 'Mengirim Link...' : 'Ubah Kata Sandi'}</span>
+              <span className="font-bold flex items-center gap-3">{resettingPassword ? 'Mengirim Link...' : 'Ubah Kata Sandi'}</span>
             </button>
 
             <button onClick={() => logout()} className="flex justify-between items-center w-full p-4 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 rounded-2xl hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors shadow-sm mt-4">
-              <span className="font-bold text-red-600 dark:text-red-400 flex items-center gap-3">🚪 Keluar (Logout)</span>
+              <span className="font-bold text-red-600 dark:text-red-400 flex items-center gap-3">Keluar (Logout)</span>
             </button>
+          </div>
+          <div className="mt-8 text-center text-xs font-bold text-brand-300 dark:text-brand-700">
+            Aplikasi Versi {import.meta.env.VITE_APP_VERSION || '1.0.0'}
           </div>
         </div>
       )}
 
-      <Modal isOpen={showNameModal} onClose={() => setShowNameModal(false)} title="✏️ Ubah Nama">
+      <Modal isOpen={showNameModal} onClose={() => setShowNameModal(false)} title="Ubah Nama">
         <form onSubmit={handleUpdateName} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <label className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider">NAMA LENGKAP</label>

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import Modal from './Modal';
+import Header from './Header';
 import { getSchedules, addSchedule, deleteSchedule } from '../utils/storage';
 import { getDateKey } from '../utils/helpers';
 
-export default function Schedule() {
+export default function Schedule({ onBack }) {
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -53,11 +54,10 @@ export default function Schedule() {
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
   return (
-    <div className="flex flex-col gap-6 px-5 pt-2 pb-8 animate-fade-in">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-extrabold tracking-tight flex items-center gap-3">
-          <span>📅</span> Jadwal Hari Ini
-        </h2>
+    <div className="flex flex-col gap-6 px-5 pt-6 pb-24 animate-fade-in">
+      <Header title="Schedule" onBack={onBack} />
+      
+      <div className="flex justify-end -mt-16 mb-4 relative z-10">
         <button onClick={() => setShowModal(true)} className="bg-brand-950 dark:bg-white text-white dark:text-brand-950 font-bold px-4 py-2 rounded-xl shadow-sm hover:scale-105 transition-transform text-sm">
           + Tambah
         </button>
@@ -129,7 +129,7 @@ export default function Schedule() {
         </div>
       )}
 
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="✏️ Tambah Jadwal">
+      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Tambah Jadwal">
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <label className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider">NAMA KEGIATAN</label>

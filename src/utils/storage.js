@@ -224,3 +224,21 @@ export async function uploadFile(bucket, path, file) {
     
   return publicUrl;
 }
+
+// ==========================================
+// APP SETTINGS
+// ==========================================
+export async function getAppVersion() {
+  const { data, error } = await supabase
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'latest_version')
+    .maybeSingle();
+    
+  if (error) {
+    console.error('Error fetching app version:', error);
+    return null;
+  }
+  
+  return data?.value || null;
+}

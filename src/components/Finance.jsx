@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import Modal from './Modal';
+import Header from './Header';
 import { formatRupiah, getDateKey } from '../utils/helpers';
 import { getTransactions, addTransaction, deleteTransaction, uploadFile } from '../utils/storage';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
-export default function Finance() {
+export default function Finance({ onBack }) {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('expense'); // 'expense' or 'income'
@@ -113,11 +114,10 @@ export default function Finance() {
   ];
 
   return (
-    <div className="flex flex-col gap-6 px-5 pt-2 pb-8 animate-fade-in">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-extrabold tracking-tight flex items-center gap-3">
-          <span>💰</span> Keuangan
-        </h2>
+    <div className="flex flex-col gap-6 px-5 pt-6 pb-24 animate-fade-in relative">
+      <Header title="Finance" onBack={onBack} />
+      
+      <div className="flex justify-end -mt-16 mb-4 relative z-10">
         <button onClick={() => setShowModal(true)} className="bg-brand-950 dark:bg-white text-white dark:text-brand-950 font-bold px-4 py-2 rounded-xl shadow-sm hover:scale-105 transition-transform text-sm">
           + Tambah
         </button>
@@ -184,13 +184,13 @@ export default function Finance() {
           className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'expense' ? 'bg-white dark:bg-brand-950 shadow-sm text-brand-900 dark:text-white' : 'text-brand-500 hover:text-brand-700 dark:hover:text-brand-300'}`}
           onClick={() => setActiveTab('expense')}
         >
-          💸 Pengeluaran
+          Pengeluaran
         </button>
         <button 
           className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'income' ? 'bg-white dark:bg-brand-950 shadow-sm text-brand-900 dark:text-white' : 'text-brand-500 hover:text-brand-700 dark:hover:text-brand-300'}`}
           onClick={() => setActiveTab('income')}
         >
-          💰 Pemasukan
+          Pemasukan
         </button>
       </div>
 
@@ -200,7 +200,6 @@ export default function Finance() {
           <div className="text-center font-bold animate-pulse text-brand-500 py-6">Memuat transaksi...</div>
         ) : currentList.length === 0 ? (
           <div className="text-center py-10">
-            <div className="text-4xl mb-2 grayscale opacity-50">{activeTab === 'expense' ? '💸' : '💰'}</div>
             <p className="font-bold text-brand-500 text-sm">Belum ada {activeTab === 'expense' ? 'pengeluaran' : 'pemasukan'}</p>
           </div>
         ) : (
@@ -229,7 +228,7 @@ export default function Finance() {
       </div>
 
       {/* Add Modal */}
-      <Modal isOpen={showModal} onClose={resetForm} title={activeTab === 'expense' ? '💸 Tambah Pengeluaran' : '💰 Tambah Pemasukan'}>
+      <Modal isOpen={showModal} onClose={resetForm} title={activeTab === 'expense' ? 'Tambah Pengeluaran' : 'Tambah Pemasukan'}>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <label className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider">NAMA TRANSAKSI</label>
@@ -258,7 +257,7 @@ export default function Finance() {
       </Modal>
 
       {/* Photo View Modal */}
-      <Modal isOpen={!!showPhotoModal} onClose={() => setShowPhotoModal(null)} title="📷 Bukti Foto">
+      <Modal isOpen={!!showPhotoModal} onClose={() => setShowPhotoModal(null)} title="Bukti Foto">
         {showPhotoModal && (
           <img src={showPhotoModal} alt="Bukti" className="w-full rounded-xl object-contain max-h-[60vh] bg-brand-50 dark:bg-brand-900" />
         )}
