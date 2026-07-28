@@ -156,7 +156,10 @@ function App() {
 
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-64 h-full border-r border-brand-200 dark:border-brand-800 bg-brand-50 dark:bg-brand-950 p-6 z-40 shrink-0">
-        <h1 className="text-2xl font-black mb-10 text-center tracking-tight">Daily<br/><span className="text-brand-500">Manager</span></h1>
+        <div className="flex flex-col items-center mb-10">
+          <img src="/logo.png" alt="Logo" className="w-20 h-20 object-contain mb-4 drop-shadow-md" />
+          <h1 className="text-xl font-black text-center tracking-tight leading-tight">Daily Management<br/><span className="text-brand-500 text-sm">by Hasya</span></h1>
+        </div>
         <nav className="flex flex-col gap-3">
           {navItems.map(item => (
             <button
