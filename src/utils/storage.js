@@ -180,6 +180,21 @@ export async function getTransactions(dateKey) {
   return data || [];
 }
 
+export async function getTransactionsByMonth(monthPrefix) {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .like('date_key', `${monthPrefix}-%`)
+    .order('date_key', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching transactions by month:', error);
+    return [];
+  }
+  return data || [];
+}
+
 export async function addTransaction(transaction) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return null;

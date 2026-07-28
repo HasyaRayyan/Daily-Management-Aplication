@@ -9,6 +9,7 @@ import Modal from './components/Modal';
 import { getSession, onAuthStateChange, updatePassword } from './lib/auth';
 import { getSchedules, getAppVersion } from './utils/storage';
 import { getDateKey } from './utils/helpers';
+import { supabase } from './lib/supabase';
 import './index.css';
 
 // Icons
