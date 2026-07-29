@@ -62,8 +62,8 @@ export default function Auth() {
 
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <div className="w-24 h-24 rounded-full bg-white dark:bg-brand-900 shadow-xl flex items-center justify-center overflow-hidden">
-            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain p-2" />
+          <div className="w-24 h-24 rounded-[2rem] bg-brand-950 dark:bg-white text-white dark:text-brand-950 shadow-xl flex items-center justify-center overflow-hidden">
+            <span className="font-extrabold text-2xl tracking-tighter">DAILY.</span>
           </div>
         </div>
 

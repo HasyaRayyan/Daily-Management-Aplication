@@ -156,10 +156,10 @@ function App() {
       )}
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 h-full border-r border-brand-200 dark:border-brand-800 bg-brand-50 dark:bg-brand-950 p-6 z-40 shrink-0">
+      <aside className="hidden md:flex flex-col w-64 h-full border-r border-brand-200/50 dark:border-brand-800/50 bg-brand-50 dark:bg-brand-950 p-6 z-40 shrink-0">
         <div className="flex flex-col items-center mb-10">
-          <img src="/logo.png" alt="Logo" className="w-20 h-20 object-contain mb-4 drop-shadow-md" />
-          <h1 className="text-xl font-black text-center tracking-tight leading-tight">Daily Management<br/><span className="text-brand-500 text-sm">by Hasya</span></h1>
+          <span className="font-extrabold text-4xl tracking-tighter mb-1">DAILY.</span>
+          <h1 className="text-sm font-bold text-brand-500 text-center tracking-tight leading-tight">Management<br/>by Hasya</h1>
         </div>
         <nav className="flex flex-col gap-3">
           {navItems.map(item => (
@@ -180,8 +180,8 @@ function App() {
       </aside>
 
       {/* Pages Content */}
-      <div className="content-area w-full">
-        <div className="max-w-4xl mx-auto w-full h-full">
+      <div className="content-area w-full flex justify-center">
+        <div className="max-w-5xl w-full h-full">
           {activeTab === 'dashboard' && <Dashboard session={session} setActiveTab={setActiveTab} />}
           {activeTab === 'routine' && <Routine onBack={goHome} />}
           {activeTab === 'schedule' && <Schedule onBack={goHome} />}
