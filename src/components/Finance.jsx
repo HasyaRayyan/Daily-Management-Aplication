@@ -44,6 +44,7 @@ export default function Finance({ onBack }) {
   
   const [showModal, setShowModal] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(null); // Data transaksi yang dipilih
   
   const [selectedMonth, setSelectedMonth] = useState(new Date());
 
@@ -52,6 +53,8 @@ export default function Finance({ onBack }) {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [photo, setPhoto] = useState(null);
+  const [location, setLocation] = useState(null); // State lokasi {lat, lng}
+  const [locationStatus, setLocationStatus] = useState(''); // Info status pencarian lokasi
   const [saving, setSaving] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -136,11 +139,12 @@ export default function Finance({ onBack }) {
       description: description.trim(),
       amount: numAmount,
       photo_url,
+      latitude: location?.lat || null,
+      longitude: location?.lng || null,
       date_key: todayDateKey
     });
 
     resetForm();
-    // If we are not in current month, maybe change to current month to see the new entry
     if (getMonthPrefix(new Date()) !== getMonthPrefix(selectedMonth)) {
       setSelectedMonth(new Date());
     } else {
@@ -155,6 +159,8 @@ export default function Finance({ onBack }) {
     setDescription('');
     setCategory('');
     setPhoto(null);
+    setLocation(null);
+    setLocationStatus('');
     if (fileInputRef.current) fileInputRef.current.value = '';
     setShowModal(false);
   };
@@ -166,6 +172,7 @@ export default function Finance({ onBack }) {
 
   const handleDelete = async (id) => {
     if(!window.confirm('Yakin hapus transaksi ini?')) return;
+    setShowDetailModal(null); // Tutup detail jika dihapus
     await deleteTransaction(id);
     await fetchData();
   };
@@ -174,6 +181,27 @@ export default function Finance({ onBack }) {
     setActiveTab(type);
     setCategory('lainnya');
     setShowModal(true);
+    
+    // Request Geolocation otomatis saat form dibuka
+    if ('geolocation' in navigator) {
+      setLocationStatus('Sedang melacak lokasi Anda...');
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+          setLocationStatus('Lokasi berhasil dilacak! 📍');
+        },
+        (err) => {
+          console.warn('Geolocation error:', err);
+          setLocationStatus('Gagal melacak lokasi (Abaikan jika tidak perlu).');
+        },
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      );
+    } else {
+      setLocationStatus('Peramban Anda tidak mendukung pelacakan lokasi.');
+    }
   };
 
   return (
@@ -283,7 +311,11 @@ export default function Finance({ onBack }) {
                 <h4 className="font-extrabold text-sm tracking-wide text-brand-400 pl-1 uppercase">{displayDate}</h4>
                 <div className="flex flex-col gap-3">
                   {groupedTransactions[dateKey].map((t) => (
-                    <div key={t.id} className="flex items-center justify-between p-4 bg-white dark:bg-brand-900 rounded-2xl shadow-sm border border-brand-100 dark:border-brand-800">
+                    <div 
+                      key={t.id} 
+                      onClick={() => setShowDetailModal(t)}
+                      className="flex items-center justify-between p-4 bg-white dark:bg-brand-900 rounded-2xl shadow-sm border border-brand-100 dark:border-brand-800 cursor-pointer hover:border-brand-300 dark:hover:border-brand-700 transition-colors"
+                    >
                       
                       {/* Icon */}
                       <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 mr-3 bg-brand-50 dark:bg-brand-950">
@@ -296,22 +328,14 @@ export default function Finance({ onBack }) {
                         <p className="font-bold text-base truncate leading-tight mb-1">{t.title}</p>
                         <p className="text-xs font-semibold text-brand-500 truncate">
                           {(activeTab === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES)[t.category || 'lainnya']}
-                          {t.description && ` • ${t.description}`}
                         </p>
-                        {t.photo_url && (
-                          <button onClick={() => setShowPhotoModal(t.photo_url)} className="text-[10px] font-bold uppercase tracking-wider mt-2 bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300 px-2 py-1 rounded hover:bg-brand-200 dark:hover:bg-brand-700 transition-colors">
-                            📷 Lihat Bukti
-                          </button>
-                        )}
                       </div>
 
-                      <div className="flex flex-col items-end gap-2 shrink-0">
+                      <div className="flex flex-col items-end gap-1 shrink-0">
                         <span className={`font-extrabold text-right ${activeTab === 'expense' ? 'text-brand-900 dark:text-white' : 'text-brand-900 dark:text-white'}`}>
                           {activeTab === 'expense' ? '-' : '+'}{formatRupiah(t.amount)}
                         </span>
-                        <button onClick={() => handleDelete(t.id)} className="w-6 h-6 rounded-full flex items-center justify-center text-brand-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-xs">
-                          ✕
-                        </button>
+                        {(t.latitude && t.longitude) && <span className="text-[10px] bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300 px-2 py-0.5 rounded font-bold uppercase tracking-wider">📍 Lokasi</span>}
                       </div>
                     </div>
                   ))}
@@ -374,16 +398,86 @@ export default function Finance({ onBack }) {
             <input type="file" accept="image/*" capture="environment" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-brand-100 file:text-brand-900 hover:file:bg-brand-200 cursor-pointer dark:file:bg-brand-800 dark:file:text-white dark:hover:file:bg-brand-700" ref={fileInputRef} onChange={(e) => setPhoto(e.target.files[0])} />
           </div>
 
-          <button type="submit" className="btn-primary mt-4" disabled={!amount || !title.trim() || !category || saving}>
+          <div className="text-xs font-semibold text-brand-500 bg-brand-50 dark:bg-brand-900 p-2 rounded-xl text-center flex flex-col items-center gap-1">
+             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+             {locationStatus}
+          </div>
+
+          <button type="submit" className="btn-primary mt-2" disabled={!amount || !title.trim() || !category || saving}>
             {saving ? 'Menyimpan...' : 'Simpan Transaksi'}
           </button>
         </form>
       </Modal>
 
+      {/* Detail Modal */}
+      <Modal isOpen={!!showDetailModal} onClose={() => setShowDetailModal(null)} title="Detail Transaksi">
+        {showDetailModal && (
+          <div className="flex flex-col gap-5">
+            <div className="text-center">
+              <span className="text-5xl mb-2 inline-block">
+                {((showDetailModal.type === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES)[showDetailModal.category || 'lainnya'] || '📦').charAt(0)}
+              </span>
+              <h2 className="text-2xl font-black">{showDetailModal.title}</h2>
+              <p className="text-sm font-bold text-brand-500 mt-1">{(showDetailModal.type === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES)[showDetailModal.category || 'lainnya']}</p>
+            </div>
+            
+            <div className="bg-brand-50 dark:bg-brand-900 rounded-2xl p-5 flex flex-col gap-4">
+              <div className="flex justify-between items-center border-b border-brand-200 dark:border-brand-800 pb-3">
+                <span className="text-xs font-bold text-brand-500 tracking-widest uppercase">Total</span>
+                <span className={`text-lg font-extrabold ${showDetailModal.type === 'expense' ? 'text-brand-900 dark:text-white' : 'text-brand-900 dark:text-white'}`}>
+                  {showDetailModal.type === 'expense' ? '-' : '+'}{formatRupiah(showDetailModal.amount)}
+                </span>
+              </div>
+              
+              <div className="flex justify-between items-center border-b border-brand-200 dark:border-brand-800 pb-3">
+                <span className="text-xs font-bold text-brand-500 tracking-widest uppercase">Tanggal</span>
+                <span className="text-sm font-bold">{new Date(showDetailModal.date_key).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+              </div>
+
+              {showDetailModal.description && (
+                <div className="flex flex-col gap-1 border-b border-brand-200 dark:border-brand-800 pb-3">
+                  <span className="text-xs font-bold text-brand-500 tracking-widest uppercase">Keterangan</span>
+                  <span className="text-sm font-medium">{showDetailModal.description}</span>
+                </div>
+              )}
+
+              {showDetailModal.latitude && showDetailModal.longitude && (
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-bold text-brand-500 tracking-widest uppercase">Lokasi Tercatat</span>
+                  <a 
+                    href={`https://www.google.com/maps?q=${showDetailModal.latitude},${showDetailModal.longitude}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold p-3 rounded-xl hover:bg-blue-100 transition-colors text-sm"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    Buka di Google Maps
+                  </a>
+                </div>
+              )}
+            </div>
+
+            {showDetailModal.photo_url && (
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-bold text-brand-500 tracking-widest uppercase">Bukti Foto</span>
+                <img src={showDetailModal.photo_url} alt="Bukti" className="w-full rounded-2xl object-cover border border-brand-100 dark:border-brand-800" onClick={() => setShowPhotoModal(showDetailModal.photo_url)} />
+              </div>
+            )}
+
+            <button 
+              onClick={() => handleDelete(showDetailModal.id)} 
+              className="mt-4 flex items-center justify-center gap-2 text-red-500 font-bold p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-sm"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              Hapus Transaksi
+            </button>
+          </div>
+        )}
+      </Modal>
+
       {/* Photo View Modal */}
-      <Modal isOpen={!!showPhotoModal} onClose={() => setShowPhotoModal(null)} title="Bukti Foto">
+      <Modal isOpen={!!showPhotoModal} onClose={() => setShowPhotoModal(null)} title="Bukti Foto (Layar Penuh)">
         {showPhotoModal && (
-          <img src={showPhotoModal} alt="Bukti" className="w-full rounded-xl object-contain max-h-[60vh] bg-brand-50 dark:bg-brand-900" />
+          <img src={showPhotoModal} alt="Bukti Full" className="w-full rounded-xl object-contain max-h-[60vh] bg-brand-50 dark:bg-brand-900" />
         )}
       </Modal>
     </div>
