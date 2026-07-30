@@ -37,6 +37,16 @@ const CATEGORY_COLORS = {
   lainnya: '#9ca3af'
 };
 
+// Fungsi untuk menghasilkan warna konsisten dari sebuah string (untuk kategori custom)
+const stringToColor = (str) => {
+  if (!str) return '#9ca3af';
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return `#${(hash & 0x00FFFFFF).toString(16).padStart(6, '0')}`;
+};
+
 export default function Finance({ onBack }) {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +54,7 @@ export default function Finance({ onBack }) {
   
   const [showModal, setShowModal] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(null);
-  const [showDetailModal, setShowDetailModal] = useState(null); // Data transaksi yang dipilih
+  const [showDetailModal, setShowDetailModal] = useState(null); 
   
   const [selectedMonth, setSelectedMonth] = useState(new Date());
 
@@ -52,9 +62,11 @@ export default function Finance({ onBack }) {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [customCategory, setCustomCategory] = useState('');
   const [photo, setPhoto] = useState(null);
-  const [location, setLocation] = useState(null); // State lokasi {lat, lng}
-  const [locationStatus, setLocationStatus] = useState(''); // Info status pencarian lokasi
+  const [location, setLocation] = useState(null); 
+  const [locationStatus, setLocationStatus] = useState(''); 
   const [saving, setSaving] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -105,14 +117,29 @@ export default function Finance({ onBack }) {
 
   const sortedDates = Object.keys(groupedTransactions).sort((a, b) => b.localeCompare(a));
 
+  const getCategoryName = (catId, type) => {
+    const defaults = type === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
+    return defaults[catId] || catId;
+  };
+
+  const getCategoryColor = (catId) => {
+    if (CATEGORY_COLORS[catId]) return CATEGORY_COLORS[catId];
+    return stringToColor(catId);
+  };
+
+  // Ekstrak custom category milik user yang bukan bawaan
+  const userCategories = Array.from(new Set(currentList.map(t => t.category))).filter(c => {
+    const defaults = activeTab === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
+    return !defaults[c] && c !== 'lainnya';
+  });
+
   // Category Pie Data
   const pieData = currentList.reduce((acc, curr) => {
     const cat = curr.category || 'lainnya';
     const existing = acc.find(item => item.id === cat);
     if (existing) existing.value += Number(curr.amount);
     else {
-      const catList = activeTab === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
-      acc.push({ id: cat, name: catList[cat] || catList['lainnya'], value: Number(curr.amount) });
+      acc.push({ id: cat, name: getCategoryName(cat, activeTab), value: Number(curr.amount) });
     }
     return acc;
   }, []).sort((a,b) => b.value - a.value);
@@ -120,7 +147,10 @@ export default function Finance({ onBack }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const numAmount = parseFloat(amount.replace(/[^0-9]/g, ''));
-    if (!numAmount || !title.trim() || saving) return;
+    
+    const finalCategory = isCustomCategory ? customCategory.trim() : category;
+    
+    if (!numAmount || !title.trim() || !finalCategory || saving) return;
     setSaving(true);
     
     let photo_url = null;
@@ -134,7 +164,7 @@ export default function Finance({ onBack }) {
 
     await addTransaction({
       type: activeTab,
-      category: category || 'lainnya',
+      category: finalCategory,
       title: title.trim(),
       description: description.trim(),
       amount: numAmount,
@@ -158,6 +188,8 @@ export default function Finance({ onBack }) {
     setAmount('');
     setDescription('');
     setCategory('');
+    setIsCustomCategory(false);
+    setCustomCategory('');
     setPhoto(null);
     setLocation(null);
     setLocationStatus('');
@@ -172,17 +204,17 @@ export default function Finance({ onBack }) {
 
   const handleDelete = async (id) => {
     if(!window.confirm('Yakin hapus transaksi ini?')) return;
-    setShowDetailModal(null); // Tutup detail jika dihapus
+    setShowDetailModal(null);
     await deleteTransaction(id);
     await fetchData();
   };
 
   const openAddModal = (type) => {
     setActiveTab(type);
-    setCategory('lainnya');
+    setCategory('');
+    setIsCustomCategory(false);
     setShowModal(true);
     
-    // Request Geolocation otomatis saat form dibuka
     if ('geolocation' in navigator) {
       setLocationStatus('Sedang melacak lokasi Anda...');
       navigator.geolocation.getCurrentPosition(
@@ -195,9 +227,13 @@ export default function Finance({ onBack }) {
         },
         (err) => {
           console.warn('Geolocation error:', err);
-          setLocationStatus('Gagal melacak lokasi (Abaikan jika tidak perlu).');
+          let errMsg = 'Gagal melacak lokasi.';
+          if (err.code === 1) errMsg = 'Akses lokasi ditolak oleh browser/OS.';
+          else if (err.code === 2) errMsg = 'Sinyal lokasi tidak ditemukan (Periksa koneksi).';
+          else if (err.code === 3) errMsg = 'Pencarian lokasi terlalu lama (Timeout).';
+          setLocationStatus(`${errMsg} (Bisa diabaikan)`);
         },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        { enableHighAccuracy: false, timeout: 15000, maximumAge: 0 }
       );
     } else {
       setLocationStatus('Peramban Anda tidak mendukung pelacakan lokasi.');
@@ -271,7 +307,7 @@ export default function Finance({ onBack }) {
               <PieChart>
                 <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} stroke="none" dataKey="value" paddingAngle={2}>
                   {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[entry.id] || CATEGORY_COLORS.lainnya} />
+                    <Cell key={`cell-${index}`} fill={getCategoryColor(entry.id)} />
                   ))}
                 </Pie>
                 <RechartsTooltip 
@@ -285,7 +321,7 @@ export default function Finance({ onBack }) {
           <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-2">
             {pieData.map((entry, index) => (
               <div key={index} className="flex items-center gap-1.5 text-xs font-semibold">
-                <div className="w-3 h-3 rounded-full" style={{backgroundColor: CATEGORY_COLORS[entry.id] || CATEGORY_COLORS.lainnya}}></div>
+                <div className="w-3 h-3 rounded-full" style={{backgroundColor: getCategoryColor(entry.id)}}></div>
                 <span className="truncate max-w-[90px]">{entry.name}</span>
                 <span className="font-bold opacity-60 ml-1">{Math.round((entry.value / (activeTab === 'expense' ? totalExpense : totalIncome)) * 100)}%</span>
               </div>
@@ -310,35 +346,41 @@ export default function Finance({ onBack }) {
               <div key={dateKey} className="flex flex-col gap-3">
                 <h4 className="font-extrabold text-sm tracking-wide text-brand-400 pl-1 uppercase">{displayDate}</h4>
                 <div className="flex flex-col gap-3">
-                  {groupedTransactions[dateKey].map((t) => (
-                    <div 
-                      key={t.id} 
-                      onClick={() => setShowDetailModal(t)}
-                      className="flex items-center justify-between p-4 bg-white dark:bg-brand-900 rounded-2xl shadow-sm border border-brand-100 dark:border-brand-800 cursor-pointer hover:border-brand-300 dark:hover:border-brand-700 transition-colors"
-                    >
-                      
-                      {/* Icon */}
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 mr-3 bg-brand-50 dark:bg-brand-950">
-                        <span className="text-2xl">
-                          {((activeTab === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES)[t.category || 'lainnya'] || '📦').charAt(0)}
-                        </span>
-                      </div>
+                  {groupedTransactions[dateKey].map((t) => {
+                    const catName = getCategoryName(t.category, activeTab);
+                    const isDefault = activeTab === 'expense' ? EXPENSE_CATEGORIES[t.category] : INCOME_CATEGORIES[t.category];
+                    const iconChar = isDefault ? catName.charAt(0) : '🏷️';
 
-                      <div className="flex-1 overflow-hidden pr-2">
-                        <p className="font-bold text-base truncate leading-tight mb-1">{t.title}</p>
-                        <p className="text-xs font-semibold text-brand-500 truncate">
-                          {(activeTab === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES)[t.category || 'lainnya']}
-                        </p>
-                      </div>
+                    return (
+                      <div 
+                        key={t.id} 
+                        onClick={() => setShowDetailModal(t)}
+                        className="flex items-center justify-between p-4 bg-white dark:bg-brand-900 rounded-2xl shadow-sm border border-brand-100 dark:border-brand-800 cursor-pointer hover:border-brand-300 dark:hover:border-brand-700 transition-colors"
+                      >
+                        
+                        {/* Icon */}
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 mr-3 text-white" style={{ backgroundColor: getCategoryColor(t.category) }}>
+                          <span className="text-xl">
+                            {iconChar}
+                          </span>
+                        </div>
 
-                      <div className="flex flex-col items-end gap-1 shrink-0">
-                        <span className={`font-extrabold text-right ${activeTab === 'expense' ? 'text-brand-900 dark:text-white' : 'text-brand-900 dark:text-white'}`}>
-                          {activeTab === 'expense' ? '-' : '+'}{formatRupiah(t.amount)}
-                        </span>
-                        {(t.latitude && t.longitude) && <span className="text-[10px] bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300 px-2 py-0.5 rounded font-bold uppercase tracking-wider">📍 Lokasi</span>}
+                        <div className="flex-1 overflow-hidden pr-2">
+                          <p className="font-bold text-base truncate leading-tight mb-1">{t.title}</p>
+                          <p className="text-xs font-semibold text-brand-500 truncate">
+                            {catName}
+                          </p>
+                        </div>
+
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          <span className={`font-extrabold text-right ${activeTab === 'expense' ? 'text-brand-900 dark:text-white' : 'text-brand-900 dark:text-white'}`}>
+                            {activeTab === 'expense' ? '-' : '+'}{formatRupiah(t.amount)}
+                          </span>
+                          {(t.latitude && t.longitude) && <span className="text-[10px] bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300 px-2 py-0.5 rounded font-bold uppercase tracking-wider">📍 Lokasi</span>}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             );
@@ -368,15 +410,43 @@ export default function Finance({ onBack }) {
             <label className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider">KATEGORI</label>
             <select 
               className="input-field appearance-none cursor-pointer"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              required
+              value={isCustomCategory ? 'ADD_NEW' : category}
+              onChange={(e) => {
+                if (e.target.value === 'ADD_NEW') {
+                  setIsCustomCategory(true);
+                  setCategory('');
+                } else {
+                  setIsCustomCategory(false);
+                  setCategory(e.target.value);
+                }
+              }}
+              required={!isCustomCategory}
             >
               <option value="" disabled>Pilih Kategori...</option>
               {Object.entries(activeTab === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
               ))}
+              
+              {userCategories.length > 0 && <optgroup label="Kategori Saya" />}
+              {userCategories.map(cat => (
+                <option key={cat} value={cat}>🏷️ {cat}</option>
+              ))}
+
+              <option value="ADD_NEW">➕ Tambah Kategori Baru...</option>
             </select>
+            
+            {isCustomCategory && (
+              <div className="mt-2 animate-fade-in">
+                <input 
+                  type="text" 
+                  className="input-field border-brand-300 dark:border-brand-700" 
+                  placeholder="Ketik nama kategori baru..." 
+                  value={customCategory} 
+                  onChange={(e) => setCustomCategory(e.target.value)} 
+                  required={isCustomCategory} 
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -403,7 +473,7 @@ export default function Finance({ onBack }) {
              {locationStatus}
           </div>
 
-          <button type="submit" className="btn-primary mt-2" disabled={!amount || !title.trim() || !category || saving}>
+          <button type="submit" className="btn-primary mt-2" disabled={!amount || !title.trim() || (!category && !customCategory.trim()) || saving}>
             {saving ? 'Menyimpan...' : 'Simpan Transaksi'}
           </button>
         </form>
@@ -415,10 +485,10 @@ export default function Finance({ onBack }) {
           <div className="flex flex-col gap-5">
             <div className="text-center">
               <span className="text-5xl mb-2 inline-block">
-                {((showDetailModal.type === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES)[showDetailModal.category || 'lainnya'] || '📦').charAt(0)}
+                {((showDetailModal.type === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES)[showDetailModal.category] || '🏷️').charAt(0)}
               </span>
               <h2 className="text-2xl font-black">{showDetailModal.title}</h2>
-              <p className="text-sm font-bold text-brand-500 mt-1">{(showDetailModal.type === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES)[showDetailModal.category || 'lainnya']}</p>
+              <p className="text-sm font-bold text-brand-500 mt-1">{getCategoryName(showDetailModal.category, showDetailModal.type)}</p>
             </div>
             
             <div className="bg-brand-50 dark:bg-brand-900 rounded-2xl p-5 flex flex-col gap-4">
