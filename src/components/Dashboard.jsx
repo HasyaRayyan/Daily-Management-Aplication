@@ -51,7 +51,7 @@ export default function Dashboard({ session, setActiveTab }) {
   }
 
   return (
-    <div className="flex flex-col gap-6 px-5 pt-6 pb-8">
+    <div className="flex flex-col gap-6 px-5 pt-6 pb-24 md:pb-8">
       {/* Header */}
       <div className="flex justify-between items-center bg-white dark:bg-brand-900 p-5 rounded-3xl shadow-sm border border-brand-100 dark:border-brand-800 mb-2">
         <div className="flex items-center gap-4">

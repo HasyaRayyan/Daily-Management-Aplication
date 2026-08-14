@@ -143,9 +143,40 @@ function App() {
   ];
 
   return (
-    <div className="w-full min-h-screen bg-brand-200 dark:bg-brand-950 flex justify-center animate-fade-in">
-      {/* Mobile Wrapper */}
-      <div className="w-full max-w-md bg-brand-50 dark:bg-brand-900 shadow-2xl relative flex flex-col h-screen overflow-hidden ring-1 ring-brand-300/50 dark:ring-brand-800/50">
+    <div className="w-full min-h-screen bg-brand-50 dark:bg-brand-950 flex flex-col md:flex-row animate-fade-in">
+      
+      {/* Sidebar (Desktop & Tablet) */}
+      <aside className="hidden md:flex flex-col w-64 lg:w-72 bg-white dark:bg-brand-900 border-r border-brand-200 dark:border-brand-800 p-5 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] relative z-20 transition-colors">
+        <div className="flex items-center justify-start px-2 h-16 mb-8 border-b border-brand-100 dark:border-brand-800">
+           <span className="font-black text-3xl tracking-tighter text-brand-950 dark:text-white">DAILY.</span>
+        </div>
+        <nav className="flex flex-col gap-2">
+          {navItems.map(item => (
+            <button 
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 ${
+                activeTab === item.id 
+                  ? 'bg-brand-950 text-white dark:bg-white dark:text-brand-950 shadow-md font-bold' 
+                  : 'text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-800 hover:text-brand-950 dark:hover:text-white font-semibold'
+              }`}
+            >
+              <div className="[&>svg]:w-5 [&>svg]:h-5 shrink-0">
+                {item.icon}
+              </div>
+              <span className="text-[15px] tracking-wide">{item.label}</span>
+            </button>
+          ))}
+        </nav>
+        
+        {/* Support Section at Bottom of Sidebar */}
+        <div className="mt-auto pt-8 flex flex-col items-center">
+          <p className="text-xs font-bold text-brand-400">Versi {import.meta.env.VITE_APP_VERSION || '1.0.0'}</p>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <div className="flex-1 w-full relative flex flex-col h-screen overflow-hidden bg-brand-50/30 dark:bg-brand-950/30">
         
         {/* Global Alert */}
         {alertSchedule && (
@@ -159,16 +190,18 @@ function App() {
         )}
 
         {/* Pages Content */}
-        <div className="flex-1 overflow-y-auto pb-24 relative">
-          {activeTab === 'dashboard' && <Dashboard session={session} setActiveTab={setActiveTab} />}
-          {activeTab === 'routine' && <Routine onBack={goHome} />}
-          {activeTab === 'schedule' && <Schedule onBack={goHome} />}
-          {activeTab === 'finance' && <Finance onBack={goHome} />}
-          {activeTab === 'profile' && <Profile session={session} onBack={goHome} />}
+        <div className="flex-1 overflow-y-auto pb-24 md:pb-8 relative">
+          <div className="max-w-5xl mx-auto w-full">
+            {activeTab === 'dashboard' && <Dashboard session={session} setActiveTab={setActiveTab} />}
+            {activeTab === 'routine' && <Routine onBack={goHome} />}
+            {activeTab === 'schedule' && <Schedule onBack={goHome} />}
+            {activeTab === 'finance' && <Finance onBack={goHome} />}
+            {activeTab === 'profile' && <Profile session={session} onBack={goHome} />}
+          </div>
         </div>
 
-        {/* Glass Bottom Nav (Mobile style applied globally) */}
-        <nav className="absolute bottom-0 left-0 w-full bg-brand-50/80 dark:bg-brand-950/80 backdrop-blur-xl border-t border-brand-200/50 dark:border-brand-800/50 flex justify-around items-center pt-3 pb-6 z-50 transition-colors duration-300">
+        {/* Glass Bottom Nav (Mobile Only) */}
+        <nav className="md:hidden absolute bottom-0 left-0 w-full bg-white/90 dark:bg-brand-900/90 backdrop-blur-xl border-t border-brand-200/50 dark:border-brand-800/50 flex justify-around items-center pt-3 pb-6 z-50 transition-colors duration-300 shadow-[0_-4px_24px_rgba(0,0,0,0.05)]">
           {navItems.map(item => (
             <button 
               key={item.id}

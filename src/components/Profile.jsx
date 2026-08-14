@@ -118,7 +118,7 @@ export default function Profile({ session, onBack }) {
   const avatarUrl = profile?.avatar_url;
 
   return (
-    <div className="flex flex-col gap-6 px-5 pt-6 pb-24 animate-fade-in">
+    <div className="flex flex-col gap-6 px-5 pt-6 pb-24 md:pb-8 animate-fade-in">
       <Header title="Profile" onBack={onBack} />
 
       {loading && !profile ? (

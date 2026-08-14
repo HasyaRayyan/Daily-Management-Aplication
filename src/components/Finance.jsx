@@ -245,7 +245,7 @@ export default function Finance({ onBack }) {
   };
 
   return (
-    <div className="flex flex-col gap-6 px-5 pt-6 pb-24 animate-fade-in relative min-h-full">
+    <div className="flex flex-col gap-6 px-5 pt-6 pb-24 md:pb-8 animate-fade-in relative min-h-full">
       <Header title="Finance" onBack={onBack} />
       
       {/* Month Picker */}
