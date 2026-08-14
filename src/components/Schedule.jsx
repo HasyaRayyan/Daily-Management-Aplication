@@ -6,10 +6,10 @@ import { getDateKey } from '../utils/helpers';
 
 const TAG_COLORS = {
   umum: 'bg-brand-100 text-brand-700 dark:bg-brand-900 dark:text-brand-300 border-brand-200 dark:border-brand-800',
-  pekerjaan: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border-blue-200 dark:border-blue-800/50',
-  pribadi: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 border-green-200 dark:border-green-800/50',
-  belajar: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 border-purple-200 dark:border-purple-800/50',
-  hiburan: 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300 border-orange-200 dark:border-orange-800/50',
+  pekerjaan: 'bg-brand-200 text-brand-800 dark:bg-brand-800 dark:text-brand-200 border-brand-300 dark:border-brand-700',
+  pribadi: 'bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-400 border-brand-200 dark:border-brand-800',
+  belajar: 'bg-white text-brand-900 dark:bg-black dark:text-brand-100 border-brand-300 dark:border-brand-700',
+  hiburan: 'bg-brand-300 text-brand-900 dark:bg-brand-700 dark:text-brand-100 border-brand-400 dark:border-brand-600',
 };
 
 const TAG_LABELS = {

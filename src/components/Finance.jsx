@@ -2,49 +2,51 @@ import { useState, useEffect, useRef } from 'react';
 import Modal from './Modal';
 import Header from './Header';
 import { formatRupiah, getDateKey } from '../utils/helpers';
-import { getTransactionsByMonth, addTransaction, deleteTransaction, uploadFile } from '../utils/storage';
+import { getTransactionsByMonth, addTransaction, deleteTransaction, uploadFile, getCustomCategories } from '../utils/storage';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
 const EXPENSE_CATEGORIES = {
-  makanan: '🍔 Makanan',
-  transportasi: '🚗 Transport',
-  tagihan: '🧾 Tagihan',
-  belanja: '🛍️ Belanja',
-  hiburan: '🎮 Hiburan',
-  kesehatan: '⚕️ Kesehatan',
-  lainnya: '📦 Lainnya'
+  makanan: 'Makanan',
+  transportasi: 'Transport',
+  tagihan: 'Tagihan',
+  belanja: 'Belanja',
+  hiburan: 'Hiburan',
+  kesehatan: 'Kesehatan',
+  lainnya: 'Lainnya'
 };
 
 const INCOME_CATEGORIES = {
-  gaji: '💼 Gaji',
-  bonus: '💰 Bonus',
-  investasi: '📈 Investasi',
-  hadiah: '🎁 Hadiah',
-  lainnya: '📦 Lainnya'
+  gaji: 'Gaji',
+  bonus: 'Bonus',
+  investasi: 'Investasi',
+  hadiah: 'Hadiah',
+  lainnya: 'Lainnya'
 };
 
 const CATEGORY_COLORS = {
-  makanan: '#f87171',
-  transportasi: '#60a5fa',
-  tagihan: '#fbbf24',
-  belanja: '#a78bfa',
-  hiburan: '#f472b6',
-  kesehatan: '#34d399',
-  gaji: '#34d399',
-  bonus: '#fbbf24',
-  investasi: '#818cf8',
-  hadiah: '#f472b6',
-  lainnya: '#9ca3af'
+  makanan: '#171717', // neutral-900
+  transportasi: '#262626', // neutral-800
+  tagihan: '#404040', // neutral-700
+  belanja: '#525252', // neutral-600
+  hiburan: '#737373', // neutral-500
+  kesehatan: '#a3a3a3', // neutral-400
+  gaji: '#171717',
+  bonus: '#404040',
+  investasi: '#737373',
+  hadiah: '#a3a3a3',
+  lainnya: '#d4d4d4' // neutral-300
 };
 
-// Fungsi untuk menghasilkan warna konsisten dari sebuah string (untuk kategori custom)
 const stringToColor = (str) => {
   if (!str) return '#9ca3af';
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
   }
-  return `#${(hash & 0x00FFFFFF).toString(16).padStart(6, '0')}`;
+  // Generate a shade of gray
+  const val = Math.abs(hash) % 150 + 50; // value between 50 and 200
+  const hex = val.toString(16).padStart(2, '0');
+  return `#${hex}${hex}${hex}`;
 };
 
 export default function Finance({ onBack }) {
@@ -62,13 +64,13 @@ export default function Finance({ onBack }) {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
-  const [isCustomCategory, setIsCustomCategory] = useState(false);
-  const [customCategory, setCustomCategory] = useState('');
   const [photo, setPhoto] = useState(null);
   const [location, setLocation] = useState(null); 
   const [locationStatus, setLocationStatus] = useState(''); 
   const [saving, setSaving] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  const [dbCategories, setDbCategories] = useState([]);
 
   const fileInputRef = useRef(null);
 
@@ -79,8 +81,12 @@ export default function Finance({ onBack }) {
   const fetchData = async () => {
     setLoading(true);
     const monthPrefix = getMonthPrefix(selectedMonth);
-    const data = await getTransactionsByMonth(monthPrefix);
+    const [data, cats] = await Promise.all([
+      getTransactionsByMonth(monthPrefix),
+      getCustomCategories()
+    ]);
     setTransactions(data);
+    setDbCategories(cats);
     setIsDarkMode(document.documentElement.classList.contains('dark'));
     setLoading(false);
   };
@@ -127,8 +133,11 @@ export default function Finance({ onBack }) {
     return stringToColor(catId);
   };
 
-  // Ekstrak custom category milik user yang bukan bawaan
-  const userCategories = Array.from(new Set(currentList.map(t => t.category))).filter(c => {
+  // Ekstrak custom category milik user yang bukan bawaan (gabungan dari DB dan transaksi lama)
+  const userCategories = Array.from(new Set([
+    ...dbCategories.filter(c => c.type === activeTab).map(c => c.name),
+    ...currentList.map(t => t.category)
+  ])).filter(c => {
     const defaults = activeTab === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
     return !defaults[c] && c !== 'lainnya';
   });
@@ -148,9 +157,7 @@ export default function Finance({ onBack }) {
     e.preventDefault();
     const numAmount = parseFloat(amount.replace(/[^0-9]/g, ''));
     
-    const finalCategory = isCustomCategory ? customCategory.trim() : category;
-    
-    if (!numAmount || !title.trim() || !finalCategory || saving) return;
+    if (!numAmount || !title.trim() || !category || saving) return;
     setSaving(true);
     
     let photo_url = null;
@@ -164,7 +171,7 @@ export default function Finance({ onBack }) {
 
     await addTransaction({
       type: activeTab,
-      category: finalCategory,
+      category: category,
       title: title.trim(),
       description: description.trim(),
       amount: numAmount,
@@ -188,8 +195,6 @@ export default function Finance({ onBack }) {
     setAmount('');
     setDescription('');
     setCategory('');
-    setIsCustomCategory(false);
-    setCustomCategory('');
     setPhoto(null);
     setLocation(null);
     setLocationStatus('');
@@ -212,7 +217,6 @@ export default function Finance({ onBack }) {
   const openAddModal = (type) => {
     setActiveTab(type);
     setCategory('');
-    setIsCustomCategory(false);
     setShowModal(true);
     
     if ('geolocation' in navigator) {
@@ -223,7 +227,7 @@ export default function Finance({ onBack }) {
             lat: position.coords.latitude,
             lng: position.coords.longitude
           });
-          setLocationStatus('Lokasi berhasil dilacak! 📍');
+          setLocationStatus('Lokasi berhasil dilacak!');
         },
         (err) => {
           console.warn('Geolocation error:', err);
@@ -270,14 +274,14 @@ export default function Finance({ onBack }) {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
               PEMASUKAN
             </span>
-            <span className="font-extrabold text-green-400 dark:text-green-600">+{formatRupiah(totalIncome)}</span>
+            <span className="font-extrabold text-brand-900 dark:text-brand-300">+{formatRupiah(totalIncome)}</span>
           </div>
           <div className="flex flex-col text-right">
             <span className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-1 flex items-center gap-1 justify-end">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
               PENGELUARAN
             </span>
-            <span className="font-extrabold text-red-400 dark:text-red-600">-{formatRupiah(totalExpense)}</span>
+            <span className="font-extrabold text-brand-900 dark:text-brand-300">-{formatRupiah(totalExpense)}</span>
           </div>
         </div>
       </div>
@@ -349,7 +353,7 @@ export default function Finance({ onBack }) {
                   {groupedTransactions[dateKey].map((t) => {
                     const catName = getCategoryName(t.category, activeTab);
                     const isDefault = activeTab === 'expense' ? EXPENSE_CATEGORIES[t.category] : INCOME_CATEGORIES[t.category];
-                    const iconChar = isDefault ? catName.charAt(0) : '🏷️';
+                    const iconChar = catName.charAt(0).toUpperCase();
 
                     return (
                       <div 
@@ -376,7 +380,7 @@ export default function Finance({ onBack }) {
                           <span className={`font-extrabold text-right ${activeTab === 'expense' ? 'text-brand-900 dark:text-white' : 'text-brand-900 dark:text-white'}`}>
                             {activeTab === 'expense' ? '-' : '+'}{formatRupiah(t.amount)}
                           </span>
-                          {(t.latitude && t.longitude) && <span className="text-[10px] bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300 px-2 py-0.5 rounded font-bold uppercase tracking-wider">📍 Lokasi</span>}
+                          {(t.latitude && t.longitude) && <span className="text-[10px] bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300 px-2 py-0.5 rounded font-bold uppercase tracking-wider flex items-center gap-1"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> Lokasi</span>}
                         </div>
                       </div>
                     )
@@ -410,43 +414,20 @@ export default function Finance({ onBack }) {
             <label className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider">KATEGORI</label>
             <select 
               className="input-field appearance-none cursor-pointer"
-              value={isCustomCategory ? 'ADD_NEW' : category}
-              onChange={(e) => {
-                if (e.target.value === 'ADD_NEW') {
-                  setIsCustomCategory(true);
-                  setCategory('');
-                } else {
-                  setIsCustomCategory(false);
-                  setCategory(e.target.value);
-                }
-              }}
-              required={!isCustomCategory}
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              required
             >
               <option value="" disabled>Pilih Kategori...</option>
               {Object.entries(activeTab === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
               ))}
               
-              {userCategories.length > 0 && <optgroup label="Kategori Saya" />}
+              {userCategories.length > 0 && <optgroup label="Kategori Saya (Kelola di Profil)" />}
               {userCategories.map(cat => (
-                <option key={cat} value={cat}>🏷️ {cat}</option>
+                <option key={cat} value={cat}>{cat}</option>
               ))}
-
-              <option value="ADD_NEW">➕ Tambah Kategori Baru...</option>
             </select>
-            
-            {isCustomCategory && (
-              <div className="mt-2 animate-fade-in">
-                <input 
-                  type="text" 
-                  className="input-field border-brand-300 dark:border-brand-700" 
-                  placeholder="Ketik nama kategori baru..." 
-                  value={customCategory} 
-                  onChange={(e) => setCustomCategory(e.target.value)} 
-                  required={isCustomCategory} 
-                />
-              </div>
-            )}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -462,7 +443,7 @@ export default function Finance({ onBack }) {
           <div className="flex flex-col gap-2 border-t border-brand-200 dark:border-brand-800 pt-4 mt-2">
             <label className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider flex justify-between">
               <span>BUKTI FOTO / STRUK (Opsional)</span>
-              <span>📸</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
             </label>
             {/* The capture="environment" enables direct back-camera access on mobile */}
             <input type="file" accept="image/*" capture="environment" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-brand-100 file:text-brand-900 hover:file:bg-brand-200 cursor-pointer dark:file:bg-brand-800 dark:file:text-white dark:hover:file:bg-brand-700" ref={fileInputRef} onChange={(e) => setPhoto(e.target.files[0])} />
@@ -473,7 +454,7 @@ export default function Finance({ onBack }) {
              {locationStatus}
           </div>
 
-          <button type="submit" className="btn-primary mt-2" disabled={!amount || !title.trim() || (!category && !customCategory.trim()) || saving}>
+          <button type="submit" className="btn-primary mt-2" disabled={!amount || !title.trim() || !category || saving}>
             {saving ? 'Menyimpan...' : 'Simpan Transaksi'}
           </button>
         </form>
@@ -485,7 +466,7 @@ export default function Finance({ onBack }) {
           <div className="flex flex-col gap-5">
             <div className="text-center">
               <span className="text-5xl mb-2 inline-block">
-                {((showDetailModal.type === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES)[showDetailModal.category] || '🏷️').charAt(0)}
+                {((showDetailModal.type === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES)[showDetailModal.category] || showDetailModal.category).charAt(0).toUpperCase()}
               </span>
               <h2 className="text-2xl font-black">{showDetailModal.title}</h2>
               <p className="text-sm font-bold text-brand-500 mt-1">{getCategoryName(showDetailModal.category, showDetailModal.type)}</p>

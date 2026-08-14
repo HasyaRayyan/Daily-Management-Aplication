@@ -189,7 +189,7 @@ export default function Routine({ onBack }) {
           />
         </div>
         {progressPercent === 100 && routines.length > 0 && (
-          <p className="text-center font-bold text-xs mt-3 text-brand-600 dark:text-brand-300 bg-brand-50 dark:bg-brand-900 p-2 rounded-lg">🎉 Luar biasa! Semua rutinitas hari ini telah selesai!</p>
+          <p className="text-center font-bold text-xs mt-3 text-brand-600 dark:text-brand-300 bg-brand-50 dark:bg-brand-900 p-2 rounded-lg">Luar biasa! Semua rutinitas hari ini telah selesai.</p>
         )}
       </div>
 
@@ -252,10 +252,10 @@ export default function Routine({ onBack }) {
             if (groupRoutines.length === 0) return null;
             
             const groupTitles = {
-              pagi: '🌅 Pagi',
-              siang: '☀️ Siang',
-              malam: '🌙 Malam',
-              kapan_saja: '🕒 Kapan Saja'
+              pagi: 'Pagi',
+              siang: 'Siang',
+              malam: 'Malam',
+              kapan_saja: 'Kapan Saja'
             };
 
             return (
@@ -284,8 +284,8 @@ export default function Routine({ onBack }) {
                               {routine.title}
                             </p>
                             {streak > 1 && (
-                              <span className="bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 text-[10px] font-black px-2 py-0.5 rounded-full border border-orange-200 dark:border-orange-800/50 flex items-center gap-1">
-                                🔥 {streak} Hari
+                              <span className="bg-brand-100 dark:bg-brand-900/40 text-brand-900 dark:text-brand-100 text-[10px] font-black px-2 py-0.5 rounded-full border border-brand-200 dark:border-brand-800/50 flex items-center gap-1">
+                                Streak {streak} Hari
                               </span>
                             )}
                           </div>
@@ -299,7 +299,7 @@ export default function Routine({ onBack }) {
                                 onClick={() => setNotesModal({ isOpen: true, routineId: routine.id, currentNote: note || '' })}
                                 className="text-xs font-bold text-brand-500 hover:text-brand-900 dark:hover:text-white transition-colors underline decoration-brand-300 underline-offset-2"
                               >
-                                {note ? '✏️ Edit Catatan' : '+ Tambah Catatan'}
+                                {note ? 'Edit Catatan' : '+ Tambah Catatan'}
                               </button>
                             )}
                           </div>

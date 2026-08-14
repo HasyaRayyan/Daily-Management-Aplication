@@ -143,88 +143,66 @@ function App() {
   ];
 
   return (
-    <div className="app-wrapper animate-fade-in">
-      {/* Global Alert */}
-      {alertSchedule && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl z-[100] bg-brand-950 dark:bg-white text-white dark:text-black p-4 rounded-2xl shadow-xl flex justify-between items-center animate-slide-up">
-          <div>
-            <strong className="block text-sm">Peringatan Jadwal!</strong>
-            <span className="text-xs opacity-80">"{alertSchedule.title}" akan dimulai pada {alertSchedule.time_start}</span>
+    <div className="w-full min-h-screen bg-brand-200 dark:bg-brand-950 flex justify-center animate-fade-in">
+      {/* Mobile Wrapper */}
+      <div className="w-full max-w-md bg-brand-50 dark:bg-brand-900 shadow-2xl relative flex flex-col h-screen overflow-hidden ring-1 ring-brand-300/50 dark:ring-brand-800/50">
+        
+        {/* Global Alert */}
+        {alertSchedule && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[90%] z-[100] bg-brand-950 dark:bg-white text-white dark:text-black p-4 rounded-2xl shadow-xl flex justify-between items-center animate-slide-up">
+            <div>
+              <strong className="block text-sm">Peringatan Jadwal!</strong>
+              <span className="text-xs opacity-80">"{alertSchedule.title}" akan dimulai pada {alertSchedule.time_start}</span>
+            </div>
+            <button onClick={() => setAlertSchedule(null)} className="text-xl opacity-60 hover:opacity-100">✕</button>
           </div>
-          <button onClick={() => setAlertSchedule(null)} className="text-xl opacity-60 hover:opacity-100">✕</button>
-        </div>
-      )}
+        )}
 
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 h-full border-r border-brand-200/50 dark:border-brand-800/50 bg-brand-50 dark:bg-brand-950 p-6 z-40 shrink-0">
-        <div className="flex flex-col items-center mb-10">
-          <span className="font-extrabold text-4xl tracking-tighter mb-1">DAILY.</span>
-          <h1 className="text-sm font-bold text-brand-500 text-center tracking-tight leading-tight">Management<br/>by Hasya</h1>
-        </div>
-        <nav className="flex flex-col gap-3">
-          {navItems.map(item => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
-                activeTab === item.id
-                  ? 'bg-brand-950 dark:bg-white text-white dark:text-brand-950 shadow-md'
-                  : 'text-brand-600 dark:text-brand-400 hover:bg-brand-200 dark:hover:bg-brand-900'
-              }`}
-            >
-              <div className="[&>svg]:w-6 [&>svg]:h-6">{item.icon}</div>
-              <span className="text-sm">{item.label}</span>
-            </button>
-          ))}
-        </nav>
-      </aside>
-
-      {/* Pages Content */}
-      <div className="content-area w-full flex justify-center">
-        <div className="max-w-5xl w-full h-full">
+        {/* Pages Content */}
+        <div className="flex-1 overflow-y-auto pb-24 relative">
           {activeTab === 'dashboard' && <Dashboard session={session} setActiveTab={setActiveTab} />}
           {activeTab === 'routine' && <Routine onBack={goHome} />}
           {activeTab === 'schedule' && <Schedule onBack={goHome} />}
           {activeTab === 'finance' && <Finance onBack={goHome} />}
           {activeTab === 'profile' && <Profile session={session} onBack={goHome} />}
         </div>
-      </div>
 
-      {/* Glass Bottom Nav (Mobile) */}
-      <nav className="glass-nav">
-        {navItems.map(item => (
-          <button 
-            key={item.id}
-            onClick={() => setActiveTab(item.id)}
-            className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${
-              activeTab === item.id 
-                ? 'text-brand-950 dark:text-white scale-110' 
-                : 'text-brand-400 dark:text-brand-600 hover:text-brand-600 dark:hover:text-brand-300'
-            }`}
-          >
-            <div className="[&>svg]:w-[22px] [&>svg]:h-[22px]">
-              {item.icon}
+        {/* Glass Bottom Nav (Mobile style applied globally) */}
+        <nav className="absolute bottom-0 left-0 w-full bg-brand-50/80 dark:bg-brand-950/80 backdrop-blur-xl border-t border-brand-200/50 dark:border-brand-800/50 flex justify-around items-center pt-3 pb-6 z-50 transition-colors duration-300">
+          {navItems.map(item => (
+            <button 
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${
+                activeTab === item.id 
+                  ? 'text-brand-950 dark:text-white scale-110' 
+                  : 'text-brand-400 dark:text-brand-600 hover:text-brand-600 dark:hover:text-brand-300'
+              }`}
+            >
+              <div className="[&>svg]:w-[22px] [&>svg]:h-[22px]">
+                {item.icon}
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider">{item.label}</span>
+            </button>
+          ))}
+        </nav>
+
+        {/* Force Update Modal */}
+        <Modal isOpen={needsUpdate} onClose={() => {}} title="Update Aplikasi">
+          <div className="flex flex-col items-center gap-4 text-center pb-4">
+            <div className="w-16 h-16 bg-brand-100 dark:bg-brand-800 text-brand-900 dark:text-white rounded-full flex items-center justify-center mb-2">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider">{item.label}</span>
-          </button>
-        ))}
-      </nav>
-
-      {/* Force Update Modal */}
-      <Modal isOpen={needsUpdate} onClose={() => {}} title="Update Aplikasi">
-        <div className="flex flex-col items-center gap-4 text-center pb-4">
-          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center mb-2">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+            <p className="font-bold text-lg">Versi Baru Tersedia!</p>
+            <p className="text-sm text-brand-500 dark:text-brand-400">
+              Aplikasi versi baru telah dirilis. Silakan muat ulang (Refresh / Clear Cache) halaman web Anda untuk menggunakan versi terbaru.
+            </p>
+            <button onClick={() => window.location.reload(true)} className="btn-primary mt-4">
+              Muat Ulang Aplikasi
+            </button>
           </div>
-          <p className="font-bold text-lg">Versi Baru Tersedia!</p>
-          <p className="text-sm text-brand-500 dark:text-brand-400">
-            Aplikasi versi baru telah dirilis. Silakan muat ulang (Refresh / Clear Cache) halaman web Anda untuk menggunakan versi terbaru.
-          </p>
-          <button onClick={() => window.location.reload(true)} className="btn-primary mt-4">
-            Muat Ulang Aplikasi
-          </button>
-        </div>
-      </Modal>
+        </Modal>
+      </div>
     </div>
   );
 }

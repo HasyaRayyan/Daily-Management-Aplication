@@ -258,3 +258,41 @@ export async function getAppVersion() {
   
   return data?.value || null;
 }
+
+// ==========================================
+// CUSTOM CATEGORIES
+// ==========================================
+export async function getCustomCategories() {
+  const { data, error } = await supabase
+    .from('custom_categories')
+    .select('*')
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching custom categories:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function addCustomCategory(type, name) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return null;
+
+  const { data, error } = await supabase
+    .from('custom_categories')
+    .insert({ type, name, user_id: session.user.id })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error adding custom category:', error);
+    return null;
+  }
+  return data;
+}
+
+export async function deleteCustomCategory(id) {
+  const { error } = await supabase.from('custom_categories').delete().eq('id', id);
+  return !error;
+}

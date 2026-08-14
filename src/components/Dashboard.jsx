@@ -105,7 +105,7 @@ export default function Dashboard({ session, setActiveTab }) {
                 latestTransactions.map((t) => (
                   <div key={t.id} className="flex justify-between items-center p-4 bg-brand-50 dark:bg-brand-950 rounded-2xl border border-brand-100 dark:border-brand-800">
                     <p className="font-bold text-[15px] truncate max-w-[60%]">{t.title}</p>
-                    <p className={`font-black text-[15px] ${t.type === 'expense' ? 'text-red-500 dark:text-red-400' : 'text-green-500 dark:text-green-400'}`}>
+                    <p className={`font-black text-[15px] ${t.type === 'expense' ? 'text-brand-900 dark:text-brand-300' : 'text-brand-900 dark:text-brand-300'}`}>
                       {t.type === 'expense' ? '-' : '+'}{formatRupiah(t.amount)}
                     </p>
                   </div>

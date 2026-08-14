@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Modal from './Modal';
 import Header from './Header';
-import { getProfile, updateProfile, uploadFile } from '../utils/storage';
+import { getProfile, updateProfile, uploadFile, getCustomCategories, addCustomCategory, deleteCustomCategory } from '../utils/storage';
 import { logout, sendPasswordResetOtp } from '../lib/auth';
 
 export default function Profile({ session, onBack }) {
@@ -11,6 +11,13 @@ export default function Profile({ session, onBack }) {
   const [newName, setNewName] = useState('');
   const [saving, setSaving] = useState(false);
   const [resettingPassword, setResettingPassword] = useState(false);
+
+  // States for Custom Categories
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [customCategories, setCustomCategories] = useState([]);
+  const [catLoading, setCatLoading] = useState(false);
+  const [categoryType, setCategoryType] = useState('expense');
+  const [newCategoryName, setNewCategoryName] = useState('');
 
   const fileInputRef = useRef(null);
 
@@ -79,6 +86,34 @@ export default function Profile({ session, onBack }) {
     }
   };
 
+  const loadCategories = async () => {
+    setCatLoading(true);
+    const cats = await getCustomCategories();
+    setCustomCategories(cats);
+    setCatLoading(false);
+  };
+
+  const openCategoryModal = () => {
+    setShowCategoryModal(true);
+    loadCategories();
+  };
+
+  const handleAddCategory = async (e) => {
+    e.preventDefault();
+    if (!newCategoryName.trim() || catLoading) return;
+    setCatLoading(true);
+    await addCustomCategory(categoryType, newCategoryName.trim());
+    setNewCategoryName('');
+    await loadCategories();
+  };
+
+  const handleDeleteCategory = async (id) => {
+    if (!window.confirm("Yakin hapus kategori ini? Transaksi lama dengan kategori ini tidak akan terhapus, namun kategori ini akan hilang dari pilihan form.")) return;
+    setCatLoading(true);
+    await deleteCustomCategory(id);
+    await loadCategories();
+  };
+
   const displayName = profile?.display_name || session?.user?.user_metadata?.username || 'User';
   const avatarUrl = profile?.avatar_url;
 
@@ -130,6 +165,10 @@ export default function Profile({ session, onBack }) {
               <span className="font-bold flex items-center gap-3">Ubah Nama</span>
             </button>
 
+            <button onClick={openCategoryModal} className="flex justify-between items-center w-full p-4 bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 rounded-2xl hover:bg-brand-50 dark:hover:bg-brand-800 transition-colors shadow-sm">
+              <span className="font-bold flex items-center gap-3">Kelola Kategori Kustom</span>
+            </button>
+
             <button onClick={handleResetPassword} disabled={resettingPassword} className="flex justify-between items-center w-full p-4 bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 rounded-2xl hover:bg-brand-50 dark:hover:bg-brand-800 transition-colors shadow-sm">
               <span className="font-bold flex items-center gap-3">{resettingPassword ? 'Mengirim Link...' : 'Ubah Kata Sandi'}</span>
             </button>
@@ -144,6 +183,7 @@ export default function Profile({ session, onBack }) {
         </div>
       )}
 
+      {/* Modal Ubah Nama */}
       <Modal isOpen={showNameModal} onClose={() => setShowNameModal(false)} title="Ubah Nama">
         <form onSubmit={handleUpdateName} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
@@ -161,6 +201,69 @@ export default function Profile({ session, onBack }) {
           </button>
         </form>
       </Modal>
+
+      {/* Modal Kategori Kustom */}
+      <Modal isOpen={showCategoryModal} onClose={() => setShowCategoryModal(false)} title="Kategori Kustom">
+        <div className="flex flex-col gap-5">
+          {/* Tabs */}
+          <div className="flex p-1 bg-brand-100 dark:bg-brand-900 rounded-xl">
+            <button 
+              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${categoryType === 'expense' ? 'bg-white dark:bg-brand-950 shadow-sm text-brand-900 dark:text-white' : 'text-brand-500 hover:text-brand-700 dark:hover:text-brand-300'}`}
+              onClick={() => setCategoryType('expense')}
+            >
+              Pengeluaran
+            </button>
+            <button 
+              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${categoryType === 'income' ? 'bg-white dark:bg-brand-950 shadow-sm text-brand-900 dark:text-white' : 'text-brand-500 hover:text-brand-700 dark:hover:text-brand-300'}`}
+              onClick={() => setCategoryType('income')}
+            >
+              Pemasukan
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-2 max-h-[40vh] overflow-y-auto pr-1">
+            {catLoading && customCategories.length === 0 ? (
+              <p className="text-center font-bold text-brand-500 py-4 animate-pulse">Memuat...</p>
+            ) : customCategories.filter(c => c.type === categoryType).length === 0 ? (
+              <div className="text-center py-6 bg-brand-50 dark:bg-brand-950 rounded-xl border border-dashed border-brand-200 dark:border-brand-800">
+                <p className="font-bold text-brand-400 text-sm">Belum ada kategori kustom.</p>
+              </div>
+            ) : (
+              customCategories.filter(c => c.type === categoryType).map((cat) => (
+                <div key={cat.id} className="flex justify-between items-center p-3 bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 rounded-xl">
+                  <span className="font-bold text-sm flex items-center gap-2">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                    {cat.name}
+                  </span>
+                  <button 
+                    onClick={() => handleDeleteCategory(cat.id)}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-brand-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                    disabled={catLoading}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+
+          <form onSubmit={handleAddCategory} className="flex gap-2 pt-4 border-t border-brand-200 dark:border-brand-800">
+            <input 
+              type="text" 
+              className="input-field flex-1 text-sm py-2" 
+              placeholder="Ketik kategori baru..." 
+              value={newCategoryName} 
+              onChange={(e) => setNewCategoryName(e.target.value)} 
+              required
+            />
+            <button type="submit" disabled={!newCategoryName.trim() || catLoading} className="bg-brand-950 dark:bg-white text-white dark:text-brand-950 font-bold px-4 rounded-xl hover:opacity-90 disabled:opacity-50 transition-opacity">
+              Tambah
+            </button>
+          </form>
+
+        </div>
+      </Modal>
+
     </div>
   );
 }
