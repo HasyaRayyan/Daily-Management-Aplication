@@ -1,8 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
 import Modal from './Modal';
 import Header from './Header';
-import { getProfile, updateProfile, uploadFile, getCustomCategories, addCustomCategory, deleteCustomCategory } from '../utils/storage';
+import { getProfile, updateProfile, uploadFile, getCustomCategories, addCustomCategory, deleteCustomCategory, getTransactionsWithLocation } from '../utils/storage';
 import { logout, sendPasswordResetOtp } from '../lib/auth';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix Leaflet default icon issue
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+});
 
 export default function Profile({ session, onBack }) {
   const [profile, setProfile] = useState(null);
@@ -19,6 +34,10 @@ export default function Profile({ session, onBack }) {
   const [categoryType, setCategoryType] = useState('expense');
   const [newCategoryName, setNewCategoryName] = useState('');
 
+  // States for Map
+  const [mapTransactions, setMapTransactions] = useState([]);
+  const [mapLoading, setMapLoading] = useState(true);
+
   const fileInputRef = useRef(null);
 
   const fetchData = async () => {
@@ -26,6 +45,11 @@ export default function Profile({ session, onBack }) {
     const data = await getProfile();
     setProfile(data);
     setLoading(false);
+    
+    setMapLoading(true);
+    const mData = await getTransactionsWithLocation();
+    setMapTransactions(mData);
+    setMapLoading(false);
   };
 
   useEffect(() => {
@@ -177,9 +201,39 @@ export default function Profile({ session, onBack }) {
               <span className="font-bold text-red-600 dark:text-red-400 flex items-center gap-3">Keluar (Logout)</span>
             </button>
           </div>
-          <div className="mt-8 text-center text-xs font-bold text-brand-300 dark:text-brand-700">
+          <div className="mt-8 text-center text-xs font-bold text-brand-300 dark:text-brand-700 mb-2">
             Aplikasi Versi {import.meta.env.VITE_APP_VERSION || '1.0.0'}
           </div>
+
+          {/* Peta Transaksi */}
+          <div className="w-full flex flex-col gap-3 mt-4 mb-4">
+            <h4 className="text-xs font-bold text-brand-400 uppercase tracking-widest mb-1 px-2">Peta Bukti Transaksi</h4>
+            <div className="w-full h-72 bg-brand-100 dark:bg-brand-900 rounded-2xl overflow-hidden shadow-sm border border-brand-200 dark:border-brand-800 z-10 relative">
+              {mapLoading ? (
+                <div className="w-full h-full flex items-center justify-center font-bold text-brand-500 animate-pulse">Memuat Peta...</div>
+              ) : mapTransactions.length === 0 ? (
+                <div className="w-full h-full flex items-center justify-center font-bold text-brand-500 text-sm text-center px-4">Belum ada transaksi dengan foto & lokasi</div>
+              ) : (
+                <MapContainer center={[mapTransactions[0].latitude, mapTransactions[0].longitude]} zoom={13} style={{ height: '100%', width: '100%', zIndex: 1 }}>
+                  <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
+                  />
+                  {mapTransactions.map((t) => (
+                    <Marker key={t.id} position={[t.latitude, t.longitude]}>
+                      <Popup>
+                        <div className="flex flex-col gap-1 items-center min-w-[100px]">
+                          <span className="font-bold text-xs text-center">{t.title}</span>
+                          <img src={t.photo_url} alt="Bukti" className="w-24 h-24 object-cover rounded-lg mt-1 border border-brand-200" />
+                        </div>
+                      </Popup>
+                    </Marker>
+                  ))}
+                </MapContainer>
+              )}
+            </div>
+          </div>
+
         </div>
       )}
 

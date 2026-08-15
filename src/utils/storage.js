@@ -180,6 +180,21 @@ export async function getTransactions(dateKey) {
   return data || [];
 }
 
+export async function getTransactionsWithLocation() {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .not('latitude', 'is', null)
+    .not('longitude', 'is', null)
+    .not('photo_url', 'is', null);
+
+  if (error) {
+    console.error('Error fetching transactions with location:', error);
+    return [];
+  }
+  return data || [];
+}
+
 export async function getTransactionsByMonth(monthPrefix) {
   const { data, error } = await supabase
     .from('transactions')
