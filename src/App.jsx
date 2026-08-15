@@ -68,6 +68,15 @@ function App() {
         Notification.requestPermission();
       }
 
+      // Request location permission early
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          () => console.log('Location permission granted'),
+          (err) => console.log('Location permission skipped or denied', err),
+          { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+        );
+      }
+
       const checkSchedules = async () => {
         const todayKey = getDateKey(new Date());
         const { data } = await supabase.from('schedules').select('*').eq('date_key', todayKey);

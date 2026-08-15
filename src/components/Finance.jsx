@@ -510,7 +510,7 @@ export default function Finance({ onBack }) {
             {showDetailModal.photo_url && (
               <div className="flex flex-col gap-2">
                 <span className="text-xs font-bold text-brand-500 tracking-widest uppercase">Bukti Foto</span>
-                <img src={showDetailModal.photo_url} alt="Bukti" className="w-full rounded-2xl object-cover border border-brand-100 dark:border-brand-800" onClick={() => setShowPhotoModal(showDetailModal.photo_url)} />
+                <img src={showDetailModal.photo_url} alt="Bukti" className="w-full max-h-40 rounded-2xl object-cover border border-brand-100 dark:border-brand-800 cursor-pointer hover:opacity-90 transition-opacity" onClick={() => setShowPhotoModal(showDetailModal.photo_url)} />
               </div>
             )}
 
