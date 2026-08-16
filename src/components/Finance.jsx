@@ -4,6 +4,7 @@ import Header from './Header';
 import { formatRupiah, getDateKey } from '../utils/helpers';
 import { getTransactionsByMonth, addTransaction, deleteTransaction, uploadFile, getCustomCategories } from '../utils/storage';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { Geolocation } from '@capacitor/geolocation';
 
 const EXPENSE_CATEGORIES = {
   makanan: 'Makanan',
@@ -219,29 +220,27 @@ export default function Finance({ onBack }) {
     setCategory('');
     setShowModal(true);
     
-    if ('geolocation' in navigator) {
-      setLocationStatus('Sedang melacak lokasi Anda...');
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-          setLocationStatus('Lokasi berhasil dilacak!');
-        },
-        (err) => {
-          console.warn('Geolocation error:', err);
-          let errMsg = 'Gagal melacak lokasi.';
-          if (err.code === 1) errMsg = 'Akses lokasi ditolak oleh browser/OS.';
-          else if (err.code === 2) errMsg = 'Sinyal lokasi tidak ditemukan (Periksa koneksi).';
-          else if (err.code === 3) errMsg = 'Pencarian lokasi terlalu lama (Timeout).';
-          setLocationStatus(`${errMsg} (Bisa diabaikan)`);
-        },
-        { enableHighAccuracy: false, timeout: 15000, maximumAge: 0 }
-      );
-    } else {
-      setLocationStatus('Peramban Anda tidak mendukung pelacakan lokasi.');
-    }
+    const fetchLocation = async () => {
+      try {
+        setLocationStatus('Sedang melacak lokasi Anda...');
+        const perm = await Geolocation.checkPermissions();
+        if (perm.location !== 'granted') {
+          await Geolocation.requestPermissions();
+        }
+        
+        const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000 });
+        setLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        });
+        setLocationStatus('Lokasi berhasil dilacak!');
+      } catch (err) {
+        console.warn('Geolocation error:', err);
+        setLocationStatus(`Gagal melacak lokasi (${err.message || 'Error'}). Bisa diabaikan.`);
+      }
+    };
+    
+    fetchLocation();
   };
 
   return (

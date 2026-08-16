@@ -10,6 +10,7 @@ import { getSession, onAuthStateChange, updatePassword } from './lib/auth';
 import { getSchedules, getAppVersion } from './utils/storage';
 import { getDateKey } from './utils/helpers';
 import { supabase } from './lib/supabase';
+import { Geolocation } from '@capacitor/geolocation';
 import './index.css';
 
 // Icons
@@ -69,13 +70,19 @@ function App() {
       }
 
       // Request location permission early
-      if ('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          () => console.log('Location permission granted'),
-          (err) => console.log('Location permission skipped or denied', err),
-          { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
-        );
-      }
+      const requestLoc = async () => {
+        try {
+          const perm = await Geolocation.checkPermissions();
+          if (perm.location !== 'granted') {
+            await Geolocation.requestPermissions();
+          }
+          await Geolocation.getCurrentPosition({ enableHighAccuracy: false, timeout: 10000 });
+          console.log('Location permission granted');
+        } catch (err) {
+          console.log('Location permission skipped or denied', err);
+        }
+      };
+      requestLoc();
 
       const checkSchedules = async () => {
         const todayKey = getDateKey(new Date());
