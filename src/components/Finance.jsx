@@ -223,11 +223,8 @@ export default function Finance({ onBack }) {
     const fetchLocation = async () => {
       try {
         setLocationStatus('Sedang melacak lokasi Anda...');
-        const perm = await Geolocation.checkPermissions();
-        if (perm.location !== 'granted') {
-          await Geolocation.requestPermissions();
-        }
         
+        // Capacitor akan otomatis meminta izin jika belum ada saat memanggil getCurrentPosition
         const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000 });
         setLocation({
           lat: position.coords.latitude,
@@ -235,8 +232,23 @@ export default function Finance({ onBack }) {
         });
         setLocationStatus('Lokasi berhasil dilacak!');
       } catch (err) {
-        console.warn('Geolocation error:', err);
-        setLocationStatus(`Gagal melacak lokasi (${err.message || 'Error'}). Bisa diabaikan.`);
+        console.warn('Capacitor Geolocation error:', err);
+        
+        // Fallback ke browser API standar
+        if ('geolocation' in navigator) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+              setLocationStatus('Lokasi berhasil dilacak (Standar)!');
+            },
+            (navErr) => {
+              setLocationStatus(`Gagal melacak lokasi. Bisa diabaikan.`);
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+          );
+        } else {
+          setLocationStatus(`Gagal melacak lokasi. Bisa diabaikan.`);
+        }
       }
     };
     

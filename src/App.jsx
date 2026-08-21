@@ -72,14 +72,18 @@ function App() {
       // Request location permission early
       const requestLoc = async () => {
         try {
-          const perm = await Geolocation.checkPermissions();
-          if (perm.location !== 'granted') {
-            await Geolocation.requestPermissions();
-          }
-          await Geolocation.getCurrentPosition({ enableHighAccuracy: false, timeout: 10000 });
-          console.log('Location permission granted');
+          // Capacitor akan otomatis meminta izin jika belum ada
+          await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 });
+          console.log('Location permission granted (Capacitor)');
         } catch (err) {
-          console.log('Location permission skipped or denied', err);
+          console.log('Capacitor Geolocation error:', err);
+          if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(
+              () => console.log('Location permission granted (Web)'),
+              (e) => console.log('Location permission skipped or denied (Web)', e),
+              { enableHighAccuracy: true, timeout: 10000 }
+            );
+          }
         }
       };
       requestLoc();
