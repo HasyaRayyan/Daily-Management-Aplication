@@ -413,37 +413,39 @@ export default function Finance({ onBack }) {
 
       {/* Add Modal */}
       <Modal isOpen={showModal} onClose={resetForm} title={activeTab === 'expense' ? 'Tambah Pengeluaran' : 'Tambah Pemasukan'}>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 sm:gap-5">
           
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider">TOTAL (Rp)</label>
-            <input type="text" inputMode="numeric" className="input-field text-2xl font-black py-4 text-center" placeholder="0" value={amount} onChange={handleAmountChange} required />
-            {amount && <p className="text-xs font-bold text-center text-brand-900 dark:text-white mt-1">{formatRupiah(parseFloat(amount))}</p>}
+          <div className="flex flex-col gap-2 bg-brand-50 dark:bg-brand-900/40 p-4 sm:p-6 rounded-2xl border border-brand-100 dark:border-brand-800 transition-colors">
+            <label className="text-xs font-bold text-brand-500 tracking-widest text-center">TOTAL (Rp)</label>
+            <input type="text" inputMode="numeric" className="w-full bg-transparent text-3xl sm:text-4xl font-black py-2 text-center text-brand-950 dark:text-white border-none focus:outline-none focus:ring-0" placeholder="0" value={amount} onChange={handleAmountChange} required />
+            {amount && <p className="text-xs font-bold text-center text-brand-400 mt-1">{formatRupiah(parseFloat(amount))}</p>}
           </div>
 
-          <div className="flex flex-col gap-2 mt-2">
-            <label className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider">KATEGORI</label>
-            <select 
-              className="input-field appearance-none cursor-pointer"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              required
-            >
-              <option value="" disabled>Pilih Kategori...</option>
-              {Object.entries(activeTab === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
-              
-              {userCategories.length > 0 && <optgroup label="Kategori Saya (Kelola di Profil)" />}
-              {userCategories.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider">KATEGORI</label>
+              <select 
+                className="input-field appearance-none cursor-pointer"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                required
+              >
+                <option value="" disabled>Pilih Kategori...</option>
+                {Object.entries(activeTab === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES).map(([key, label]) => (
+                  <option key={key} value={key}>{label}</option>
+                ))}
+                
+                {userCategories.length > 0 && <optgroup label="Kategori Saya (Kelola di Profil)" />}
+                {userCategories.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider">NAMA TRANSAKSI</label>
-            <input type="text" className="input-field" placeholder={activeTab === 'expense' ? "Contoh: Makan Siang Hokben" : "Contoh: Uang Jajan Bulanan"} value={title} onChange={(e) => setTitle(e.target.value)} required />
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider">NAMA TRANSAKSI</label>
+              <input type="text" className="input-field" placeholder={activeTab === 'expense' ? "Cth: Makan Siang Hokben" : "Cth: Uang Jajan Bulanan"} value={title} onChange={(e) => setTitle(e.target.value)} required />
+            </div>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -451,18 +453,21 @@ export default function Finance({ onBack }) {
             <input type="text" className="input-field" placeholder="Catatan tambahan..." value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
 
-          <div className="flex flex-col gap-2 border-t border-brand-200 dark:border-brand-800 pt-4 mt-2">
-            <label className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider flex justify-between">
-              <span>BUKTI FOTO / STRUK (Opsional)</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            </label>
-            {/* The capture="environment" enables direct back-camera access on mobile */}
-            <input type="file" accept="image/*" capture="environment" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-brand-100 file:text-brand-900 hover:file:bg-brand-200 cursor-pointer dark:file:bg-brand-800 dark:file:text-white dark:hover:file:bg-brand-700" ref={fileInputRef} onChange={(e) => setPhoto(e.target.files[0])} />
-          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-brand-200 dark:border-brand-800 pt-4 mt-2">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider flex justify-between">
+                <span>BUKTI FOTO (Opsional)</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              </label>
+              <input type="file" accept="image/*" capture="environment" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-brand-100 file:text-brand-900 hover:file:bg-brand-200 cursor-pointer dark:file:bg-brand-800 dark:file:text-white dark:hover:file:bg-brand-700 w-full" ref={fileInputRef} onChange={(e) => setPhoto(e.target.files[0])} />
+            </div>
 
-          <div className="text-xs font-semibold text-brand-500 bg-brand-50 dark:bg-brand-900 p-2 rounded-xl text-center flex flex-col items-center gap-1">
-             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-             {locationStatus}
+            <div className="flex flex-col justify-end">
+              <div className="text-xs font-semibold text-brand-500 bg-brand-50 dark:bg-brand-900/50 p-3 rounded-xl flex items-center justify-center gap-2 h-[38px]">
+                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                 <span className="truncate">{locationStatus}</span>
+              </div>
+            </div>
           </div>
 
           <button type="submit" className="btn-primary mt-2" disabled={!amount || !title.trim() || !category || saving}>

@@ -219,16 +219,27 @@ export default function Profile({ session, onBack }) {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
                   />
-                  {mapTransactions.map((t) => (
-                    <Marker key={t.id} position={[t.latitude, t.longitude]}>
-                      <Popup>
-                        <div className="flex flex-col gap-1 items-center min-w-[100px]">
-                          <span className="font-bold text-xs text-center">{t.title}</span>
-                          <img src={t.photo_url} alt="Bukti" className="w-24 h-24 object-cover rounded-lg mt-1 border border-brand-200" />
-                        </div>
-                      </Popup>
-                    </Marker>
-                  ))}
+                  {mapTransactions.map((t) => {
+                    const customIcon = L.divIcon({
+                      className: 'custom-photo-marker',
+                      html: `<div style="width: 48px; height: 48px; border-radius: 12px; overflow: hidden; border: 3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.2); background-color: #eee;">
+                               <img src="${t.photo_url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'" />
+                             </div>`,
+                      iconSize: [48, 48],
+                      iconAnchor: [24, 48],
+                      popupAnchor: [0, -48]
+                    });
+
+                    return (
+                      <Marker key={t.id} position={[t.latitude, t.longitude]} icon={customIcon}>
+                        <Popup>
+                          <div className="flex flex-col gap-1 items-center min-w-[100px]">
+                            <span className="font-bold text-xs text-center">{t.title}</span>
+                          </div>
+                        </Popup>
+                      </Marker>
+                    );
+                  })}
                 </MapContainer>
               )}
             </div>
