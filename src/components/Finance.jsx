@@ -5,6 +5,8 @@ import { formatRupiah, getDateKey } from '../utils/helpers';
 import { getTransactionsByMonth, addTransaction, deleteTransaction, uploadFile, getCustomCategories } from '../utils/storage';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { Geolocation } from '@capacitor/geolocation';
+import QRScanner from './QRScanner';
+import { parseQris } from '../utils/qrisParser';
 
 const EXPENSE_CATEGORIES = {
   makanan: 'Makanan',
@@ -58,6 +60,9 @@ export default function Finance({ onBack }) {
   const [showModal, setShowModal] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(null); 
+  const [showScanner, setShowScanner] = useState(false);
+  const [showPaymentLinks, setShowPaymentLinks] = useState(false);
+  const [isFromQris, setIsFromQris] = useState(false);
   
   const [selectedMonth, setSelectedMonth] = useState(new Date());
 
@@ -182,7 +187,13 @@ export default function Finance({ onBack }) {
       date_key: todayDateKey
     });
 
+    const wasQris = isFromQris;
     resetForm();
+
+    if (wasQris) {
+      setShowPaymentLinks(true);
+    }
+
     if (getMonthPrefix(new Date()) !== getMonthPrefix(selectedMonth)) {
       setSelectedMonth(new Date());
     } else {
@@ -199,8 +210,27 @@ export default function Finance({ onBack }) {
     setPhoto(null);
     setLocation(null);
     setLocationStatus('');
+    setIsFromQris(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
     setShowModal(false);
+  };
+
+  const handleScanSuccess = (qrisString) => {
+    setShowScanner(false);
+    const data = parseQris(qrisString);
+    if (data && (data.merchantName || data.isValid)) {
+      setTitle(data.merchantName || 'Pembayaran QRIS');
+      if (data.amount) {
+        setAmount(data.amount.toString());
+      }
+      if (!category) setCategory('lainnya');
+      
+      setActiveTab('expense');
+      setIsFromQris(true);
+      setShowModal(true);
+    } else {
+      alert("Format QRIS tidak didukung atau tidak dapat dibaca dengan jelas.");
+    }
   };
 
   const handleAmountChange = (e) => {
@@ -403,13 +433,26 @@ export default function Finance({ onBack }) {
         )}
       </div>
 
-      {/* Floating Action Button (FAB) for Finance */}
-      <button 
-        onClick={() => openAddModal(activeTab)} 
-        className="fixed bottom-24 right-5 md:bottom-10 md:right-10 w-16 h-16 bg-brand-200 dark:bg-brand-800 text-brand-900 dark:text-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform z-[150] border-2 border-brand-100 dark:border-brand-900"
-      >
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      </button>
+      {/* Floating Action Buttons */}
+      <div className="fixed bottom-24 right-5 md:bottom-10 md:right-10 flex flex-col gap-4 z-[150] items-end">
+        
+        {/* QRIS FAB */}
+        <button 
+          onClick={() => setShowScanner(true)} 
+          className="w-12 h-12 bg-white dark:bg-brand-900 text-brand-900 dark:text-white rounded-full flex items-center justify-center shadow-[0_8px_16px_rgba(0,0,0,0.1)] hover:scale-110 active:scale-95 transition-all border border-brand-200 dark:border-brand-700"
+          title="Scan QRIS"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><rect x="14" y="14" width="3" height="3"/></svg>
+        </button>
+
+        {/* Main Add FAB */}
+        <button 
+          onClick={() => openAddModal(activeTab)} 
+          className="w-16 h-16 bg-brand-200 dark:bg-brand-800 text-brand-900 dark:text-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform border-2 border-brand-100 dark:border-brand-900"
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
 
       {/* Add Modal */}
       <Modal isOpen={showModal} onClose={resetForm} title={activeTab === 'expense' ? 'Tambah Pengeluaran' : 'Tambah Pemasukan'}>
@@ -471,7 +514,7 @@ export default function Finance({ onBack }) {
           </div>
 
           <button type="submit" className="btn-primary mt-2" disabled={!amount || !title.trim() || !category || saving}>
-            {saving ? 'Menyimpan...' : 'Simpan Transaksi'}
+            {saving ? 'Menyimpan...' : (isFromQris ? 'Simpan & Bayar Sekarang' : 'Simpan Transaksi')}
           </button>
         </form>
       </Modal>
@@ -547,6 +590,38 @@ export default function Finance({ onBack }) {
           <img src={showPhotoModal} alt="Bukti Full" className="w-full rounded-xl object-contain max-h-[60vh] bg-brand-50 dark:bg-brand-900" />
         )}
       </Modal>
+
+      {/* Payment Link Modal */}
+      <Modal isOpen={showPaymentLinks} onClose={() => setShowPaymentLinks(false)} title="Bayar via Aplikasi">
+        <div className="flex flex-col gap-6 text-center">
+          <p className="text-sm font-semibold text-brand-600 dark:text-brand-400">
+            Transaksi berhasil dicatat. Silakan selesaikan pembayaran aslinya melalui M-Banking atau E-Wallet Anda!
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <a href="gojek://" className="flex flex-col items-center justify-center gap-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 p-4 rounded-2xl hover:bg-green-100 transition-colors border border-green-200 dark:border-green-800">
+              <span className="font-extrabold text-lg">GoPay</span>
+            </a>
+            <a href="ovo://" className="flex flex-col items-center justify-center gap-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 p-4 rounded-2xl hover:bg-purple-100 transition-colors border border-purple-200 dark:border-purple-800">
+              <span className="font-extrabold text-lg">OVO</span>
+            </a>
+            <a href="dana://" className="flex flex-col items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 p-4 rounded-2xl hover:bg-blue-100 transition-colors border border-blue-200 dark:border-blue-800">
+              <span className="font-extrabold text-lg">DANA</span>
+            </a>
+            <a href="bcamobile://" className="flex flex-col items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 p-4 rounded-2xl hover:bg-blue-100 transition-colors border border-blue-200 dark:border-blue-800">
+              <span className="font-extrabold text-lg">BCA</span>
+            </a>
+          </div>
+          <button onClick={() => setShowPaymentLinks(false)} className="mt-2 text-sm font-bold text-brand-500 hover:text-brand-700">Tutup</button>
+        </div>
+      </Modal>
+
+      {/* QR Scanner Overlay */}
+      {showScanner && (
+        <QRScanner 
+          onScanSuccess={handleScanSuccess} 
+          onClose={() => setShowScanner(false)} 
+        />
+      )}
     </div>
   );
 }
