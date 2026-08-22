@@ -16,9 +16,23 @@ export default function QRScanner({ onScanSuccess, onClose }) {
            return;
         }
 
+        const cameras = await Html5Qrcode.getCameras();
+        if (!cameras || cameras.length === 0) {
+          throw new Error("Tidak ada kamera yang terdeteksi di perangkat ini.");
+        }
+        
+        let cameraId = cameras[cameras.length - 1].id; // Default ke kamera terakhir (biasanya belakang)
+        for (const cam of cameras) {
+          const label = cam.label.toLowerCase();
+          if (label.includes('back') || label.includes('environment') || label.includes('belakang') || label.includes('0')) {
+            cameraId = cam.id;
+            break;
+          }
+        }
+
         html5QrCode = new Html5Qrcode("qris-reader");
         await html5QrCode.start(
-          { facingMode: "environment" }, 
+          cameraId, 
           {
             fps: 10,
             qrbox: { width: 250, height: 250 },
@@ -38,7 +52,7 @@ export default function QRScanner({ onScanSuccess, onClose }) {
         );
       } catch (err) {
         console.error("Gagal menyalakan kamera", err);
-        alert("Gagal menyalakan kamera. Pastikan Anda telah memberikan izin akses kamera.");
+        alert("Gagal menyalakan kamera: " + (err.message || err));
         onClose();
       }
     };
