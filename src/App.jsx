@@ -210,7 +210,7 @@ function App() {
         )}
 
         {/* Pages Content */}
-        <div className="flex-1 overflow-y-auto pb-24 md:pb-8 relative">
+        <div className="flex-1 overflow-y-auto pb-32 md:pb-8 relative">
           <div className="max-w-5xl mx-auto w-full">
             {activeTab === 'dashboard' && <Dashboard session={session} setActiveTab={setActiveTab} />}
             {activeTab === 'routine' && <Routine onBack={goHome} />}
@@ -220,25 +220,34 @@ function App() {
           </div>
         </div>
 
-        {/* Glass Bottom Nav (Mobile Only) */}
-        <nav className="md:hidden absolute bottom-0 left-0 w-full bg-white/90 dark:bg-brand-900/90 backdrop-blur-xl border-t border-brand-200/50 dark:border-brand-800/50 flex justify-around items-center pt-3 pb-6 z-50 transition-colors duration-300 shadow-[0_-4px_24px_rgba(0,0,0,0.05)]">
-          {navItems.map(item => (
-            <button 
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${
-                activeTab === item.id 
-                  ? 'text-brand-950 dark:text-white scale-110' 
-                  : 'text-brand-400 dark:text-brand-600 hover:text-brand-600 dark:hover:text-brand-300'
-              }`}
-            >
-              <div className="[&>svg]:w-[22px] [&>svg]:h-[22px]">
-                {item.icon}
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider">{item.label}</span>
-            </button>
-          ))}
-        </nav>
+        {/* Floating Modern Bottom Nav (Mobile Only) */}
+        <div className="md:hidden fixed bottom-4 left-0 w-full px-4 z-[100] flex justify-center pointer-events-none">
+          <nav className="w-full max-w-[400px] bg-white/90 dark:bg-brand-900/90 backdrop-blur-2xl border border-brand-200/50 dark:border-brand-700/50 flex justify-between items-center px-3 py-3 rounded-full shadow-[0_12px_32px_rgba(0,0,0,0.15)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] pointer-events-auto">
+            {navItems.map(item => {
+              const isActive = activeTab === item.id;
+              return (
+                <button 
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`relative flex items-center justify-center transition-all duration-300 overflow-hidden ${
+                    isActive 
+                      ? 'px-4 py-2.5 text-brand-950 dark:text-white bg-brand-100 dark:bg-brand-800 rounded-full gap-2' 
+                      : 'w-12 h-12 text-brand-400 dark:text-brand-500 hover:text-brand-600 dark:hover:text-brand-300 hover:scale-110'
+                  }`}
+                >
+                  <div className={`[&>svg]:w-5 [&>svg]:h-5 shrink-0 transition-transform ${isActive ? 'scale-110' : ''}`}>
+                    {item.icon}
+                  </div>
+                  {isActive && (
+                    <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap animate-fade-in">
+                      {item.label}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
 
         {/* Force Update Modal */}
         <Modal isOpen={needsUpdate} onClose={() => {}} title="Update Aplikasi">
