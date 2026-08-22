@@ -1,13 +1,22 @@
 import { useEffect } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
+import { Camera } from '@capacitor/camera';
 
 export default function QRScanner({ onScanSuccess, onClose }) {
   useEffect(() => {
     let html5QrCode;
     
     const startScanner = async () => {
-      html5QrCode = new Html5Qrcode("qris-reader");
       try {
+        // Minta izin kamera langsung ke Native Android (Wajib untuk Capacitor)
+        const perm = await Camera.requestPermissions();
+        if (perm.camera !== 'granted' && perm.camera !== 'prompt-with-rationale') {
+           alert("Izin kamera ditolak. Silakan izinkan di Pengaturan HP Anda.");
+           onClose();
+           return;
+        }
+
+        html5QrCode = new Html5Qrcode("qris-reader");
         await html5QrCode.start(
           { facingMode: "environment" }, 
           {
