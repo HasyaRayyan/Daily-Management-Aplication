@@ -5,6 +5,8 @@ import { formatRupiah, getDateKey } from '../utils/helpers';
 import { getTransactionsByMonth, addTransaction, deleteTransaction, uploadFile, getCustomCategories } from '../utils/storage';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { Geolocation } from '@capacitor/geolocation';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
 import QRScanner from './QRScanner';
 import { parseQris } from '../utils/qrisParser';
 
@@ -236,6 +238,28 @@ export default function Finance({ onBack }) {
   const handleAmountChange = (e) => {
     const val = e.target.value.replace(/[^0-9]/g, '');
     setAmount(val);
+  };
+
+  const handleNativePhotoPicker = async () => {
+    try {
+      const image = await Camera.getPhoto({
+        quality: 60,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Prompt // Meminta pengguna memilih Kamera atau Galeri
+      });
+
+      // Convert DataURL to File object for Supabase upload
+      const response = await fetch(image.dataUrl);
+      const blob = await response.blob();
+      const file = new File([blob], `photo_${Date.now()}.${image.format}`, { type: `image/${image.format}` });
+      setPhoto(file);
+    } catch (err) {
+      console.error("Gagal mengambil foto:", err);
+      if (err.message && !err.message.includes('User cancelled') && !err.message.includes('canceled')) {
+        alert("Gagal mengakses galeri/kamera: " + err.message);
+      }
+    }
   };
 
   const handleDelete = async (id) => {
@@ -502,7 +526,18 @@ export default function Finance({ onBack }) {
                 <span>BUKTI FOTO (Opsional)</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
               </label>
-              <input type="file" accept="image/*" capture="environment" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-brand-100 file:text-brand-900 hover:file:bg-brand-200 cursor-pointer dark:file:bg-brand-800 dark:file:text-white dark:hover:file:bg-brand-700 w-full" ref={fileInputRef} onChange={(e) => setPhoto(e.target.files[0])} />
+              
+              {Capacitor.isNativePlatform() ? (
+                <button 
+                  type="button" 
+                  onClick={handleNativePhotoPicker}
+                  className="flex items-center justify-center w-full h-[38px] bg-brand-100 dark:bg-brand-800 text-brand-900 dark:text-brand-100 rounded-full text-xs font-bold hover:bg-brand-200 dark:hover:bg-brand-700 transition-colors"
+                >
+                  {photo ? "✓ Foto Dipilih (Ketuk untuk ganti)" : "+ Pilih Kamera / Galeri"}
+                </button>
+              ) : (
+                <input type="file" accept="image/*" capture="environment" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-brand-100 file:text-brand-900 hover:file:bg-brand-200 cursor-pointer dark:file:bg-brand-800 dark:file:text-white dark:hover:file:bg-brand-700 w-full" ref={fileInputRef} onChange={(e) => setPhoto(e.target.files[0])} />
+              )}
             </div>
 
             <div className="flex flex-col justify-end">
