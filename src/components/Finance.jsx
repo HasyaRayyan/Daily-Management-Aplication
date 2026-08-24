@@ -7,7 +7,7 @@ import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } 
 import { Geolocation } from '@capacitor/geolocation';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
-import QRScanner from './QRScanner';
+import { Html5Qrcode } from 'html5-qrcode';
 import { parseQris } from '../utils/qrisParser';
 
 const EXPENSE_CATEGORIES = {
@@ -62,7 +62,6 @@ export default function Finance({ onBack }) {
   const [showModal, setShowModal] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(null); 
-  const [showScanner, setShowScanner] = useState(false);
   const [showPaymentLinks, setShowPaymentLinks] = useState(false);
   const [isFromQris, setIsFromQris] = useState(false);
   
@@ -218,7 +217,6 @@ export default function Finance({ onBack }) {
   };
 
   const handleScanSuccess = (qrisString) => {
-    setShowScanner(false);
     const data = parseQris(qrisString);
     if (data && (data.merchantName || data.isValid)) {
       setTitle(data.merchantName || 'Pembayaran QRIS');
@@ -231,7 +229,35 @@ export default function Finance({ onBack }) {
       setIsFromQris(true);
       setShowModal(true);
     } else {
-      alert("Format QRIS tidak didukung atau tidak dapat dibaca dengan jelas.");
+      alert("Format QRIS tidak didukung atau teks gagal dibaca.");
+    }
+  };
+
+  const handleNativeQrisScan = async () => {
+    try {
+      // Buka kamera sistem asli
+      const image = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Prompt
+      });
+
+      const response = await fetch(image.webPath);
+      const blob = await response.blob();
+      const file = new File([blob], "qris_temp.jpg", { type: "image/jpeg" });
+
+      // Scan dari file foto
+      const html5QrCode = new Html5Qrcode("hidden-qr-reader");
+      const decodedText = await html5QrCode.scanFile(file, true);
+      
+      // Jika sukses memecahkan QR
+      handleScanSuccess(decodedText);
+      
+    } catch (err) {
+      if (err.message && !err.message.includes('User cancelled') && !err.message.includes('canceled')) {
+         alert("Tidak ada QR Code yang ditemukan di gambar, atau format tidak jelas.");
+      }
     }
   };
 
@@ -462,9 +488,9 @@ export default function Finance({ onBack }) {
         
         {/* QRIS FAB */}
         <button 
-          onClick={() => setShowScanner(true)} 
+          onClick={handleNativeQrisScan} 
           className="w-12 h-12 bg-white dark:bg-brand-900 text-brand-900 dark:text-white rounded-full flex items-center justify-center shadow-[0_8px_16px_rgba(0,0,0,0.1)] hover:scale-110 active:scale-95 transition-all border border-brand-200 dark:border-brand-700"
-          title="Scan QRIS"
+          title="Scan QRIS via Kamera"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><rect x="14" y="14" width="3" height="3"/></svg>
         </button>
@@ -650,13 +676,8 @@ export default function Finance({ onBack }) {
         </div>
       </Modal>
 
-      {/* QR Scanner Overlay */}
-      {showScanner && (
-        <QRScanner 
-          onScanSuccess={handleScanSuccess} 
-          onClose={() => setShowScanner(false)} 
-        />
-      )}
+      {/* Hidden Div for html5-qrcode file scanning requirement */}
+      <div id="hidden-qr-reader" style={{ display: 'none' }}></div>
     </div>
   );
 }
