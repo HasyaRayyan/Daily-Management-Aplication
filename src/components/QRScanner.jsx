@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { Camera } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
 
 export default function QRScanner({ onScanSuccess, onClose }) {
   useEffect(() => {
@@ -8,48 +9,57 @@ export default function QRScanner({ onScanSuccess, onClose }) {
     
     const startScanner = async () => {
       try {
-        // Minta izin kamera langsung ke Native Android (Wajib untuk Capacitor)
-        const perm = await Camera.requestPermissions();
-        if (perm.camera !== 'granted' && perm.camera !== 'prompt-with-rationale') {
-           alert("Izin kamera ditolak. Silakan izinkan di Pengaturan HP Anda.");
-           onClose();
-           return;
-        }
-
-        const cameras = await Html5Qrcode.getCameras();
-        if (!cameras || cameras.length === 0) {
-          throw new Error("Tidak ada kamera yang terdeteksi di perangkat ini.");
-        }
-        
-        let cameraId = cameras[cameras.length - 1].id; // Default ke kamera terakhir (biasanya belakang)
-        for (const cam of cameras) {
-          const label = cam.label.toLowerCase();
-          if (label.includes('back') || label.includes('environment') || label.includes('belakang') || label.includes('0')) {
-            cameraId = cam.id;
-            break;
+        // Minta izin native HANYA jika di HP (Android/iOS)
+        if (Capacitor.isNativePlatform()) {
+          try {
+            const perm = await Camera.requestPermissions();
+            if (perm.camera === 'denied') {
+              alert("Izin kamera ditolak. Silakan izinkan di Pengaturan HP Anda.");
+              onClose();
+              return;
+            }
+          } catch (e) {
+            console.warn("Capacitor camera request error:", e);
           }
         }
 
         html5QrCode = new Html5Qrcode("qris-reader");
-        await html5QrCode.start(
-          cameraId, 
-          {
-            fps: 10,
-            qrbox: { width: 250, height: 250 },
-            aspectRatio: 1.0
-          },
-          (decodedText) => {
-            // Berhasil scan! Matikan scanner dan kirim teksnya
-            if (html5QrCode.isScanning) {
-               html5QrCode.stop().then(() => {
-                 onScanSuccess(decodedText);
-               }).catch(err => console.error("Gagal mematikan scanner", err));
-            }
-          },
-          (errorMessage) => {
-            // Abaikan error per frame saat mencari QR
+        
+        const config = {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0
+        };
+
+        const onSuccess = (decodedText) => {
+          if (html5QrCode.isScanning) {
+             html5QrCode.stop().then(() => {
+               onScanSuccess(decodedText);
+             }).catch(err => console.error("Gagal mematikan scanner", err));
           }
-        );
+        };
+
+        try {
+          // Percobaan 1: Cara paling standar (Support 99% Laptop & HP Modern)
+          await html5QrCode.start({ facingMode: "environment" }, config, onSuccess, () => {});
+        } catch (err1) {
+          console.warn("Metode standar gagal, mencoba metode fallback...", err1);
+          // Percobaan 2: Jika Android menolak facingMode, cari ID kamera manual
+          const cameras = await Html5Qrcode.getCameras();
+          if (cameras && cameras.length > 0) {
+            let cameraId = cameras[cameras.length - 1].id; // Asumsi kamera terakhir adalah belakang
+            for (const cam of cameras) {
+              const label = cam.label.toLowerCase();
+              if (label.includes('back') || label.includes('environment') || label.includes('belakang') || label.includes('0')) {
+                cameraId = cam.id;
+                break;
+              }
+            }
+            await html5QrCode.start(cameraId, config, onSuccess, () => {});
+          } else {
+            throw err1; // Lempar error awal jika tidak ada kamera
+          }
+        }
       } catch (err) {
         console.error("Gagal menyalakan kamera", err);
         alert("Gagal menyalakan kamera: " + (err.message || err));
