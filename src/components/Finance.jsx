@@ -352,27 +352,36 @@ export default function Finance({ onBack }) {
         </button>
       </div>
 
-      {/* Balance Card */}
-      <div className="card bg-brand-950 text-white dark:bg-white dark:text-brand-950 border-none shadow-xl overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 dark:bg-black/5 rounded-full -mr-10 -mt-10 blur-2xl"></div>
+      {/* Premium Balance Card */}
+      <div className="bg-gradient-to-br from-brand-900 to-black dark:from-brand-100 dark:to-white text-white dark:text-brand-950 rounded-[2rem] p-6 sm:p-8 shadow-[0_20px_40px_rgba(0,0,0,0.2)] dark:shadow-[0_20px_40px_rgba(255,255,255,0.1)] relative overflow-hidden transition-transform hover:scale-[1.01] duration-500">
+        {/* Glass Reflection Effects */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 dark:bg-black/5 rounded-full -mr-20 -mt-20 blur-3xl mix-blend-overlay pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/5 dark:bg-black/5 rounded-full -ml-10 -mb-10 blur-2xl mix-blend-overlay pointer-events-none"></div>
         
-        <p className="text-xs font-bold tracking-widest opacity-80 mb-1">SISA SALDO BULAN INI</p>
-        <h2 className="text-4xl font-black mb-6 tracking-tight">{formatRupiah(balance)}</h2>
-        
-        <div className="flex justify-between gap-4">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-1 flex items-center gap-1">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-              PEMASUKAN
-            </span>
-            <span className="font-extrabold text-brand-900 dark:text-brand-300">+{formatRupiah(totalIncome)}</span>
+        <div className="relative z-10 flex flex-col h-full justify-between gap-6">
+          <div>
+            <p className="text-[10px] font-black tracking-[0.2em] opacity-70 mb-1 flex justify-between items-center">
+              <span>SISA SALDO BULAN INI</span>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="opacity-50"><path d="M2 12h20M2 12a10 10 0 1 0 20 0 10 10 0 1 0-20 0"/></svg>
+            </p>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tighter drop-shadow-sm">{formatRupiah(balance)}</h2>
           </div>
-          <div className="flex flex-col text-right">
-            <span className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-1 flex items-center gap-1 justify-end">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-              PENGELUARAN
-            </span>
-            <span className="font-extrabold text-brand-900 dark:text-brand-300">-{formatRupiah(totalExpense)}</span>
+          
+          <div className="flex justify-between items-end gap-4 border-t border-white/20 dark:border-black/10 pt-4 mt-2">
+            <div className="flex flex-col">
+              <span className="text-[9px] font-black uppercase tracking-[0.15em] opacity-60 mb-1 flex items-center gap-1">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                PEMASUKAN
+              </span>
+              <span className="font-extrabold text-sm sm:text-base opacity-90 tracking-wide">+{formatRupiah(totalIncome)}</span>
+            </div>
+            <div className="flex flex-col text-right">
+              <span className="text-[9px] font-black uppercase tracking-[0.15em] opacity-60 mb-1 flex items-center gap-1 justify-end">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+                PENGELUARAN
+              </span>
+              <span className="font-extrabold text-sm sm:text-base opacity-90 tracking-wide">-{formatRupiah(totalExpense)}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -450,28 +459,28 @@ export default function Finance({ onBack }) {
                       <div 
                         key={t.id} 
                         onClick={() => setShowDetailModal(t)}
-                        className="flex items-center justify-between p-4 bg-white dark:bg-brand-900 rounded-2xl shadow-sm border border-brand-100 dark:border-brand-800 cursor-pointer hover:border-brand-300 dark:hover:border-brand-700 transition-colors"
+                        className="group flex items-center justify-between p-4 sm:p-5 bg-white/60 dark:bg-brand-900/40 backdrop-blur-md rounded-[1.5rem] shadow-[0_4px_12px_rgba(0,0,0,0.02)] border border-brand-200/50 dark:border-brand-800/50 cursor-pointer hover:shadow-[0_8px_20px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_8px_20px_rgba(255,255,255,0.02)] hover:scale-[1.01] transition-all duration-300"
                       >
                         
-                        {/* Icon */}
-                        <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 mr-3 text-white" style={{ backgroundColor: getCategoryColor(t.category) }}>
-                          <span className="text-xl">
+                        {/* Premium Icon Wrapper */}
+                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 mr-4 text-white shadow-inner" style={{ background: `linear-gradient(135deg, ${getCategoryColor(t.category)}, #000000)` }}>
+                          <span className="text-lg font-black drop-shadow-md">
                             {iconChar}
                           </span>
                         </div>
 
-                        <div className="flex-1 overflow-hidden pr-2">
-                          <p className="font-bold text-base truncate leading-tight mb-1">{t.title}</p>
-                          <p className="text-xs font-semibold text-brand-500 truncate">
+                        <div className="flex-1 overflow-hidden pr-3">
+                          <p className="font-bold text-[15px] sm:text-base truncate leading-tight mb-1 text-brand-950 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-300 transition-colors">{t.title}</p>
+                          <p className="text-[11px] font-semibold tracking-wider text-brand-500 uppercase">
                             {catName}
                           </p>
                         </div>
 
                         <div className="flex flex-col items-end gap-1 shrink-0">
-                          <span className={`font-extrabold text-right ${activeTab === 'expense' ? 'text-brand-900 dark:text-white' : 'text-brand-900 dark:text-white'}`}>
+                          <span className={`font-black text-[15px] sm:text-base text-right tracking-tight ${activeTab === 'expense' ? 'text-brand-950 dark:text-white' : 'text-brand-950 dark:text-white'}`}>
                             {activeTab === 'expense' ? '-' : '+'}{formatRupiah(t.amount)}
                           </span>
-                          {(t.latitude && t.longitude) && <span className="text-[10px] bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300 px-2 py-0.5 rounded font-bold uppercase tracking-wider flex items-center gap-1"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> Lokasi</span>}
+                          {(t.latitude && t.longitude) && <span className="text-[9px] bg-brand-100 dark:bg-brand-800 text-brand-600 dark:text-brand-400 px-2.5 py-1 rounded-full font-black uppercase tracking-[0.1em] flex items-center gap-1"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> GPS</span>}
                         </div>
                       </div>
                     )
@@ -483,22 +492,22 @@ export default function Finance({ onBack }) {
         )}
       </div>
 
-      {/* Floating Action Buttons */}
-      <div className="fixed bottom-24 right-5 md:bottom-10 md:right-10 flex flex-col gap-4 z-[150] items-end">
+      {/* Floating Action Buttons Premium */}
+      <div className="fixed bottom-28 md:bottom-12 right-6 md:right-12 flex flex-col gap-4 z-[150] items-end pointer-events-none">
         
         {/* QRIS FAB */}
         <button 
           onClick={handleNativeQrisScan} 
-          className="w-12 h-12 bg-white dark:bg-brand-900 text-brand-900 dark:text-white rounded-full flex items-center justify-center shadow-[0_8px_16px_rgba(0,0,0,0.1)] hover:scale-110 active:scale-95 transition-all border border-brand-200 dark:border-brand-700"
+          className="w-12 h-12 bg-white/90 dark:bg-brand-800/90 backdrop-blur-md text-brand-950 dark:text-white rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(0,0,0,0.15)] hover:scale-110 active:scale-95 transition-all border border-brand-200/50 dark:border-brand-700/50 pointer-events-auto"
           title="Scan QRIS via Kamera"
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><rect x="14" y="14" width="3" height="3"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><rect x="14" y="14" width="3" height="3"/></svg>
         </button>
 
         {/* Main Add FAB */}
         <button 
           onClick={() => openAddModal(activeTab)} 
-          className="w-16 h-16 bg-brand-200 dark:bg-brand-800 text-brand-900 dark:text-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform border-2 border-brand-100 dark:border-brand-900"
+          className="w-[68px] h-[68px] bg-brand-950 dark:bg-white text-white dark:text-brand-950 rounded-full flex items-center justify-center shadow-[0_12px_24px_rgba(0,0,0,0.25)] dark:shadow-[0_12px_24px_rgba(255,255,255,0.15)] hover:scale-105 active:scale-95 transition-all border-4 border-brand-50 dark:border-brand-950 pointer-events-auto"
         >
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </button>

@@ -1,14 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@100;300;400;600;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Montserrat", sans-serif;
+  --font-sans: "Outfit", sans-serif;
   
-  /* True Monochrome (Black & White) Palette */
-  --color-brand-50: #ffffff;
+  /* Premium True Monochrome (Black & White) Palette */
+  --color-brand-50: #fafafa;
   --color-brand-100: #f4f4f5;
   --color-brand-200: #e4e4e7;
   --color-brand-300: #d4d4d8;
@@ -17,14 +17,21 @@
   --color-brand-600: #52525b;
   --color-brand-700: #3f3f46;
   --color-brand-800: #27272a;
-  --color-brand-900: #121212;
-  --color-brand-950: #000000;
+  --color-brand-900: #18181b;
+  --color-brand-950: #0a0a0b;
   
-  --animate-slide-up: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-fade-in: fadeIn 0.3s ease-out;
+  --animate-slide-up: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-slide-down: slideDown 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-fade-in: fadeIn 0.4s ease-out;
+  --animate-pop-in: popIn 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 
   @keyframes slideUp {
-    0% { opacity: 0; transform: translateY(20px); }
+    0% { opacity: 0; transform: translateY(30px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes slideDown {
+    0% { opacity: 0; transform: translateY(-30px); }
     100% { opacity: 1; transform: translateY(0); }
   }
   
@@ -32,15 +39,22 @@
     0% { opacity: 0; }
     100% { opacity: 1; }
   }
+
+  @keyframes popIn {
+    0% { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+  }
 }
 
 @layer base {
   body {
-    @apply bg-brand-50 dark:bg-brand-950 text-brand-950 dark:text-brand-50 font-sans antialiased font-light;
+    @apply bg-brand-50 dark:bg-brand-950 text-brand-950 dark:text-brand-50 font-sans antialiased font-light tracking-tight;
+    /* Soft mesh gradient background for premium feel */
+    background-image: radial-gradient(circle at 50% -20%, rgba(150,150,150,0.05) 0%, transparent 50%);
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-bold;
+    @apply font-bold tracking-tight;
   }
 }
 
@@ -51,26 +65,21 @@
   }
   
   .content-area {
-    @apply flex-1 h-full overflow-y-auto pb-28 md:pb-8 relative;
+    @apply flex-1 h-full overflow-y-auto pb-32 md:pb-8 relative scroll-smooth;
   }
 
   /* Form Elements */
   .input-field {
-    @apply w-full px-4 py-4 rounded-xl bg-brand-100 dark:bg-brand-900 border border-transparent focus:border-brand-300 dark:focus:border-brand-700 outline-none transition-all text-sm font-medium;
+    @apply w-full px-5 py-4 rounded-2xl bg-white/50 dark:bg-brand-900/50 backdrop-blur-md border border-brand-200 dark:border-brand-800 focus:border-brand-900 dark:focus:border-brand-300 focus:ring-4 focus:ring-brand-900/10 dark:focus:ring-brand-100/10 outline-none transition-all text-sm font-medium;
   }
 
-  /* Buttons */
+  /* Premium Buttons */
   .btn-primary {
-    @apply w-full bg-brand-950 dark:bg-white text-white dark:text-brand-950 font-bold py-4 rounded-xl hover:bg-brand-800 dark:hover:bg-brand-200 active:scale-95 transition-all;
-  }
-
-  /* Glass Bottom Nav */
-  .glass-nav {
-    @apply md:hidden fixed bottom-0 left-0 w-full bg-brand-50/70 dark:bg-brand-950/70 backdrop-blur-xl border-t border-brand-200/50 dark:border-brand-800/50 flex justify-around items-center pt-3 pb-8 z-50 transition-colors duration-300;
+    @apply w-full bg-brand-950 dark:bg-white text-white dark:text-brand-950 font-bold py-4 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_20px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_20px_rgba(255,255,255,0.05)] border border-transparent;
   }
 
   /* Cards */
   .card {
-    @apply bg-white dark:bg-brand-900 border border-brand-200/50 dark:border-brand-800/50 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow;
+    @apply bg-white/70 dark:bg-brand-900/70 backdrop-blur-xl border border-white dark:border-brand-800/50 rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all;
   }
 }
