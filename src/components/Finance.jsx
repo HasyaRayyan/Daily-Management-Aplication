@@ -8,6 +8,7 @@ import { Geolocation } from '@capacitor/geolocation';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import { Html5Qrcode } from 'html5-qrcode';
+import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import { parseQris } from '../utils/qrisParser';
 
 const EXPENSE_CATEGORIES = {
@@ -235,29 +236,38 @@ export default function Finance({ onBack }) {
 
   const handleNativeQrisScan = async () => {
     try {
-      // Buka kamera sistem asli
-      const image = await Camera.getPhoto({
-        quality: 90,
-        allowEditing: false,
-        resultType: CameraResultType.Uri,
-        source: CameraSource.Prompt
-      });
+      // Menggunakan Google ML Kit Native Scanner (Langsung buka kamera scanner tanpa potret!)
+      if (Capacitor.isNativePlatform()) {
+        const { barcodes } = await BarcodeScanner.scan({
+          formats: ['QR_CODE']
+        });
+        
+        if (barcodes && barcodes.length > 0) {
+          handleScanSuccess(barcodes[0].rawValue || barcodes[0].displayValue);
+        }
+      } else {
+        // Fallback untuk Web Browser (Laptop)
+        alert("Fitur Scan Langsung hanya tersedia di Aplikasi Android (APK). Di web, Anda harus memilih foto QRIS.");
+        
+        const image = await Camera.getPhoto({
+          quality: 90,
+          allowEditing: true,
+          resultType: CameraResultType.Uri,
+          source: CameraSource.Prompt
+        });
 
-      const response = await fetch(image.webPath);
-      const blob = await response.blob();
-      const file = new File([blob], "qris_temp.jpg", { type: "image/jpeg" });
-
-      // Scan dari file foto
-      const html5QrCode = new Html5Qrcode("hidden-qr-reader");
-      const decodedText = await html5QrCode.scanFile(file, true);
-      
-      // Jika sukses memecahkan QR
-      handleScanSuccess(decodedText);
-      
-    } catch (err) {
-      if (err.message && !err.message.includes('User cancelled') && !err.message.includes('canceled')) {
-         alert("Tidak ada QR Code yang ditemukan di gambar, atau format tidak jelas.");
+        const response = await fetch(image.webPath);
+        const blob = await response.blob();
+        const file = new File([blob], "qris_temp.jpg", { type: "image/jpeg" });
+        const html5QrCode = new Html5Qrcode("hidden-qr-reader");
+        const decodedText = await html5QrCode.scanFile(file, true);
+        handleScanSuccess(decodedText);
       }
+    } catch (err) {
+      if (err.message && (err.message.toLowerCase().includes('cancel') || err.message.toLowerCase().includes('user'))) {
+        return; // Abaikan jika user menutup layar scan
+      }
+      alert(`Peringatan Scanner: ${err.message || err}`);
     }
   };
 
@@ -282,9 +292,10 @@ export default function Finance({ onBack }) {
       setPhoto(file);
     } catch (err) {
       console.error("Gagal mengambil foto:", err);
-      if (err.message && !err.message.includes('User cancelled') && !err.message.includes('canceled')) {
-        alert("Gagal mengakses galeri/kamera: " + err.message);
+      if (err.message && (err.message.includes('User cancelled') || err.message.includes('canceled'))) {
+        return;
       }
+      alert(`Peringatan Kamera (Bukti Foto): ${err.message || err}`);
     }
   };
 

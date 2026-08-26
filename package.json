@@ -10,11 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor-mlkit/barcode-scanning": "^8.1.0",
     "@capacitor/android": "^8.4.1",
     "@capacitor/camera": "^8.2.3",
     "@capacitor/cli": "^8.4.1",
     "@capacitor/core": "^8.4.1",
     "@capacitor/geolocation": "^8.2.2",
+    "@ionic/pwa-elements": "^3.4.0",
     "@supabase/supabase-js": "^2.110.0",
     "html5-qrcode": "^2.3.8",
     "leaflet": "^1.9.4",
