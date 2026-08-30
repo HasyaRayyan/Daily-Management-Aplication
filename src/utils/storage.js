@@ -185,8 +185,7 @@ export async function getTransactionsWithLocation() {
     .from('transactions')
     .select('*')
     .not('latitude', 'is', null)
-    .not('longitude', 'is', null)
-    .not('photo_url', 'is', null);
+    .not('longitude', 'is', null);
 
   if (error) {
     console.error('Error fetching transactions with location:', error);

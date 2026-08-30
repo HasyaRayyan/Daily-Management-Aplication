@@ -224,7 +224,7 @@ export default function Profile({ session, onBack }) {
               {mapLoading ? (
                 <div className="w-full h-full flex items-center justify-center font-bold text-brand-500 animate-pulse">Memuat Peta...</div>
               ) : mapTransactions.length === 0 ? (
-                <div className="w-full h-full flex items-center justify-center font-bold text-brand-500 text-sm text-center px-4">Belum ada transaksi dengan foto & lokasi</div>
+                <div className="w-full h-full flex items-center justify-center font-bold text-brand-500 text-sm text-center px-4">Belum ada transaksi dengan lokasi</div>
               ) : (
                 <MapContainer center={[mapTransactions[0].latitude, mapTransactions[0].longitude]} zoom={13} style={{ height: '100%', width: '100%', zIndex: 1 }}>
                   <TileLayer
@@ -233,10 +233,11 @@ export default function Profile({ session, onBack }) {
                   />
                   <MarkerClusterGroup chunkedLoading iconCreateFunction={createClusterCustomIcon}>
                     {mapTransactions.map((t) => {
+                      const photoUrl = t.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(t.title)}&background=10B981&color=fff&size=128&bold=true`;
                       const customIcon = L.divIcon({
                         className: 'custom-photo-marker',
                         html: `<div style="width: 48px; height: 48px; border-radius: 12px; overflow: hidden; border: 3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.2); background-color: #eee;">
-                                 <img src="${t.photo_url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'" />
+                                 <img src="${photoUrl}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'" />
                                </div>`,
                         iconSize: [48, 48],
                         iconAnchor: [24, 48],
