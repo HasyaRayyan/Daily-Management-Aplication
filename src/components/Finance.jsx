@@ -27,23 +27,9 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-const EXPENSE_CATEGORIES = {
-  makanan: 'Makanan',
-  transportasi: 'Transport',
-  tagihan: 'Tagihan',
-  belanja: 'Belanja',
-  hiburan: 'Hiburan',
-  kesehatan: 'Kesehatan',
-  lainnya: 'Lainnya'
-};
+const EXPENSE_CATEGORIES = {};
 
-const INCOME_CATEGORIES = {
-  gaji: 'Gaji',
-  bonus: 'Bonus',
-  investasi: 'Investasi',
-  hadiah: 'Hadiah',
-  lainnya: 'Lainnya'
-};
+const INCOME_CATEGORIES = {};
 
 const CATEGORY_COLORS = {
   makanan: '#171717', // neutral-900
@@ -617,11 +603,10 @@ export default function Finance({ onBack }) {
                 required
               >
                 <option value="" disabled>Pilih Kategori...</option>
-                {Object.entries(activeTab === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES).map(([key, label]) => (
-                  <option key={key} value={key}>{label}</option>
-                ))}
-                
-                {userCategories.length > 0 && <optgroup label="Kategori Saya (Kelola di Profil)" />}
+                {userCategories.length === 0 && (
+                  <option value="" disabled>-- Kategori kosong, tambah di Profil --</option>
+                )}
+                {userCategories.length > 0 && <optgroup label="Kategori Anda" />}
                 {userCategories.map(cat => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
