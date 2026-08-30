@@ -4,6 +4,7 @@ import Header from './Header';
 import { getProfile, updateProfile, uploadFile, getCustomCategories, addCustomCategory, deleteCustomCategory, getTransactionsWithLocation } from '../utils/storage';
 import { logout, sendPasswordResetOtp } from '../lib/auth';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -141,6 +142,17 @@ export default function Profile({ session, onBack }) {
   const displayName = profile?.display_name || session?.user?.user_metadata?.username || 'User';
   const avatarUrl = profile?.avatar_url;
 
+  // Custom cluster icon creation function
+  const createClusterCustomIcon = function (cluster) {
+    return L.divIcon({
+      html: `<div style="background-color: #10B981; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+               ${cluster.getChildCount()}
+             </div>`,
+      className: 'custom-marker-cluster',
+      iconSize: L.point(40, 40, true),
+    });
+  };
+
   return (
     <div className="flex flex-col gap-6 px-5 pt-6 pb-24 md:pb-8 animate-fade-in">
       <Header title="Profile" onBack={onBack} />
@@ -219,27 +231,29 @@ export default function Profile({ session, onBack }) {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
                   />
-                  {mapTransactions.map((t) => {
-                    const customIcon = L.divIcon({
-                      className: 'custom-photo-marker',
-                      html: `<div style="width: 48px; height: 48px; border-radius: 12px; overflow: hidden; border: 3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.2); background-color: #eee;">
-                               <img src="${t.photo_url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'" />
-                             </div>`,
-                      iconSize: [48, 48],
-                      iconAnchor: [24, 48],
-                      popupAnchor: [0, -48]
-                    });
-
-                    return (
-                      <Marker key={t.id} position={[t.latitude, t.longitude]} icon={customIcon}>
-                        <Popup>
-                          <div className="flex flex-col gap-1 items-center min-w-[100px]">
-                            <span className="font-bold text-xs text-center">{t.title}</span>
-                          </div>
-                        </Popup>
-                      </Marker>
-                    );
-                  })}
+                  <MarkerClusterGroup chunkedLoading iconCreateFunction={createClusterCustomIcon}>
+                    {mapTransactions.map((t) => {
+                      const customIcon = L.divIcon({
+                        className: 'custom-photo-marker',
+                        html: `<div style="width: 48px; height: 48px; border-radius: 12px; overflow: hidden; border: 3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.2); background-color: #eee;">
+                                 <img src="${t.photo_url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'" />
+                               </div>`,
+                        iconSize: [48, 48],
+                        iconAnchor: [24, 48],
+                        popupAnchor: [0, -48]
+                      });
+  
+                      return (
+                        <Marker key={t.id} position={[t.latitude, t.longitude]} icon={customIcon}>
+                          <Popup>
+                            <div className="flex flex-col gap-1 items-center min-w-[100px]">
+                              <span className="font-bold text-xs text-center">{t.title}</span>
+                            </div>
+                          </Popup>
+                        </Marker>
+                      );
+                    })}
+                  </MarkerClusterGroup>
                 </MapContainer>
               )}
             </div>
