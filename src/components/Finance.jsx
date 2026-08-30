@@ -10,6 +10,22 @@ import { Capacitor } from '@capacitor/core';
 import { Html5Qrcode } from 'html5-qrcode';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import { parseQris } from '../utils/qrisParser';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix Leaflet default icon issue
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+});
 
 const EXPENSE_CATEGORIES = {
   makanan: 'Makanan',
@@ -346,6 +362,19 @@ export default function Finance({ onBack }) {
     fetchLocation();
   };
 
+  // Map variables
+  const mapTransactions = transactions.filter(t => t.latitude && t.longitude);
+
+  const createClusterCustomIcon = function (cluster) {
+    return L.divIcon({
+      html: `<div style="background-color: #10B981; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+               ${cluster.getChildCount()}
+             </div>`,
+      className: 'custom-marker-cluster',
+      iconSize: L.point(40, 40, true),
+    });
+  };
+
   return (
     <div className="flex flex-col gap-6 px-5 pt-6 pb-24 md:pb-8 animate-fade-in relative min-h-full">
       <Header title="Finance" onBack={onBack} />
@@ -501,6 +530,50 @@ export default function Finance({ onBack }) {
             );
           })
         )}
+
+        {/* Peta Transaksi (Bulan Aktif) */}
+        <div className="w-full flex flex-col gap-3 mt-6 mb-4">
+          <h4 className="text-xs font-bold text-brand-400 uppercase tracking-widest mb-1 px-2">Peta Transaksi Bulan Ini</h4>
+          <div className="w-full h-72 bg-brand-100 dark:bg-brand-900 rounded-2xl overflow-hidden shadow-sm border border-brand-200 dark:border-brand-800 z-10 relative">
+            {loading ? (
+              <div className="w-full h-full flex items-center justify-center font-bold text-brand-500 animate-pulse">Memuat Peta...</div>
+            ) : mapTransactions.length === 0 ? (
+              <div className="w-full h-full flex items-center justify-center font-bold text-brand-500 text-sm text-center px-4">Belum ada transaksi dengan lokasi di bulan ini</div>
+            ) : (
+              <MapContainer center={[mapTransactions[0].latitude, mapTransactions[0].longitude]} zoom={13} style={{ height: '100%', width: '100%', zIndex: 1 }}>
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
+                />
+                <MarkerClusterGroup chunkedLoading iconCreateFunction={createClusterCustomIcon}>
+                  {mapTransactions.map((t) => {
+                    const photoUrl = t.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(t.title)}&background=10B981&color=fff&size=128&bold=true`;
+                    const customIcon = L.divIcon({
+                      className: 'custom-photo-marker',
+                      html: `<div style="width: 48px; height: 48px; border-radius: 12px; overflow: hidden; border: 3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.2); background-color: #eee;">
+                               <img src="${photoUrl}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'" />
+                             </div>`,
+                      iconSize: [48, 48],
+                      iconAnchor: [24, 48],
+                      popupAnchor: [0, -48]
+                    });
+
+                    return (
+                      <Marker key={t.id} position={[t.latitude, t.longitude]} icon={customIcon}>
+                        <Popup>
+                          <div className="flex flex-col gap-1 items-center min-w-[100px]">
+                            <span className="font-bold text-xs text-center">{t.title}</span>
+                          </div>
+                        </Popup>
+                      </Marker>
+                    );
+                  })}
+                </MarkerClusterGroup>
+              </MapContainer>
+            )}
+          </div>
+        </div>
+
       </div>
 
       {/* Floating Action Buttons Premium */}

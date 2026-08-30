@@ -1,24 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import Modal from './Modal';
 import Header from './Header';
-import { getProfile, updateProfile, uploadFile, getCustomCategories, addCustomCategory, deleteCustomCategory, getTransactionsWithLocation } from '../utils/storage';
+import { getProfile, updateProfile, uploadFile, getCustomCategories, addCustomCategory, deleteCustomCategory } from '../utils/storage';
 import { logout, sendPasswordResetOtp } from '../lib/auth';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import MarkerClusterGroup from 'react-leaflet-cluster';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-
-// Fix Leaflet default icon issue
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
-});
 
 export default function Profile({ session, onBack }) {
   const [profile, setProfile] = useState(null);
@@ -35,9 +19,7 @@ export default function Profile({ session, onBack }) {
   const [categoryType, setCategoryType] = useState('expense');
   const [newCategoryName, setNewCategoryName] = useState('');
 
-  // States for Map
-  const [mapTransactions, setMapTransactions] = useState([]);
-  const [mapLoading, setMapLoading] = useState(true);
+
 
   const fileInputRef = useRef(null);
 
@@ -46,11 +28,6 @@ export default function Profile({ session, onBack }) {
     const data = await getProfile();
     setProfile(data);
     setLoading(false);
-    
-    setMapLoading(true);
-    const mData = await getTransactionsWithLocation();
-    setMapTransactions(mData);
-    setMapLoading(false);
   };
 
   useEffect(() => {
@@ -142,17 +119,6 @@ export default function Profile({ session, onBack }) {
   const displayName = profile?.display_name || session?.user?.user_metadata?.username || 'User';
   const avatarUrl = profile?.avatar_url;
 
-  // Custom cluster icon creation function
-  const createClusterCustomIcon = function (cluster) {
-    return L.divIcon({
-      html: `<div style="background-color: #10B981; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-               ${cluster.getChildCount()}
-             </div>`,
-      className: 'custom-marker-cluster',
-      iconSize: L.point(40, 40, true),
-    });
-  };
-
   return (
     <div className="flex flex-col gap-6 px-5 pt-6 pb-24 md:pb-8 animate-fade-in">
       <Header title="Profile" onBack={onBack} />
@@ -217,48 +183,7 @@ export default function Profile({ session, onBack }) {
             Aplikasi Versi {import.meta.env.VITE_APP_VERSION || '1.0.0'}
           </div>
 
-          {/* Peta Transaksi */}
-          <div className="w-full flex flex-col gap-3 mt-4 mb-4">
-            <h4 className="text-xs font-bold text-brand-400 uppercase tracking-widest mb-1 px-2">Peta Bukti Transaksi</h4>
-            <div className="w-full h-72 bg-brand-100 dark:bg-brand-900 rounded-2xl overflow-hidden shadow-sm border border-brand-200 dark:border-brand-800 z-10 relative">
-              {mapLoading ? (
-                <div className="w-full h-full flex items-center justify-center font-bold text-brand-500 animate-pulse">Memuat Peta...</div>
-              ) : mapTransactions.length === 0 ? (
-                <div className="w-full h-full flex items-center justify-center font-bold text-brand-500 text-sm text-center px-4">Belum ada transaksi dengan lokasi</div>
-              ) : (
-                <MapContainer center={[mapTransactions[0].latitude, mapTransactions[0].longitude]} zoom={13} style={{ height: '100%', width: '100%', zIndex: 1 }}>
-                  <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
-                  />
-                  <MarkerClusterGroup chunkedLoading iconCreateFunction={createClusterCustomIcon}>
-                    {mapTransactions.map((t) => {
-                      const photoUrl = t.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(t.title)}&background=10B981&color=fff&size=128&bold=true`;
-                      const customIcon = L.divIcon({
-                        className: 'custom-photo-marker',
-                        html: `<div style="width: 48px; height: 48px; border-radius: 12px; overflow: hidden; border: 3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.2); background-color: #eee;">
-                                 <img src="${photoUrl}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'" />
-                               </div>`,
-                        iconSize: [48, 48],
-                        iconAnchor: [24, 48],
-                        popupAnchor: [0, -48]
-                      });
-  
-                      return (
-                        <Marker key={t.id} position={[t.latitude, t.longitude]} icon={customIcon}>
-                          <Popup>
-                            <div className="flex flex-col gap-1 items-center min-w-[100px]">
-                              <span className="font-bold text-xs text-center">{t.title}</span>
-                            </div>
-                          </Popup>
-                        </Marker>
-                      );
-                    })}
-                  </MarkerClusterGroup>
-                </MapContainer>
-              )}
-            </div>
-          </div>
+
 
         </div>
       )}
