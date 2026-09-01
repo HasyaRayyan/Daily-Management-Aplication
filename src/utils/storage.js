@@ -228,7 +228,22 @@ export async function addTransaction(transaction) {
 
 export async function deleteTransaction(id) {
   const { error } = await supabase.from('transactions').delete().eq('id', id);
-  return !error;
+  if (error) console.error('Error deleting transaction:', error);
+}
+
+export async function updateTransaction(id, updates) {
+  const { data, error } = await supabase
+    .from('transactions')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating transaction:', error);
+    return null;
+  }
+  return data;
 }
 
 // ==========================================

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import Modal from './Modal';
 import Header from './Header';
 import { formatRupiah, getDateKey } from '../utils/helpers';
-import { getTransactionsByMonth, addTransaction, deleteTransaction, uploadFile, getCustomCategories } from '../utils/storage';
+import { getTransactionsByMonth, addTransaction, deleteTransaction, updateTransaction, uploadFile, getCustomCategories } from '../utils/storage';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { Geolocation } from '@capacitor/geolocation';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -78,6 +78,7 @@ export default function Finance({ onBack }) {
   const [location, setLocation] = useState(null); 
   const [locationStatus, setLocationStatus] = useState(''); 
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
   
   const [dbCategories, setDbCategories] = useState([]);
@@ -165,21 +166,22 @@ export default function Finance({ onBack }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const numAmount = parseFloat(amount.replace(/[^0-9]/g, ''));
+    const numAmount = parseFloat(amount.toString().replace(/[^0-9]/g, ''));
     
     if (!numAmount || !title.trim() || !category || saving) return;
     setSaving(true);
     
-    let photo_url = null;
-    if (photo) {
+    let photo_url = editingId && typeof photo === 'string' ? photo : null; 
+    
+    if (photo && typeof photo !== 'string') {
       const ext = photo.name.split('.').pop();
       const filename = `${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
       photo_url = await uploadFile('uploads', `finance/${filename}`, photo);
     }
 
     const todayDateKey = getDateKey(new Date());
-
-    await addTransaction({
+    
+    const payload = {
       type: activeTab,
       category: category,
       title: title.trim(),
@@ -187,9 +189,15 @@ export default function Finance({ onBack }) {
       amount: numAmount,
       photo_url,
       latitude: location?.lat || null,
-      longitude: location?.lng || null,
-      date_key: todayDateKey
-    });
+      longitude: location?.lng || null
+    };
+
+    if (editingId) {
+      await updateTransaction(editingId, payload);
+    } else {
+      payload.date_key = todayDateKey;
+      await addTransaction(payload);
+    }
 
     const wasQris = isFromQris;
     resetForm();
@@ -198,7 +206,7 @@ export default function Finance({ onBack }) {
       setShowPaymentLinks(true);
     }
 
-    if (getMonthPrefix(new Date()) !== getMonthPrefix(selectedMonth)) {
+    if (!editingId && getMonthPrefix(new Date()) !== getMonthPrefix(selectedMonth)) {
       setSelectedMonth(new Date());
     } else {
       await fetchData();
@@ -215,8 +223,28 @@ export default function Finance({ onBack }) {
     setLocation(null);
     setLocationStatus('');
     setIsFromQris(false);
+    setEditingId(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
     setShowModal(false);
+  };
+
+  const openEditModal = (t) => {
+    setTitle(t.title);
+    setAmount(t.amount.toString());
+    setDescription(t.description || '');
+    setCategory(t.category);
+    setPhoto(t.photo_url || null);
+    if (t.latitude && t.longitude) {
+      setLocation({ lat: t.latitude, lng: t.longitude });
+      setLocationStatus('Lokasi Tersimpan');
+    } else {
+      setLocation(null);
+      setLocationStatus('');
+    }
+    setEditingId(t.id);
+    setActiveTab(t.type);
+    setShowDetailModal(null);
+    setShowModal(true);
   };
 
   const handleScanSuccess = (qrisString) => {
