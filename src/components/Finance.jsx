@@ -337,8 +337,8 @@ export default function Finance({ onBack }) {
   };
 
   const openAddModal = (type) => {
+    resetForm();
     setActiveTab(type);
-    setCategory('');
     setShowModal(true);
     
     const fetchLocation = async () => {
@@ -377,7 +377,7 @@ export default function Finance({ onBack }) {
   };
 
   // Map variables
-  const mapTransactions = transactions.filter(t => t.latitude && t.longitude);
+  const mapTransactions = currentList.filter(t => t.latitude && t.longitude);
 
   const createClusterCustomIcon = function (cluster) {
     return L.divIcon({
@@ -458,30 +458,39 @@ export default function Finance({ onBack }) {
 
       {/* Donut Chart */}
       {pieData.length > 0 && (
-        <div className="card">
-          <h3 className="font-bold text-sm mb-2 tracking-wide uppercase">Sebaran {activeTab === 'expense' ? 'Pengeluaran' : 'Pemasukan'}</h3>
-          <div className="w-full h-[180px]">
+        <div className="bg-gradient-to-b from-brand-50/80 to-transparent dark:from-brand-900/30 dark:to-transparent border border-brand-100 dark:border-brand-800/60 rounded-[2rem] p-6 sm:p-8 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-brand-200/50 dark:bg-brand-700/20 rounded-full -mr-10 -mt-10 blur-2xl pointer-events-none"></div>
+          <h3 className="font-extrabold text-xs text-brand-500 mb-6 tracking-[0.2em] uppercase text-center relative z-10">Sebaran {activeTab === 'expense' ? 'Pengeluaran' : 'Pemasukan'}</h3>
+          
+          <div className="w-full h-[220px] relative z-10">
             <ResponsiveContainer>
               <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} stroke="none" dataKey="value" paddingAngle={2}>
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius={70} outerRadius={95} stroke="none" dataKey="value" paddingAngle={5} cornerRadius={8}>
                   {pieData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={getCategoryColor(entry.id)} />
                   ))}
                 </Pie>
                 <RechartsTooltip 
                   formatter={(value) => formatRupiah(value)}
-                  contentStyle={{ backgroundColor: isDarkMode ? '#18181b' : '#ffffff', border: 'none', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', color: isDarkMode ? '#fff' : '#000', fontWeight: 'bold' }} 
+                  contentStyle={{ backgroundColor: isDarkMode ? 'rgba(24, 24, 27, 0.9)' : 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid ' + (isDarkMode ? '#3f3f46' : '#e4e4e7'), borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', color: isDarkMode ? '#fff' : '#000', fontWeight: 'bold' }} 
                 />
               </PieChart>
             </ResponsiveContainer>
+            
+            {/* Center Label (Total) */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-[-10px]">
+              <span className="text-[10px] font-bold text-brand-400 tracking-widest uppercase">Total</span>
+              <span className="text-sm font-black mt-0.5">{formatRupiah(activeTab === 'expense' ? totalExpense : totalIncome, true)}</span>
+            </div>
           </div>
+          
           {/* Legend */}
-          <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-2">
+          <div className="flex flex-wrap justify-center gap-x-5 gap-y-3 mt-6 relative z-10">
             {pieData.map((entry, index) => (
-              <div key={index} className="flex items-center gap-1.5 text-xs font-semibold">
-                <div className="w-3 h-3 rounded-full" style={{backgroundColor: getCategoryColor(entry.id)}}></div>
-                <span className="truncate max-w-[90px]">{entry.name}</span>
-                <span className="font-bold opacity-60 ml-1">{Math.round((entry.value / (activeTab === 'expense' ? totalExpense : totalIncome)) * 100)}%</span>
+              <div key={index} className="flex items-center gap-2 bg-white dark:bg-brand-950 px-3 py-1.5 rounded-full border border-brand-100 dark:border-brand-800 shadow-sm">
+                <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{backgroundColor: getCategoryColor(entry.id)}}></div>
+                <span className="text-[11px] font-bold truncate max-w-[85px]">{entry.name}</span>
+                <span className="text-[10px] font-black opacity-50 bg-brand-50 dark:bg-brand-900 px-1.5 py-0.5 rounded-md">{Math.round((entry.value / (activeTab === 'expense' ? totalExpense : totalIncome)) * 100)}%</span>
               </div>
             ))}
           </div>
@@ -547,7 +556,7 @@ export default function Finance({ onBack }) {
 
         {/* Peta Transaksi (Bulan Aktif) */}
         <div className="w-full flex flex-col gap-3 mt-6 mb-4">
-          <h4 className="text-xs font-bold text-brand-400 uppercase tracking-widest mb-1 px-2">Peta Transaksi Bulan Ini</h4>
+          <h4 className="text-xs font-bold text-brand-400 uppercase tracking-widest mb-1 px-2">Peta {activeTab === 'expense' ? 'Pengeluaran' : 'Pemasukan'} Bulan Ini</h4>
           <div className="w-full h-72 bg-brand-100 dark:bg-brand-900 rounded-2xl overflow-hidden shadow-sm border border-brand-200 dark:border-brand-800 z-10 relative">
             {loading ? (
               <div className="w-full h-full flex items-center justify-center font-bold text-brand-500 animate-pulse">Memuat Peta...</div>
@@ -611,14 +620,14 @@ export default function Finance({ onBack }) {
         </button>
       </div>
 
-      {/* Add Modal */}
-      <Modal isOpen={showModal} onClose={resetForm} title={activeTab === 'expense' ? 'Tambah Pengeluaran' : 'Tambah Pemasukan'}>
+      {/* Add/Edit Modal */}
+      <Modal isOpen={showModal} onClose={resetForm} title={editingId ? (activeTab === 'expense' ? 'Edit Pengeluaran' : 'Edit Pemasukan') : (activeTab === 'expense' ? 'Tambah Pengeluaran' : 'Tambah Pemasukan')}>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 sm:gap-5">
           
           <div className="flex flex-col gap-2 bg-brand-50 dark:bg-brand-900/40 p-4 sm:p-6 rounded-2xl border border-brand-100 dark:border-brand-800 transition-colors">
             <label className="text-xs font-bold text-brand-500 tracking-widest text-center">TOTAL (Rp)</label>
             <input type="text" inputMode="numeric" className="w-full bg-transparent text-3xl sm:text-4xl font-black py-2 text-center text-brand-950 dark:text-white border-none focus:outline-none focus:ring-0" placeholder="0" value={amount} onChange={handleAmountChange} required />
-            {amount && <p className="text-xs font-bold text-center text-brand-400 mt-1">{formatRupiah(parseFloat(amount))}</p>}
+            {amount && <p className="text-xs font-bold text-center text-brand-400 mt-1">{formatRupiah(parseFloat(amount.toString().replace(/[^0-9]/g, '')) || 0)}</p>}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
@@ -665,10 +674,19 @@ export default function Finance({ onBack }) {
                   onClick={handleNativePhotoPicker}
                   className="flex items-center justify-center w-full h-[38px] bg-brand-100 dark:bg-brand-800 text-brand-900 dark:text-brand-100 rounded-full text-xs font-bold hover:bg-brand-200 dark:hover:bg-brand-700 transition-colors"
                 >
-                  {photo ? "✓ Foto Dipilih (Ketuk untuk ganti)" : "+ Pilih Kamera / Galeri"}
+                  {photo ? (typeof photo === 'string' ? "✓ Foto Tersimpan (Ketuk ganti)" : "✓ Foto Dipilih (Ketuk ganti)") : "+ Pilih Kamera / Galeri"}
                 </button>
               ) : (
                 <input type="file" accept="image/*" capture="environment" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-brand-100 file:text-brand-900 hover:file:bg-brand-200 cursor-pointer dark:file:bg-brand-800 dark:file:text-white dark:hover:file:bg-brand-700 w-full" ref={fileInputRef} onChange={(e) => setPhoto(e.target.files[0])} />
+              )}
+              {photo && (
+                <div className="mt-2 flex justify-center">
+                  <img 
+                    src={typeof photo === 'string' ? photo : URL.createObjectURL(photo)} 
+                    alt="Preview" 
+                    className="w-16 h-16 object-cover rounded-xl border-2 border-brand-200 dark:border-brand-700 shadow-sm"
+                  />
+                </div>
               )}
             </div>
 
@@ -681,7 +699,7 @@ export default function Finance({ onBack }) {
           </div>
 
           <button type="submit" className="btn-primary mt-2" disabled={!amount || !title.trim() || !category || saving}>
-            {saving ? 'Menyimpan...' : (isFromQris ? 'Simpan & Bayar Sekarang' : 'Simpan Transaksi')}
+            {saving ? 'Menyimpan...' : (editingId ? 'Simpan Perubahan' : (isFromQris ? 'Simpan & Bayar Sekarang' : 'Simpan Transaksi'))}
           </button>
         </form>
       </Modal>
@@ -740,13 +758,23 @@ export default function Finance({ onBack }) {
               </div>
             )}
 
-            <button 
-              onClick={() => handleDelete(showDetailModal.id)} 
-              className="mt-4 flex items-center justify-center gap-2 text-red-500 font-bold p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-sm"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-              Hapus Transaksi
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3 mt-4">
+              <button 
+                onClick={() => openEditModal(showDetailModal)} 
+                className="flex-1 flex items-center justify-center gap-2 bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-300 font-bold p-3 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-800 transition-colors text-sm border border-brand-200 dark:border-brand-700"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                Edit Transaksi
+              </button>
+              
+              <button 
+                onClick={() => handleDelete(showDetailModal.id)} 
+                className="flex-1 flex items-center justify-center gap-2 text-red-500 font-bold p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-sm border border-transparent hover:border-red-100 dark:hover:border-red-900/50"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                Hapus Transaksi
+              </button>
+            </div>
           </div>
         )}
       </Modal>
