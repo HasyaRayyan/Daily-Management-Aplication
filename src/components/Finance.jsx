@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import Modal from './Modal';
 import Header from './Header';
 import { formatRupiah, getDateKey } from '../utils/helpers';
-import { getTransactionsByMonth, addTransaction, deleteTransaction, updateTransaction, uploadFile, getCustomCategories } from '../utils/storage';
+import { getTransactionsByDateRange, getTransactionsByMonth, addTransaction, deleteTransaction, updateTransaction, uploadFile, getCustomCategories } from '../utils/storage';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { Geolocation } from '@capacitor/geolocation';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -69,6 +69,9 @@ export default function Finance({ onBack }) {
   const [isFromQris, setIsFromQris] = useState(false);
   
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [filterType, setFilterType] = useState('monthly'); // 'daily', 'weekly', 'monthly', 'custom'
+  const [customStartDate, setCustomStartDate] = useState(getDateKey(new Date()));
+  const [customEndDate, setCustomEndDate] = useState(getDateKey(new Date()));
 
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
@@ -91,11 +94,25 @@ export default function Finance({ onBack }) {
 
   const fetchData = async () => {
     setLoading(true);
-    const monthPrefix = getMonthPrefix(selectedMonth);
-    const [data, cats] = await Promise.all([
-      getTransactionsByMonth(monthPrefix),
-      getCustomCategories()
-    ]);
+    let data;
+    if (filterType === 'daily') {
+      const dateKey = getDateKey(selectedMonth);
+      data = await getTransactionsByDateRange(dateKey, dateKey);
+    } else if (filterType === 'weekly') {
+      const date = new Date(selectedMonth);
+      const day = date.getDay();
+      const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+      const startOfWeek = new Date(date.setDate(diff));
+      const endOfWeek = new Date(date.setDate(startOfWeek.getDate() + 6));
+      data = await getTransactionsByDateRange(getDateKey(startOfWeek), getDateKey(endOfWeek));
+    } else if (filterType === 'custom') {
+      data = await getTransactionsByDateRange(customStartDate, customEndDate);
+    } else {
+      const monthPrefix = getMonthPrefix(selectedMonth);
+      data = await getTransactionsByMonth(monthPrefix);
+    }
+    
+    const cats = await getCustomCategories();
     setTransactions(data);
     setDbCategories(cats);
     setIsDarkMode(document.documentElement.classList.contains('dark'));
@@ -109,12 +126,35 @@ export default function Finance({ onBack }) {
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
-  }, [selectedMonth]);
+  }, [selectedMonth, filterType, customStartDate, customEndDate]);
 
-  const changeMonth = (offset) => {
+  const changeDate = (offset) => {
     const newDate = new Date(selectedMonth);
-    newDate.setMonth(newDate.getMonth() + offset);
+    if (filterType === 'daily') {
+      newDate.setDate(newDate.getDate() + offset);
+    } else if (filterType === 'weekly') {
+      newDate.setDate(newDate.getDate() + (offset * 7));
+    } else {
+      newDate.setMonth(newDate.getMonth() + offset);
+    }
     setSelectedMonth(newDate);
+  };
+
+  const getDateLabel = () => {
+    if (filterType === 'daily') {
+      return selectedMonth.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    } else if (filterType === 'weekly') {
+      const date = new Date(selectedMonth);
+      const day = date.getDay();
+      const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+      const startOfWeek = new Date(date.setDate(diff));
+      const endOfWeek = new Date(new Date(startOfWeek).setDate(startOfWeek.getDate() + 6));
+      const startStr = startOfWeek.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+      const endStr = endOfWeek.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+      return `${startStr} - ${endStr}`;
+    } else {
+      return selectedMonth.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+    }
   };
 
   // Calculations
@@ -393,21 +433,50 @@ export default function Finance({ onBack }) {
     <div className="flex flex-col gap-6 px-5 pt-6 pb-24 md:pb-8 animate-fade-in relative min-h-full">
       <Header title="Finance" onBack={onBack} />
       
-      {/* Month Picker */}
-      <div className="flex justify-between items-center -mt-4 bg-brand-50 dark:bg-brand-950 p-2 rounded-2xl border border-brand-100 dark:border-brand-800">
-        <button onClick={() => changeMonth(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900 transition-colors text-brand-900 dark:text-white font-bold">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
-        </button>
-        <span className="font-extrabold text-base tracking-wide uppercase text-brand-900 dark:text-white">
-          {selectedMonth.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
-        </span>
-        <button onClick={() => changeMonth(1)} className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900 transition-colors text-brand-900 dark:text-white font-bold">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
-        </button>
+      {/* Date Filter & Picker */}
+      <div className="flex flex-col gap-2 -mt-4">
+        {/* Filter Type Selector */}
+        <div className="flex p-1 bg-brand-50 dark:bg-brand-900/50 rounded-xl">
+          <button onClick={() => setFilterType('daily')} className={`flex-1 py-1.5 text-[10px] md:text-xs font-bold rounded-lg transition-all ${filterType === 'daily' ? 'bg-white dark:bg-brand-800 shadow-sm text-brand-900 dark:text-white' : 'text-brand-500'}`}>Harian</button>
+          <button onClick={() => setFilterType('weekly')} className={`flex-1 py-1.5 text-[10px] md:text-xs font-bold rounded-lg transition-all ${filterType === 'weekly' ? 'bg-white dark:bg-brand-800 shadow-sm text-brand-900 dark:text-white' : 'text-brand-500'}`}>Mingguan</button>
+          <button onClick={() => setFilterType('monthly')} className={`flex-1 py-1.5 text-[10px] md:text-xs font-bold rounded-lg transition-all ${filterType === 'monthly' ? 'bg-white dark:bg-brand-800 shadow-sm text-brand-900 dark:text-white' : 'text-brand-500'}`}>Bulanan</button>
+          <button onClick={() => setFilterType('custom')} className={`flex-1 py-1.5 text-[10px] md:text-xs font-bold rounded-lg transition-all ${filterType === 'custom' ? 'bg-white dark:bg-brand-800 shadow-sm text-brand-900 dark:text-white' : 'text-brand-500'}`}>Rentang</button>
+        </div>
+
+        {/* Date Navigator / Custom Range */}
+        {filterType === 'custom' ? (
+          <div className="flex justify-between items-center bg-brand-50 dark:bg-brand-950 p-2 rounded-2xl border border-brand-100 dark:border-brand-800 gap-2">
+            <input 
+              type="date" 
+              value={customStartDate} 
+              onChange={(e) => setCustomStartDate(e.target.value)}
+              className="flex-1 bg-transparent text-xs font-bold text-brand-900 dark:text-white border-none focus:outline-none focus:ring-0 text-center"
+            />
+            <span className="text-brand-500 font-bold">-</span>
+            <input 
+              type="date" 
+              value={customEndDate} 
+              onChange={(e) => setCustomEndDate(e.target.value)}
+              className="flex-1 bg-transparent text-xs font-bold text-brand-900 dark:text-white border-none focus:outline-none focus:ring-0 text-center"
+            />
+          </div>
+        ) : (
+          <div className="flex justify-between items-center bg-brand-50 dark:bg-brand-950 p-2 rounded-2xl border border-brand-100 dark:border-brand-800">
+            <button onClick={() => changeDate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900 transition-colors text-brand-900 dark:text-white font-bold">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
+            </button>
+            <span className="font-extrabold text-sm md:text-base tracking-wide uppercase text-brand-900 dark:text-white text-center flex-1">
+              {getDateLabel()}
+            </span>
+            <button onClick={() => changeDate(1)} className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900 transition-colors text-brand-900 dark:text-white font-bold">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Premium Balance Card */}
-      <div className="bg-gradient-to-br from-brand-900 to-black dark:from-brand-100 dark:to-white text-white dark:text-brand-950 rounded-[2rem] p-6 sm:p-8 shadow-[0_20px_40px_rgba(0,0,0,0.2)] dark:shadow-[0_20px_40px_rgba(255,255,255,0.1)] relative overflow-hidden transition-transform hover:scale-[1.01] duration-500">
+      <div className="bg-gradient-to-br from-brand-900 to-black dark:from-brand-100 dark:to-white text-white dark:text-brand-950 rounded-[2rem] p-6 sm:p-8 shadow-[0_20px_40px_rgba(0,0,0,0.2)] dark:shadow-[0_20px_40px_rgba(255,255,255,0.1)] relative overflow-hidden transition-transform hover:scale-[1.01] duration-500 mt-2">
         {/* Glass Reflection Effects */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 dark:bg-black/5 rounded-full -mr-20 -mt-20 blur-3xl mix-blend-overlay pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/5 dark:bg-black/5 rounded-full -ml-10 -mb-10 blur-2xl mix-blend-overlay pointer-events-none"></div>
@@ -415,7 +484,7 @@ export default function Finance({ onBack }) {
         <div className="relative z-10 flex flex-col h-full justify-between gap-6">
           <div>
             <p className="text-[10px] font-black tracking-[0.2em] opacity-70 mb-1 flex justify-between items-center">
-              <span>SISA SALDO BULAN INI</span>
+              <span>SISA SALDO {filterType === 'daily' ? 'HARI' : filterType === 'weekly' ? 'MINGGU' : filterType === 'custom' ? 'RENTANG' : 'BULAN'} INI</span>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="opacity-50"><path d="M2 12h20M2 12a10 10 0 1 0 20 0 10 10 0 1 0-20 0"/></svg>
             </p>
             <h2 className="text-4xl sm:text-5xl font-black tracking-tighter drop-shadow-sm">{formatRupiah(balance)}</h2>
@@ -503,7 +572,7 @@ export default function Finance({ onBack }) {
           <div className="text-center font-bold animate-pulse text-brand-500 py-6">Memuat transaksi...</div>
         ) : sortedDates.length === 0 ? (
           <div className="text-center py-10 bg-brand-50 dark:bg-brand-950 rounded-2xl border border-dashed border-brand-200 dark:border-brand-800">
-            <p className="font-bold text-brand-500 text-sm">Tidak ada catatan untuk bulan ini.</p>
+            <p className="font-bold text-brand-500 text-sm">Tidak ada catatan untuk periode ini.</p>
           </div>
         ) : (
           sortedDates.map((dateKey) => {
@@ -554,14 +623,14 @@ export default function Finance({ onBack }) {
           })
         )}
 
-        {/* Peta Transaksi (Bulan Aktif) */}
+        {/* Peta Transaksi */}
         <div className="w-full flex flex-col gap-3 mt-6 mb-4">
-          <h4 className="text-xs font-bold text-brand-400 uppercase tracking-widest mb-1 px-2">Peta {activeTab === 'expense' ? 'Pengeluaran' : 'Pemasukan'} Bulan Ini</h4>
+          <h4 className="text-xs font-bold text-brand-400 uppercase tracking-widest mb-1 px-2">Peta {activeTab === 'expense' ? 'Pengeluaran' : 'Pemasukan'} {filterType === 'daily' ? 'Hari Ini' : filterType === 'weekly' ? 'Minggu Ini' : filterType === 'custom' ? 'Terpilih' : 'Bulan Ini'}</h4>
           <div className="w-full h-72 bg-brand-100 dark:bg-brand-900 rounded-2xl overflow-hidden shadow-sm border border-brand-200 dark:border-brand-800 z-10 relative">
             {loading ? (
               <div className="w-full h-full flex items-center justify-center font-bold text-brand-500 animate-pulse">Memuat Peta...</div>
             ) : mapTransactions.length === 0 ? (
-              <div className="w-full h-full flex items-center justify-center font-bold text-brand-500 text-sm text-center px-4">Belum ada transaksi dengan lokasi di bulan ini</div>
+              <div className="w-full h-full flex items-center justify-center font-bold text-brand-500 text-sm text-center px-4">Belum ada transaksi dengan lokasi di periode ini</div>
             ) : (
               <MapContainer center={[mapTransactions[0].latitude, mapTransactions[0].longitude]} zoom={13} style={{ height: '100%', width: '100%', zIndex: 1 }}>
                 <TileLayer

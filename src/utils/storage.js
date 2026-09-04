@@ -209,6 +209,22 @@ export async function getTransactionsByMonth(monthPrefix) {
   return data || [];
 }
 
+export async function getTransactionsByDateRange(startDateKey, endDateKey) {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .gte('date_key', startDateKey)
+    .lte('date_key', endDateKey)
+    .order('date_key', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching transactions by date range:', error);
+    return [];
+  }
+  return data || [];
+}
+
 export async function addTransaction(transaction) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return null;
