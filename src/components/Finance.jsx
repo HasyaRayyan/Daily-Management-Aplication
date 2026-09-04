@@ -14,6 +14,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import Tesseract from 'tesseract.js';
 
 // Fix Leaflet default icon issue
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -81,12 +82,64 @@ export default function Finance({ onBack }) {
   const [location, setLocation] = useState(null); 
   const [locationStatus, setLocationStatus] = useState(''); 
   const [saving, setSaving] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
   
   const [dbCategories, setDbCategories] = useState([]);
 
   const fileInputRef = useRef(null);
+
+  const processImageOCR = async (imageUrl) => {
+    try {
+      setIsScanning(true);
+      const result = await Tesseract.recognize(imageUrl, 'ind+eng');
+      const text = result.data.text.toLowerCase();
+      
+      const receiptKeywords = ['total', 'rp', 'jumlah', 'harga', 'cash', 'tunai', 'kembali', 'struk', 'receipt', 'pay', 'bayar', 'makan', 'minum', 'warung', 'resto', 'nota', 'invoice', 'bon'];
+      const isReceipt = receiptKeywords.some(kw => text.includes(kw));
+      
+      if (!isReceipt) {
+        alert("Tidak terdeteksi sebagai struk atau bukti transaksi. Harap masukkan foto bukti transaksi yang valid (ada keterangan uang/total).");
+        setPhoto(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        setIsScanning(false);
+        return;
+      }
+
+      // Extract amount
+      const moneyRegex = /(?:rp|total|jumlah)?[^\d]*(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)/gi;
+      let match;
+      let maxAmount = 0;
+      while ((match = moneyRegex.exec(text)) !== null) {
+         const numStr = match[1].replace(/[.,]/g, ''); 
+         const val = parseInt(numStr, 10);
+         if (!isNaN(val) && val > maxAmount && val < 50000000) { 
+             maxAmount = val;
+         }
+      }
+
+      if (maxAmount > 0) {
+        setAmount(maxAmount.toString());
+      }
+
+      // Extract title
+      const lines = result.data.text.split('\n').map(l => l.trim()).filter(l => l.length > 3);
+      if (lines.length > 0) {
+         setTitle(lines[0]);
+      } else {
+         setTitle("Transaksi dari Struk");
+      }
+
+      setCategory('lainnya');
+      setActiveTab('expense');
+
+    } catch (error) {
+      console.error("OCR Error:", error);
+    } finally {
+      setIsScanning(false);
+    }
+  };
 
   const getMonthPrefix = (date) => {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
@@ -360,6 +413,7 @@ export default function Finance({ onBack }) {
       const blob = await response.blob();
       const file = new File([blob], `photo_${Date.now()}.${image.format}`, { type: `image/${image.format}` });
       setPhoto(file);
+      await processImageOCR(image.dataUrl);
     } catch (err) {
       console.error("Gagal mengambil foto:", err);
       if (err.message && (err.message.includes('User cancelled') || err.message.includes('canceled'))) {
@@ -746,7 +800,14 @@ export default function Finance({ onBack }) {
                   {photo ? (typeof photo === 'string' ? "✓ Foto Tersimpan (Ketuk ganti)" : "✓ Foto Dipilih (Ketuk ganti)") : "+ Pilih Kamera / Galeri"}
                 </button>
               ) : (
-                <input type="file" accept="image/*" capture="environment" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-brand-100 file:text-brand-900 hover:file:bg-brand-200 cursor-pointer dark:file:bg-brand-800 dark:file:text-white dark:hover:file:bg-brand-700 w-full" ref={fileInputRef} onChange={(e) => setPhoto(e.target.files[0])} />
+                <input type="file" accept="image/*" capture="environment" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-brand-100 file:text-brand-900 hover:file:bg-brand-200 cursor-pointer dark:file:bg-brand-800 dark:file:text-white dark:hover:file:bg-brand-700 w-full" ref={fileInputRef} onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if(file) {
+                    setPhoto(file);
+                    const url = URL.createObjectURL(file);
+                    await processImageOCR(url);
+                  }
+                }} />
               )}
               {photo && (
                 <div className="mt-2 flex justify-center">
@@ -767,8 +828,8 @@ export default function Finance({ onBack }) {
             </div>
           </div>
 
-          <button type="submit" className="btn-primary mt-2" disabled={!amount || !title.trim() || !category || saving}>
-            {saving ? 'Menyimpan...' : (editingId ? 'Simpan Perubahan' : (isFromQris ? 'Simpan & Bayar Sekarang' : 'Simpan Transaksi'))}
+          <button type="submit" className="btn-primary mt-2" disabled={!amount || !title.trim() || !category || saving || isScanning}>
+            {isScanning ? 'Membaca Struk...' : saving ? 'Menyimpan...' : (editingId ? 'Simpan Perubahan' : (isFromQris ? 'Simpan & Bayar Sekarang' : 'Simpan Transaksi'))}
           </button>
         </form>
       </Modal>
