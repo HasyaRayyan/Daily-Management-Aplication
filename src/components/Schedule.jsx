@@ -3,6 +3,9 @@ import Modal from './Modal';
 import Header from './Header';
 import { getSchedules, addSchedule, deleteSchedule } from '../utils/storage';
 import { getDateKey } from '../utils/helpers';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
+import Tesseract from 'tesseract.js';
 
 const TAG_COLORS = {
   umum: 'bg-brand-100 text-brand-700 dark:bg-brand-900 dark:text-brand-300 border-brand-200 dark:border-brand-800',
@@ -31,6 +34,70 @@ export default function Schedule({ onBack }) {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const [form, setForm] = useState({ title: '', time_start: '', time_end: '', tag: 'umum' });
+  const [isScanning, setIsScanning] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const processImageOCR = async (imageUrl) => {
+    try {
+      setIsScanning(true);
+      const result = await Tesseract.recognize(imageUrl, 'ind+eng');
+      const text = result.data.text.toLowerCase();
+      
+      const timeRegex = /([01]?\d|2[0-3])[:.]([0-5]\d)/g;
+      let match;
+      const times = [];
+      while ((match = timeRegex.exec(text)) !== null) {
+        times.push(`${match[1].padStart(2, '0')}:${match[2]}`);
+      }
+
+      let time_start = '';
+      let time_end = '';
+      if (times.length >= 2) {
+        time_start = times[0];
+        time_end = times[1];
+      } else if (times.length === 1) {
+        time_start = times[0];
+        const [h, m] = time_start.split(':').map(Number);
+        time_end = `${String((h + 1) % 24).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      }
+
+      const lines = result.data.text.split('\n').map(l => l.trim()).filter(l => l.length > 3 && !/^\d{1,2}[:.]\d{2}/.test(l));
+      let extractedTitle = "Jadwal dari Foto";
+      if (lines.length > 0) {
+         extractedTitle = lines[0];
+      }
+
+      setForm(prev => ({
+        ...prev,
+        title: extractedTitle,
+        time_start: time_start || prev.time_start,
+        time_end: time_end || prev.time_end
+      }));
+
+    } catch (error) {
+      console.error("OCR Error:", error);
+      alert("Gagal membaca teks dari foto.");
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const handleNativePhotoPicker = async () => {
+    try {
+      const image = await Camera.getPhoto({
+        quality: 60,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Prompt
+      });
+      await processImageOCR(image.dataUrl);
+    } catch (err) {
+      if (err.message && (err.message.includes('User cancelled') || err.message.includes('canceled'))) {
+        return;
+      }
+      alert(`Peringatan Kamera: ${err.message || err}`);
+    }
+  };
 
   // Generate date array for mini calendar (3 days ago to 14 days ahead)
   const calendarDates = Array.from({ length: 18 }, (_, i) => {
