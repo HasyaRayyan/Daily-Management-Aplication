@@ -303,6 +303,40 @@ export default function Schedule({ onBack }) {
       {/* Add Modal */}
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Tambah Jadwal">
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          
+          <div className="flex flex-col gap-2 p-3 bg-brand-50 dark:bg-brand-900/50 rounded-xl border border-brand-200 dark:border-brand-800">
+            <label className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider">ISI OTOMATIS DARI FOTO</label>
+            <p className="text-[10px] text-brand-500 mb-1">Scan poster/undangan untuk mengisi form otomatis.</p>
+            {Capacitor.isNativePlatform() ? (
+              <button 
+                type="button" 
+                onClick={handleNativePhotoPicker}
+                className="flex items-center justify-center w-full h-[38px] bg-brand-100 dark:bg-brand-800 text-brand-900 dark:text-brand-100 rounded-full text-xs font-bold hover:bg-brand-200 dark:hover:bg-brand-700 transition-colors"
+                disabled={isScanning}
+              >
+                {isScanning ? "Memproses Teks..." : "📷 Scan dari Kamera / Galeri"}
+              </button>
+            ) : (
+              <div className="relative">
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-brand-100 file:text-brand-900 hover:file:bg-brand-200 cursor-pointer dark:file:bg-brand-800 dark:file:text-white dark:hover:file:bg-brand-700 w-full" 
+                  ref={fileInputRef} 
+                  onChange={async (e) => {
+                    const file = e.target.files[0];
+                    if(file) {
+                      const url = URL.createObjectURL(file);
+                      await processImageOCR(url);
+                    }
+                  }} 
+                  disabled={isScanning}
+                />
+                {isScanning && <span className="absolute right-2 top-2 text-xs font-bold text-brand-500 animate-pulse">Memproses...</span>}
+              </div>
+            )}
+          </div>
+
           <div className="flex flex-col gap-2">
             <label className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider">NAMA KEGIATAN</label>
             <input
@@ -351,8 +385,8 @@ export default function Schedule({ onBack }) {
             </select>
           </div>
 
-          <button type="submit" className="btn-primary mt-4" disabled={!form.title || !form.time_start || !form.time_end || saving}>
-            {saving ? 'Menyimpan...' : 'Simpan Jadwal'}
+          <button type="submit" className="btn-primary mt-4" disabled={!form.title || !form.time_start || !form.time_end || saving || isScanning}>
+            {isScanning ? 'Memproses Foto...' : saving ? 'Menyimpan...' : 'Simpan Jadwal'}
           </button>
         </form>
       </Modal>
