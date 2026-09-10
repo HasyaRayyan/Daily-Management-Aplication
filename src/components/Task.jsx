@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import Modal from './Modal';
 import Header from './Header';
-import { getTasks, addTask, deleteTask, toggleTask } from '../utils/storage';
+import { getTasks, addTask, deleteTask, toggleTask, updateTask } from '../utils/storage';
 
 export default function Task({ onBack }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   
   const [showModal, setShowModal] = useState(false);
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [newDeadline, setNewDeadline] = useState('');
@@ -53,19 +55,61 @@ export default function Task({ onBack }) {
     setNewPhotos(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleAddTask = async (e) => {
+  const openAddModal = () => {
+    setEditingTaskId(null);
+    setNewTitle('');
+    setNewDescription('');
+    setNewDeadline('');
+    setNewPhotos([]);
+    setShowModal(true);
+  };
+
+  const openEditModal = (task) => {
+    setEditingTaskId(task.id);
+    setNewTitle(task.title);
+    setNewDescription(task.description || '');
+    
+    // Format deadline to local datetime-local string (YYYY-MM-DDThh:mm)
+    if (task.deadline) {
+      const d = new Date(task.deadline);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      const hh = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      setNewDeadline(`${yyyy}-${mm}-${dd}T${hh}:${min}`);
+    } else {
+      setNewDeadline('');
+    }
+    
+    setNewPhotos(task.photos || []);
+    setShowModal(true);
+  };
+
+  const handleSaveTask = async (e) => {
     e.preventDefault();
     if (!newTitle.trim() || saving) return;
     setSaving(true);
-    const result = await addTask(newTitle.trim(), newDescription.trim(), newDeadline, newPhotos);
+    
+    let result;
+    if (editingTaskId) {
+      result = await updateTask(editingTaskId, {
+        title: newTitle.trim(),
+        description: newDescription.trim(),
+        deadline: newDeadline ? newDeadline : null,
+        photos: newPhotos
+      });
+    } else {
+      result = await addTask(newTitle.trim(), newDescription.trim(), newDeadline, newPhotos);
+    }
     
     if (result) {
-      // Reset Form
       setNewTitle('');
       setNewDescription('');
       setNewDeadline('');
       setNewPhotos([]);
       setShowModal(false);
+      setEditingTaskId(null);
       await fetchData();
     }
     
@@ -134,9 +178,14 @@ export default function Task({ onBack }) {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex flex-col gap-1 flex-1">
-                    <p className={`font-black text-lg transition-all ${isCompleted ? 'line-through text-brand-400 dark:text-brand-500' : 'text-brand-900 dark:text-brand-50'}`}>
-                      {task.title}
-                    </p>
+                    <div className="flex items-center gap-3">
+                      <p className={`font-black text-lg transition-all ${isCompleted ? 'line-through text-brand-400 dark:text-brand-500' : 'text-brand-900 dark:text-brand-50'}`}>
+                        {task.title}
+                      </p>
+                      <button onClick={() => openEditModal(task)} className="text-brand-400 hover:text-brand-900 dark:hover:text-white transition-colors" title="Edit Tugas">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      </button>
+                    </div>
                     
                     {task.deadline && (
                       <p className={`text-xs font-bold ${isOverdue ? 'text-red-500' : 'text-brand-500'}`}>
@@ -188,15 +237,15 @@ export default function Task({ onBack }) {
 
       {/* Floating Action Button (FAB) */}
       <button 
-        onClick={() => setShowModal(true)} 
+        onClick={openAddModal}
         className="fixed bottom-24 right-5 md:bottom-10 md:right-10 w-16 h-16 bg-brand-200 dark:bg-brand-800 text-brand-900 dark:text-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform z-[150] border-2 border-brand-100 dark:border-brand-900"
       >
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </button>
 
-      {/* Add Task Modal */}
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Tambah Tugas">
-        <form onSubmit={handleAddTask} className="flex flex-col gap-4 max-h-[70vh] overflow-y-auto px-1">
+      {/* Add/Edit Task Modal */}
+      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editingTaskId ? "Edit Tugas" : "Tambah Tugas"}>
+        <form onSubmit={handleSaveTask} className="flex flex-col gap-4 max-h-[70vh] overflow-y-auto px-1">
           <div className="flex flex-col gap-2">
             <label className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider">NAMA TUGAS *</label>
             <input
@@ -263,7 +312,7 @@ export default function Task({ onBack }) {
           </div>
 
           <button type="submit" className="btn-primary mt-4" disabled={!newTitle.trim() || saving}>
-            {saving ? 'Menyimpan...' : 'Simpan Tugas'}
+            {saving ? 'Menyimpan...' : (editingTaskId ? 'Perbarui Tugas' : 'Simpan Tugas')}
           </button>
         </form>
       </Modal>
