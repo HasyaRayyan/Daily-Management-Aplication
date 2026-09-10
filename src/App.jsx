@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
-import Routine from './components/Routine';
+import Task from './components/Task';
 import Schedule from './components/Schedule';
 import Finance from './components/Finance';
 import Profile from './components/Profile';
@@ -156,7 +156,7 @@ function App() {
 
   const navItems = [
     { id: 'dashboard', icon: <IconHome />, label: 'Beranda' },
-    { id: 'routine', icon: <IconCheckSquare />, label: 'Rutinitas' },
+    { id: 'task', icon: <IconCheckSquare />, label: 'Tugas' },
     { id: 'schedule', icon: <IconCalendar />, label: 'Jadwal' },
     { id: 'finance', icon: <IconWallet />, label: 'Keuangan' },
     { id: 'profile', icon: <IconUser />, label: 'Profil' },
@@ -213,7 +213,7 @@ function App() {
         <div className="flex-1 overflow-y-auto pb-32 md:pb-8 relative">
           <div className="max-w-5xl mx-auto w-full">
             {activeTab === 'dashboard' && <Dashboard session={session} setActiveTab={setActiveTab} />}
-            {activeTab === 'routine' && <Routine onBack={goHome} />}
+            {activeTab === 'task' && <Task onBack={goHome} />}
             {activeTab === 'schedule' && <Schedule onBack={goHome} />}
             {activeTab === 'finance' && <Finance onBack={goHome} />}
             {activeTab === 'profile' && <Profile session={session} onBack={goHome} />}

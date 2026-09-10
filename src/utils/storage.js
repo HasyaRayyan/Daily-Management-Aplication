@@ -39,93 +39,81 @@ export async function updateProfile(updates) {
 }
 
 // ==========================================
-// ROUTINES
+// TASKS
 // ==========================================
-export async function getRoutines() {
+export async function getTasks() {
   const { data, error } = await supabase
-    .from('routines')
+    .from('user_tasks')
     .select('*')
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching routines:', error);
+    console.error('Error fetching tasks:', error);
     return [];
   }
   return data || [];
 }
 
-export async function addRoutine(title, timeOfDay = 'kapan_saja') {
+export async function addTask(title, description, deadline, photos = []) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return null;
 
   const { data, error } = await supabase
-    .from('routines')
-    .insert({ title, time_of_day: timeOfDay, user_id: session.user.id })
-    .select()
-    .single();
-
-  if (error) return null;
-  return data;
-}
-
-export async function deleteRoutine(id) {
-  await supabase.from('routines').delete().eq('id', id);
-}
-
-// ROUTINE LOGS
-export async function getRoutineLogs(dateKey) {
-  const { data, error } = await supabase
-    .from('routine_logs')
-    .select('*')
-    .eq('date_key', dateKey);
-
-  if (error) {
-    console.error('Error fetching routine logs:', error);
-    return [];
-  }
-  return data || [];
-}
-
-export async function toggleRoutineLog(routineId, dateKey, completed, notes = null) {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return null;
-
-  const { data, error } = await supabase
-    .from('routine_logs')
-    .upsert({ 
-      routine_id: routineId, 
-      user_id: session.user.id, 
-      date_key: dateKey, 
-      completed,
-      notes,
-      completed_at: completed ? new Date().toISOString() : null
-    }, { onConflict: 'routine_id,date_key' })
+    .from('user_tasks')
+    .insert({ 
+      title, 
+      description, 
+      deadline: deadline ? deadline : null, 
+      photos, 
+      completed: false,
+      user_id: session.user.id 
+    })
     .select()
     .single();
 
   if (error) {
-    console.error('Error toggling routine:', error);
+    console.error('Error adding task:', error);
+    alert('Gagal menyimpan tugas: ' + error.message);
     return null;
   }
   return data;
 }
 
-export async function getRoutineHistory(startDateKey, endDateKey) {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return [];
-
+export async function updateTask(id, updates) {
   const { data, error } = await supabase
-    .from('routine_logs')
-    .select('routine_id, date_key, completed, notes')
-    .eq('user_id', session.user.id)
-    .gte('date_key', startDateKey)
-    .lte('date_key', endDateKey);
+    .from('user_tasks')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
 
   if (error) {
-    console.error('Error fetching routine history:', error);
-    return [];
+    console.error('Error updating task:', error);
+    return null;
   }
-  return data || [];
+  return data;
+}
+
+export async function deleteTask(id) {
+  await supabase.from('user_tasks').delete().eq('id', id);
+}
+
+export async function toggleTask(id, completed) {
+  const { data, error } = await supabase
+    .from('user_tasks')
+    .update({ 
+      completed, 
+      completed_at: completed ? new Date().toISOString() : null 
+    })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error toggling task:', error);
+    return null;
+  }
+  return data;
 }
 
 // ==========================================

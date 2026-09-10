@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { formatRupiah, getDateKey } from '../utils/helpers';
-import { getProfile, getRoutines, getRoutineLogs, getSchedules, getTransactions } from '../utils/storage';
+import { getProfile, getTasks, getSchedules, getTransactions } from '../utils/storage';
 
 const IconRefresh = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 2.6-6.4L2 9"/></svg>;
 
 export default function Dashboard({ session, setActiveTab }) {
   const [profile, setProfile] = useState(null);
-  const [routines, setRoutines] = useState([]);
-  const [logs, setLogs] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [schedules, setSchedules] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,16 +15,14 @@ export default function Dashboard({ session, setActiveTab }) {
 
   const fetchData = async () => {
     setLoading(true);
-    const [profData, routData, logData, schedData, transData] = await Promise.all([
+    const [profData, taskData, schedData, transData] = await Promise.all([
       getProfile(),
-      getRoutines(),
-      getRoutineLogs(todayDateKey),
+      getTasks(),
       getSchedules(todayDateKey),
       getTransactions(todayDateKey)
     ]);
     setProfile(profData);
-    setRoutines(routData);
-    setLogs(logData);
+    setTasks(taskData);
     setSchedules(schedData);
     setTransactions(transData);
     setLoading(false);
@@ -38,8 +35,8 @@ export default function Dashboard({ session, setActiveTab }) {
   const displayName = profile?.display_name || session?.user?.user_metadata?.username || 'User';
   const avatarUrl = profile?.avatar_url;
 
-  const completedCount = routines.filter(r => logs.find(l => l.routine_id === r.id)?.completed).length;
-  const totalCount = routines.length;
+  const completedCount = tasks.filter(t => t.completed).length;
+  const totalCount = tasks.length;
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
   const latestTransactions = transactions.slice(0, 3);
 
@@ -75,10 +72,10 @@ export default function Dashboard({ session, setActiveTab }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full pb-8">
         
         <div className="flex flex-col gap-6">
-          {/* Routine Progress */}
-          <div onClick={() => setActiveTab('routine')} className="card group cursor-pointer h-full">
+          {/* Task Progress */}
+          <div onClick={() => setActiveTab('task')} className="card group cursor-pointer h-full">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-extrabold flex items-center gap-2">Rutinitas Harian</h2>
+              <h2 className="font-extrabold flex items-center gap-2">Tugas Harian</h2>
               <span className="text-xs font-bold text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white transition-colors">Lihat ›</span>
             </div>
             <div className="bg-brand-50 dark:bg-brand-950 p-4 rounded-2xl border border-brand-100 dark:border-brand-800">
