@@ -623,7 +623,12 @@ export default function Finance({ onBack }) {
       {/* Transaction List by Date */}
       <div className="flex flex-col gap-6 mt-2">
         {loading ? (
-          <div className="text-center font-bold animate-pulse text-brand-500 py-6">Memuat transaksi...</div>
+          <div className="flex items-center justify-center py-12">
+            <div className="relative flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full border-3 border-brand-200 dark:border-brand-800" />
+              <div className="w-8 h-8 rounded-full border-3 border-brand-950 dark:border-white border-t-transparent border-r-transparent animate-spin absolute top-0 left-0" />
+            </div>
+          </div>
         ) : sortedDates.length === 0 ? (
           <div className="text-center py-10 bg-brand-50 dark:bg-brand-950 rounded-2xl border border-dashed border-brand-200 dark:border-brand-800">
             <p className="font-bold text-brand-500 text-sm">Tidak ada catatan untuk periode ini.</p>
@@ -682,7 +687,12 @@ export default function Finance({ onBack }) {
           <h4 className="text-xs font-bold text-brand-400 uppercase tracking-widest mb-1 px-2">Peta {activeTab === 'expense' ? 'Pengeluaran' : 'Pemasukan'} {filterType === 'daily' ? 'Hari Ini' : filterType === 'weekly' ? 'Minggu Ini' : filterType === 'custom' ? 'Terpilih' : 'Bulan Ini'}</h4>
           <div className="w-full h-72 bg-brand-100 dark:bg-brand-900 rounded-2xl overflow-hidden shadow-sm border border-brand-200 dark:border-brand-800 z-10 relative">
             {loading ? (
-              <div className="w-full h-full flex items-center justify-center font-bold text-brand-500 animate-pulse">Memuat Peta...</div>
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="relative flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full border-3 border-brand-200 dark:border-brand-800" />
+                  <div className="w-8 h-8 rounded-full border-3 border-brand-950 dark:border-white border-t-transparent border-r-transparent animate-spin absolute top-0 left-0" />
+                </div>
+              </div>
             ) : mapTransactions.length === 0 ? (
               <div className="w-full h-full flex items-center justify-center font-bold text-brand-500 text-sm text-center px-4">Belum ada transaksi dengan lokasi di periode ini</div>
             ) : (

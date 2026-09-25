@@ -44,7 +44,14 @@ export default function Dashboard({ session, setActiveTab }) {
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
   if (loading) {
-    return <div className="p-6 text-center text-sm font-bold animate-pulse">Memuat dashboard...</div>;
+    return (
+      <div className="w-full h-[60vh] flex items-center justify-center">
+        <div className="relative flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full border-4 border-brand-200 dark:border-brand-800" />
+          <div className="w-10 h-10 rounded-full border-4 border-brand-950 dark:border-white border-t-transparent border-r-transparent animate-spin absolute top-0 left-0" />
+        </div>
+      </div>
+    );
   }
 
   return (

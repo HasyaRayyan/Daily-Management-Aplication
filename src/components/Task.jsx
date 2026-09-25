@@ -156,7 +156,12 @@ export default function Task({ onBack }) {
 
       {/* Task List */}
       {loading && tasks.length === 0 ? (
-        <div className="text-center font-bold animate-pulse text-brand-500 py-10">Memuat tugas...</div>
+        <div className="flex items-center justify-center py-16">
+          <div className="relative flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full border-3 border-brand-200 dark:border-brand-800" />
+            <div className="w-8 h-8 rounded-full border-3 border-brand-950 dark:border-white border-t-transparent border-r-transparent animate-spin absolute top-0 left-0" />
+          </div>
+        </div>
       ) : tasks.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-10 text-center">
           <p className="font-extrabold text-lg mb-2">Belum ada tugas</p>

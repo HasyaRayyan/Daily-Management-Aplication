@@ -202,7 +202,12 @@ export default function Schedule({ onBack }) {
 
       {/* Vertical Timeline */}
       {loading ? (
-        <div className="text-center font-bold animate-pulse text-brand-500 py-10">Memuat jadwal...</div>
+        <div className="flex items-center justify-center py-16">
+          <div className="relative flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full border-3 border-brand-200 dark:border-brand-800" />
+            <div className="w-8 h-8 rounded-full border-3 border-brand-950 dark:border-white border-t-transparent border-r-transparent animate-spin absolute top-0 left-0" />
+          </div>
+        </div>
       ) : schedules.length === 0 ? (
         <div className="text-center py-12 flex flex-col items-center">
           <p className="font-bold text-brand-400">Tidak ada jadwal untuk hari ini.</p>

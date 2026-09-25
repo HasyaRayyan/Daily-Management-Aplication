@@ -122,7 +122,14 @@ function App() {
   const goHome = () => setActiveTab('dashboard');
 
   if (authLoading) {
-    return <div className="app-wrapper flex items-center justify-center font-semibold animate-pulse">Memuat...</div>;
+    return (
+      <div className="w-full h-screen flex items-center justify-center bg-brand-50 dark:bg-brand-950">
+        <div className="relative flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full border-4 border-brand-200 dark:border-brand-800" />
+          <div className="w-12 h-12 rounded-full border-4 border-brand-950 dark:border-white border-t-transparent border-r-transparent animate-spin absolute top-0 left-0" />
+        </div>
+      </div>
+    );
   }
 
   if (!session) {
