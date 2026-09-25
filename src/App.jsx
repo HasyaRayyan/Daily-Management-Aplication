@@ -7,7 +7,7 @@ import Profile from './components/Profile';
 import Auth from './components/Auth';
 import Modal from './components/Modal';
 import { getSession, onAuthStateChange, updatePassword } from './lib/auth';
-import { getSchedules, getAppVersion } from './utils/storage';
+import { getAppVersion } from './utils/storage';
 import { getDateKey } from './utils/helpers';
 import { supabase } from './lib/supabase';
 import { Geolocation } from '@capacitor/geolocation';
@@ -126,7 +126,11 @@ function App() {
   }
 
   if (!session) {
-    return <div className="app-wrapper animate-fade-in"><Auth /></div>;
+    return (
+      <div className="w-full min-h-screen bg-brand-50 dark:bg-brand-950 overflow-y-auto animate-fade-in">
+        <Auth />
+      </div>
+    );
   }
 
   if (recoveryMode) {
