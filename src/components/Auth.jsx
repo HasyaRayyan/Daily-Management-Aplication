@@ -193,13 +193,9 @@ export default function Auth() {
 
           {/* Top Brand Pill */}
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs font-semibold tracking-wider text-brand-200 mb-8">
+            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs font-semibold tracking-wider text-brand-200 mb-6">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               DAILY MANAGEMENT APP
-            </div>
-
-            <div className="w-16 h-16 rounded-2xl bg-white text-brand-950 shadow-xl flex items-center justify-center font-black text-2xl tracking-tighter mb-6">
-              DAILY.
             </div>
 
             <h2 className="text-3xl xl:text-4xl font-black tracking-tight leading-tight mb-4">
@@ -253,21 +249,9 @@ export default function Auth() {
         {/* Right Column: Authentication Form (Responsive for all screens) */}
         <div className="col-span-12 lg:col-span-7 flex flex-col justify-center p-6 sm:p-10 lg:p-12 relative">
           
-          {/* Top Bar: Brand info on Mobile + Theme Switcher */}
-          <div className="flex items-center justify-between gap-4 mb-6">
-            {/* Mobile Branding */}
-            <div className="flex items-center gap-3 lg:hidden">
-              <div className="w-11 h-11 rounded-2xl bg-brand-950 dark:bg-white text-white dark:text-brand-950 flex items-center justify-center font-black text-base shadow-md">
-                D.
-              </div>
-              <div>
-                <span className="font-black text-xl tracking-tight text-brand-950 dark:text-white">DAILY.</span>
-                <p className="text-[11px] font-semibold text-brand-400">Personal Management</p>
-              </div>
-            </div>
-
-            {/* Theme Toggle Button */}
-            <div className="ml-auto">
+          {/* Top Bar: Theme Switcher */}
+          <div className="flex justify-end items-center mb-6">
+            <div>
               <button
                 type="button"
                 onClick={toggleDarkMode}
