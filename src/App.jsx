@@ -6,6 +6,7 @@ import Finance from './components/Finance';
 import Profile from './components/Profile';
 import Auth from './components/Auth';
 import Modal from './components/Modal';
+import Spinner from './components/Spinner';
 import { getSession, onAuthStateChange, updatePassword } from './lib/auth';
 import { getAppVersion } from './utils/storage';
 import { getDateKey } from './utils/helpers';
@@ -124,10 +125,7 @@ function App() {
   if (authLoading) {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-brand-50 dark:bg-brand-950">
-        <div className="relative flex items-center justify-center">
-          <div className="w-12 h-12 rounded-full border-4 border-brand-200 dark:border-brand-800" />
-          <div className="w-12 h-12 rounded-full border-4 border-brand-950 dark:border-white border-t-transparent border-r-transparent animate-spin absolute top-0 left-0" />
-        </div>
+        <Spinner size="md" />
       </div>
     );
   }

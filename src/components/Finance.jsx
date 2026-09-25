@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Modal from './Modal';
 import Header from './Header';
+import Spinner from './Spinner';
 import { formatRupiah, getDateKey } from '../utils/helpers';
 import { getTransactionsByDateRange, getTransactionsByMonth, addTransaction, deleteTransaction, updateTransaction, uploadFile, getCustomCategories } from '../utils/storage';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
@@ -624,10 +625,7 @@ export default function Finance({ onBack }) {
       <div className="flex flex-col gap-6 mt-2">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="relative flex items-center justify-center">
-              <div className="w-8 h-8 rounded-full border-3 border-brand-200 dark:border-brand-800" />
-              <div className="w-8 h-8 rounded-full border-3 border-brand-950 dark:border-white border-t-transparent border-r-transparent animate-spin absolute top-0 left-0" />
-            </div>
+            <Spinner size="sm" />
           </div>
         ) : sortedDates.length === 0 ? (
           <div className="text-center py-10 bg-brand-50 dark:bg-brand-950 rounded-2xl border border-dashed border-brand-200 dark:border-brand-800">
@@ -688,10 +686,7 @@ export default function Finance({ onBack }) {
           <div className="w-full h-72 bg-brand-100 dark:bg-brand-900 rounded-2xl overflow-hidden shadow-sm border border-brand-200 dark:border-brand-800 z-10 relative">
             {loading ? (
               <div className="w-full h-full flex items-center justify-center">
-                <div className="relative flex items-center justify-center">
-                  <div className="w-8 h-8 rounded-full border-3 border-brand-200 dark:border-brand-800" />
-                  <div className="w-8 h-8 rounded-full border-3 border-brand-950 dark:border-white border-t-transparent border-r-transparent animate-spin absolute top-0 left-0" />
-                </div>
+                <Spinner size="sm" />
               </div>
             ) : mapTransactions.length === 0 ? (
               <div className="w-full h-full flex items-center justify-center font-bold text-brand-500 text-sm text-center px-4">Belum ada transaksi dengan lokasi di periode ini</div>

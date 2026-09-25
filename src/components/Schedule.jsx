@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Modal from './Modal';
 import Header from './Header';
+import Spinner from './Spinner';
 import { getSchedules, addSchedule, deleteSchedule } from '../utils/storage';
 import { getDateKey } from '../utils/helpers';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -203,10 +204,7 @@ export default function Schedule({ onBack }) {
       {/* Vertical Timeline */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <div className="relative flex items-center justify-center">
-            <div className="w-8 h-8 rounded-full border-3 border-brand-200 dark:border-brand-800" />
-            <div className="w-8 h-8 rounded-full border-3 border-brand-950 dark:border-white border-t-transparent border-r-transparent animate-spin absolute top-0 left-0" />
-          </div>
+          <Spinner size="sm" />
         </div>
       ) : schedules.length === 0 ? (
         <div className="text-center py-12 flex flex-col items-center">

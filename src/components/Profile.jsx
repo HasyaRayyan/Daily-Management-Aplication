@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Modal from './Modal';
 import Header from './Header';
+import Spinner from './Spinner';
 import { getProfile, updateProfile, uploadFile, getCustomCategories, addCustomCategory, deleteCustomCategory } from '../utils/storage';
 import { logout, sendPasswordResetOtp } from '../lib/auth';
 
@@ -125,10 +126,7 @@ export default function Profile({ session, onBack }) {
 
       {loading && !profile ? (
         <div className="flex items-center justify-center py-16">
-          <div className="relative flex items-center justify-center">
-            <div className="w-8 h-8 rounded-full border-3 border-brand-200 dark:border-brand-800" />
-            <div className="w-8 h-8 rounded-full border-3 border-brand-950 dark:border-white border-t-transparent border-r-transparent animate-spin absolute top-0 left-0" />
-          </div>
+          <Spinner size="sm" />
         </div>
       ) : (
         <div className="flex flex-col items-center mt-4">
@@ -234,10 +232,7 @@ export default function Profile({ session, onBack }) {
           <div className="flex flex-col gap-2 max-h-[40vh] overflow-y-auto pr-1">
             {catLoading && customCategories.length === 0 ? (
               <div className="flex items-center justify-center py-6">
-                <div className="relative flex items-center justify-center">
-                  <div className="w-6 h-6 rounded-full border-2 border-brand-200 dark:border-brand-800" />
-                  <div className="w-6 h-6 rounded-full border-2 border-brand-950 dark:border-white border-t-transparent border-r-transparent animate-spin absolute top-0 left-0" />
-                </div>
+                <Spinner size="sm" />
               </div>
             ) : customCategories.filter(c => c.type === categoryType).length === 0 ? (
               <div className="text-center py-6 bg-brand-50 dark:bg-brand-950 rounded-xl border border-dashed border-brand-200 dark:border-brand-800">

@@ -12,6 +12,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;300;400;600;700;900&display=swap" rel="stylesheet" />
     <title>DAILY.</title>
+    <style>
+      @keyframes app-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .app-spin {
+        animation: app-spin 0.75s linear infinite !important;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { formatRupiah, getDateKey } from '../utils/helpers';
 import { getProfile, getTasks, getSchedules, getTransactions } from '../utils/storage';
+import Spinner from './Spinner';
 
 const IconRefresh = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 2.6-6.4L2 9"/></svg>;
 
@@ -46,10 +47,7 @@ export default function Dashboard({ session, setActiveTab }) {
   if (loading) {
     return (
       <div className="w-full h-[60vh] flex items-center justify-center">
-        <div className="relative flex items-center justify-center">
-          <div className="w-10 h-10 rounded-full border-4 border-brand-200 dark:border-brand-800" />
-          <div className="w-10 h-10 rounded-full border-4 border-brand-950 dark:border-white border-t-transparent border-r-transparent animate-spin absolute top-0 left-0" />
-        </div>
+        <Spinner size="md" />
       </div>
     );
   }
@@ -66,8 +64,8 @@ export default function Dashboard({ session, setActiveTab }) {
             {avatarUrl ? <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" /> : displayName.charAt(0).toUpperCase()}
           </div>
           <div>
-            <p className="text-xs font-bold text-brand-500 dark:text-brand-400 tracking-widest uppercase">SELAMAT DATANG</p>
-            <h1 className="text-xl font-black leading-tight tracking-tight">{displayName}</h1>
+            <p className="text-xs font-bold text-brand-400 dark:text-brand-500 tracking-widest uppercase">OVERVIEW</p>
+            <h1 className="text-xl sm:text-2xl font-black leading-tight tracking-tight">Welcome, {displayName}</h1>
           </div>
         </div>
         <button onClick={fetchData} className="w-12 h-12 rounded-full bg-brand-50 dark:bg-brand-950 flex items-center justify-center hover:bg-brand-100 dark:hover:bg-brand-800 transition-colors">
