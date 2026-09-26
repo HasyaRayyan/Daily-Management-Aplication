@@ -329,3 +329,26 @@ export async function deleteCustomCategory(id) {
   const { error } = await supabase.from('custom_categories').delete().eq('id', id);
   return !error;
 }
+
+export async function deleteAccount() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return { error: new Error('Tidak ada sesi aktif') };
+
+  const userId = session.user.id;
+
+  try {
+    await Promise.allSettled([
+      supabase.from('user_tasks').delete().eq('user_id', userId),
+      supabase.from('schedules').delete().eq('user_id', userId),
+      supabase.from('transactions').delete().eq('user_id', userId),
+      supabase.from('custom_categories').delete().eq('user_id', userId),
+      supabase.from('profiles').delete().eq('id', userId),
+    ]);
+
+    await supabase.auth.signOut();
+    return { success: true };
+  } catch (err) {
+    console.error('Error deleting account:', err);
+    return { error: err };
+  }
+}
