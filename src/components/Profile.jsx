@@ -132,6 +132,12 @@ const IconEyeOff = () => (
   </svg>
 );
 
+const IconChevronDown = ({ className = '' }) => (
+  <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="6 9 12 15 18 9" />
+  </svg>
+);
+
 export default function Profile({ session, onBack }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -359,216 +365,281 @@ export default function Profile({ session, onBack }) {
             </div>
           </div>
 
-          {/* Segmented Navigation Tabs */}
-          <div className="w-full grid grid-cols-3 p-1.5 rounded-2xl bg-brand-100/90 dark:bg-brand-900/90 border border-brand-200/80 dark:border-brand-800/80 mb-6 gap-1">
-            <button
-              onClick={() => setActiveTab('security')}
-              className={`py-2.5 sm:py-3 px-2 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer ${
-                activeTab === 'security'
-                  ? 'bg-white dark:bg-brand-800 text-brand-950 dark:text-white shadow-sm'
-                  : 'text-brand-500 hover:text-brand-950 dark:hover:text-white'
-              }`}
-            >
-              <IconShield />
-              <span className="truncate">Keamanan Akun</span>
-            </button>
+          {/* Vertical Stacked Tabs: Keamanan Akun, Atur Akun, Preferensi */}
+          <div className="w-full flex flex-col gap-3.5">
 
-            <button
-              onClick={() => setActiveTab('account')}
-              className={`py-2.5 sm:py-3 px-2 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer ${
-                activeTab === 'account'
-                  ? 'bg-white dark:bg-brand-800 text-brand-950 dark:text-white shadow-sm'
-                  : 'text-brand-500 hover:text-brand-950 dark:hover:text-white'
-              }`}
-            >
-              <IconUserCog />
-              <span className="truncate">Atur Akun</span>
-            </button>
+            {/* TAB 1: KEAMANAN AKUN */}
+            <div className={`w-full rounded-2xl sm:rounded-3xl border transition-all duration-200 overflow-hidden ${
+              activeTab === 'security'
+                ? 'bg-white dark:bg-brand-900 border-brand-950/20 dark:border-brand-700 shadow-sm'
+                : 'bg-white dark:bg-brand-900 border-brand-100 dark:border-brand-800/80 hover:border-brand-200 dark:hover:border-brand-700'
+            }`}>
+              <button
+                type="button"
+                onClick={() => setActiveTab(activeTab === 'security' ? null : 'security')}
+                className="w-full p-4 sm:p-5 flex items-center justify-between text-left cursor-pointer transition-colors hover:bg-brand-50/40 dark:hover:bg-brand-800/40"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-colors shrink-0 ${
+                    activeTab === 'security'
+                      ? 'bg-brand-950 text-white dark:bg-white dark:text-brand-950'
+                      : 'bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300'
+                  }`}>
+                    <IconShield />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-brand-950 dark:text-white">Keamanan Akun</h3>
+                    <p className="text-xs text-brand-500">Ubah kata sandi, nama lengkap, dan email</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`p-1.5 rounded-lg text-brand-400 transition-transform duration-200 ${
+                    activeTab === 'security' ? 'rotate-180 text-brand-950 dark:text-white' : ''
+                  }`}>
+                    <IconChevronDown />
+                  </div>
+                </div>
+              </button>
 
-            <button
-              onClick={() => setActiveTab('preferences')}
-              className={`py-2.5 sm:py-3 px-2 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer ${
-                activeTab === 'preferences'
-                  ? 'bg-white dark:bg-brand-800 text-brand-950 dark:text-white shadow-sm'
-                  : 'text-brand-500 hover:text-brand-950 dark:hover:text-white'
-              }`}
-            >
-              <IconSliders />
-              <span className="truncate">Preferensi</span>
-            </button>
+              {activeTab === 'security' && (
+                <div className="px-4 pb-4 sm:px-5 sm:pb-5 pt-1 border-t border-brand-100 dark:border-brand-800/80 flex flex-col gap-3 animate-fade-in">
+                  {/* 1. Ubah Kata Sandi */}
+                  <div className="p-4 bg-brand-50/60 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800/80 rounded-2xl flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-brand-900 border border-brand-200/60 dark:border-brand-800 flex items-center justify-center text-brand-700 dark:text-brand-300 shrink-0">
+                        <IconKey />
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-bold text-brand-400 uppercase tracking-wider">Kata Sandi</p>
+                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">••••••••••••</p>
+                        <p className="text-[11px] text-brand-500">Amankan akun Anda dengan kata sandi yang kuat</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { 
+                        setNewPassword(''); 
+                        setConfirmPassword(''); 
+                        setPassError(null); 
+                        setPassSuccess(null); 
+                        setShowPasswordModal(true); 
+                      }}
+                      className="px-4 py-2 rounded-xl bg-brand-950 dark:bg-white text-white dark:text-brand-950 hover:opacity-90 text-xs font-bold transition-opacity cursor-pointer shrink-0 shadow-xs"
+                    >
+                      Ubah Sandi
+                    </button>
+                  </div>
+
+                  {/* 2. Ubah Nama */}
+                  <div className="p-4 bg-brand-50/60 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800/80 rounded-2xl flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-brand-900 border border-brand-200/60 dark:border-brand-800 flex items-center justify-center text-brand-700 dark:text-brand-300 shrink-0">
+                        <IconUser />
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-bold text-brand-400 uppercase tracking-wider">Nama Lengkap</p>
+                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">{displayName}</p>
+                        <p className="text-[11px] text-brand-500">Tampil di dashboard dan salam aplikasi</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setNewName(displayName); setShowNameModal(true); }}
+                      className="px-4 py-2 rounded-xl bg-white dark:bg-brand-800 text-brand-950 dark:text-white border border-brand-200 dark:border-brand-700 hover:bg-brand-100 dark:hover:bg-brand-700 text-xs font-bold transition-colors cursor-pointer shrink-0 shadow-xs"
+                    >
+                      Ubah Nama
+                    </button>
+                  </div>
+
+                  {/* 3. Email */}
+                  <div className="p-4 bg-brand-50/60 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-brand-900 border border-brand-200/60 dark:border-brand-800 flex items-center justify-center text-brand-700 dark:text-brand-300 shrink-0">
+                        <IconMail />
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-bold text-brand-400 uppercase tracking-wider">Email Akun</p>
+                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">{session?.user?.email}</p>
+                        <p className="text-[11px] text-brand-500">Email ini digunakan untuk masuk dan autentikasi</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center self-start sm:self-auto gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 text-xs font-bold shrink-0">
+                      <IconCheckCircle />
+                      <span>Terverifikasi</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* TAB 2: ATUR AKUN */}
+            <div className={`w-full rounded-2xl sm:rounded-3xl border transition-all duration-200 overflow-hidden ${
+              activeTab === 'account'
+                ? 'bg-white dark:bg-brand-900 border-brand-950/20 dark:border-brand-700 shadow-sm'
+                : 'bg-white dark:bg-brand-900 border-brand-100 dark:border-brand-800/80 hover:border-brand-200 dark:hover:border-brand-700'
+            }`}>
+              <button
+                type="button"
+                onClick={() => setActiveTab(activeTab === 'account' ? null : 'account')}
+                className="w-full p-4 sm:p-5 flex items-center justify-between text-left cursor-pointer transition-colors hover:bg-brand-50/40 dark:hover:bg-brand-800/40"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-colors shrink-0 ${
+                    activeTab === 'account'
+                      ? 'bg-brand-950 text-white dark:bg-white dark:text-brand-950'
+                      : 'bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300'
+                  }`}>
+                    <IconUserCog />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-brand-950 dark:text-white">Atur Akun</h3>
+                    <p className="text-xs text-brand-500">Keluar dari akun atau hapus akun permanen</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`p-1.5 rounded-lg text-brand-400 transition-transform duration-200 ${
+                    activeTab === 'account' ? 'rotate-180 text-brand-950 dark:text-white' : ''
+                  }`}>
+                    <IconChevronDown />
+                  </div>
+                </div>
+              </button>
+
+              {activeTab === 'account' && (
+                <div className="px-4 pb-4 sm:px-5 sm:pb-5 pt-1 border-t border-brand-100 dark:border-brand-800/80 flex flex-col gap-3 animate-fade-in">
+                  {/* 1. Log Out */}
+                  <div className="p-4 bg-brand-50/60 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800/80 rounded-2xl flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-800 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                        <IconLogout />
+                      </div>
+                      <div>
+                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Keluar dari Akun (Log Out)</p>
+                        <p className="text-xs text-brand-500">Akhiri sesi aktif Anda pada perangkat ini</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (window.confirm("Apakah Anda yakin ingin keluar dari akun?")) {
+                          logout();
+                        }
+                      }}
+                      className="px-4 py-2 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800 text-xs font-bold transition-colors cursor-pointer shrink-0 shadow-xs"
+                    >
+                      Log Out
+                    </button>
+                  </div>
+
+                  {/* 2. Hapus Akun */}
+                  <div className="p-4 bg-red-50/50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/60 rounded-2xl flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/40 border border-red-200 dark:border-red-800 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0">
+                        <IconTrash />
+                      </div>
+                      <div>
+                        <p className="text-sm sm:text-base font-bold text-red-700 dark:text-red-400">Hapus Akun Permanen</p>
+                        <p className="text-xs text-red-600/80 dark:text-red-400/70">Hapus seluruh data tugas, jadwal, dan keuangan secara permanen</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDeleteConfirmation('');
+                        setShowDeleteModal(true);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 text-xs font-bold transition-colors cursor-pointer shadow-xs shrink-0"
+                    >
+                      Hapus Akun
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* TAB 3: PREFERENSI */}
+            <div className={`w-full rounded-2xl sm:rounded-3xl border transition-all duration-200 overflow-hidden ${
+              activeTab === 'preferences'
+                ? 'bg-white dark:bg-brand-900 border-brand-950/20 dark:border-brand-700 shadow-sm'
+                : 'bg-white dark:bg-brand-900 border-brand-100 dark:border-brand-800/80 hover:border-brand-200 dark:hover:border-brand-700'
+            }`}>
+              <button
+                type="button"
+                onClick={() => setActiveTab(activeTab === 'preferences' ? null : 'preferences')}
+                className="w-full p-4 sm:p-5 flex items-center justify-between text-left cursor-pointer transition-colors hover:bg-brand-50/40 dark:hover:bg-brand-800/40"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-colors shrink-0 ${
+                    activeTab === 'preferences'
+                      ? 'bg-brand-950 text-white dark:bg-white dark:text-brand-950'
+                      : 'bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300'
+                  }`}>
+                    <IconSliders />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-brand-950 dark:text-white">Preferensi</h3>
+                    <p className="text-xs text-brand-500">Tampilan tema aplikasi dan kelola kategori kustom</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`p-1.5 rounded-lg text-brand-400 transition-transform duration-200 ${
+                    activeTab === 'preferences' ? 'rotate-180 text-brand-950 dark:text-white' : ''
+                  }`}>
+                    <IconChevronDown />
+                  </div>
+                </div>
+              </button>
+
+              {activeTab === 'preferences' && (
+                <div className="px-4 pb-4 sm:px-5 sm:pb-5 pt-1 border-t border-brand-100 dark:border-brand-800/80 flex flex-col gap-3 animate-fade-in">
+                  {/* 1. Mode Tema */}
+                  <div className="p-4 bg-brand-50/60 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800/80 rounded-2xl flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-brand-900 border border-brand-200/60 dark:border-brand-800 flex items-center justify-center text-brand-700 dark:text-brand-300 shrink-0">
+                        {isDarkMode ? <IconMoon /> : <IconSun />}
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-bold text-brand-400 uppercase tracking-wider">Tampilan Tema</p>
+                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">
+                          {isDarkMode ? 'Mode Gelap (Dark)' : 'Mode Terang (Light)'}
+                        </p>
+                        <p className="text-[11px] text-brand-500">Sesuaikan tema visual dengan preferensi Anda</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={toggleTheme}
+                      className="px-4 py-2 rounded-xl bg-white dark:bg-brand-800 text-brand-950 dark:text-white border border-brand-200 dark:border-brand-700 hover:bg-brand-100 dark:hover:bg-brand-700 text-xs font-bold transition-colors cursor-pointer shrink-0 shadow-xs"
+                    >
+                      {isDarkMode ? 'Ganti ke Terang' : 'Ganti ke Gelap'}
+                    </button>
+                  </div>
+
+                  {/* 2. Kategori Kustom */}
+                  <div className="p-4 bg-brand-50/60 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800/80 rounded-2xl flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-brand-900 border border-brand-200/60 dark:border-brand-800 flex items-center justify-center text-brand-700 dark:text-brand-300 shrink-0">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-bold text-brand-400 uppercase tracking-wider">Kategori Keuangan</p>
+                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Kelola Kategori Kustom</p>
+                        <p className="text-[11px] text-brand-500">Atur kategori pemasukan & pengeluaran Anda</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={openCategoryModal}
+                      className="px-4 py-2 rounded-xl bg-white dark:bg-brand-800 text-brand-950 dark:text-white border border-brand-200 dark:border-brand-700 hover:bg-brand-100 dark:hover:bg-brand-700 text-xs font-bold transition-colors cursor-pointer shrink-0 shadow-xs"
+                    >
+                      Kelola
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
           </div>
-
-          {/* TAB 1: KEAMANAN AKUN */}
-          {activeTab === 'security' && (
-            <div className="w-full flex flex-col gap-3 animate-fade-in">
-              {/* Item: Email */}
-              <div className="p-4 sm:p-5 bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-2xl bg-brand-50 dark:bg-brand-950 border border-brand-200/60 dark:border-brand-800 flex items-center justify-center text-brand-700 dark:text-brand-300 shrink-0">
-                    <IconMail />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-brand-400 uppercase tracking-wider">Email Akun</p>
-                    <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">{session?.user?.email}</p>
-                    <p className="text-[11px] text-brand-500">Email ini digunakan untuk masuk dan autentikasi</p>
-                  </div>
-                </div>
-                <div className="flex items-center self-start sm:self-auto gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 text-xs font-bold shrink-0">
-                  <IconCheckCircle />
-                  <span>Terverifikasi</span>
-                </div>
-              </div>
-
-              {/* Item: Ubah Nama */}
-              <div className="p-4 sm:p-5 bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 rounded-2xl flex items-center justify-between gap-4 shadow-sm hover:border-brand-300 dark:hover:border-brand-700 transition-colors">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-2xl bg-brand-50 dark:bg-brand-950 border border-brand-200/60 dark:border-brand-800 flex items-center justify-center text-brand-700 dark:text-brand-300 shrink-0">
-                    <IconUser />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-brand-400 uppercase tracking-wider">Nama Lengkap</p>
-                    <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">{displayName}</p>
-                    <p className="text-[11px] text-brand-500">Tampil di dashboard dan salam aplikasi</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => { setNewName(displayName); setShowNameModal(true); }}
-                  className="px-4 py-2 rounded-xl bg-brand-100 dark:bg-brand-800 text-brand-950 dark:text-white hover:bg-brand-200 dark:hover:bg-brand-700 text-xs font-bold transition-colors cursor-pointer shrink-0"
-                >
-                  Ubah Nama
-                </button>
-              </div>
-
-              {/* Item: Ubah Kata Sandi */}
-              <div className="p-4 sm:p-5 bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 rounded-2xl flex items-center justify-between gap-4 shadow-sm hover:border-brand-300 dark:hover:border-brand-700 transition-colors">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-2xl bg-brand-50 dark:bg-brand-950 border border-brand-200/60 dark:border-brand-800 flex items-center justify-center text-brand-700 dark:text-brand-300 shrink-0">
-                    <IconKey />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-brand-400 uppercase tracking-wider">Kata Sandi</p>
-                    <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">••••••••••••</p>
-                    <p className="text-[11px] text-brand-500">Amankan akun Anda dengan kata sandi yang kuat</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => { 
-                    setNewPassword(''); 
-                    setConfirmPassword(''); 
-                    setPassError(null); 
-                    setPassSuccess(null); 
-                    setShowPasswordModal(true); 
-                  }}
-                  className="px-4 py-2 rounded-xl bg-brand-950 dark:bg-white text-white dark:text-brand-950 hover:opacity-90 text-xs font-bold transition-opacity cursor-pointer shrink-0"
-                >
-                  Ubah Sandi
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 2: ATUR AKUN */}
-          {activeTab === 'account' && (
-            <div className="w-full flex flex-col gap-3 animate-fade-in">
-              {/* Item: Log Out */}
-              <div className="p-4 sm:p-5 bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 rounded-2xl flex items-center justify-between gap-4 shadow-sm">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
-                    <IconLogout />
-                  </div>
-                  <div>
-                    <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Keluar dari Akun (Log Out)</p>
-                    <p className="text-xs text-brand-500">Akhiri sesi aktif Anda pada perangkat ini</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (window.confirm("Apakah Anda yakin ingin keluar dari akun?")) {
-                      logout();
-                    }
-                  }}
-                  className="px-4 py-2 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800 text-xs font-bold transition-colors cursor-pointer shrink-0"
-                >
-                  Log Out
-                </button>
-              </div>
-
-              {/* Item: Hapus Akun */}
-              <div className="p-4 sm:p-5 bg-red-50/50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/60 rounded-2xl flex items-center justify-between gap-4 shadow-sm">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-2xl bg-red-100 dark:bg-red-900/40 border border-red-200 dark:border-red-800 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0">
-                    <IconTrash />
-                  </div>
-                  <div>
-                    <p className="text-sm sm:text-base font-bold text-red-700 dark:text-red-400">Hapus Akun Permanen</p>
-                    <p className="text-xs text-red-600/80 dark:text-red-400/70">Hapus seluruh data tugas, jadwal, dan keuangan secara permanen</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDeleteConfirmation('');
-                    setShowDeleteModal(true);
-                  }}
-                  className="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 text-xs font-bold transition-colors cursor-pointer shadow-sm shrink-0"
-                >
-                  Hapus Akun
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 3: PREFERENSI */}
-          {activeTab === 'preferences' && (
-            <div className="w-full flex flex-col gap-3 animate-fade-in">
-              {/* Item: Mode Tema */}
-              <div className="p-4 sm:p-5 bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 rounded-2xl flex items-center justify-between gap-4 shadow-sm">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-2xl bg-brand-50 dark:bg-brand-950 border border-brand-200/60 dark:border-brand-800 flex items-center justify-center text-brand-700 dark:text-brand-300 shrink-0">
-                    {isDarkMode ? <IconMoon /> : <IconSun />}
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-brand-400 uppercase tracking-wider">Tampilan Tema</p>
-                    <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">
-                      {isDarkMode ? 'Mode Gelap (Dark)' : 'Mode Terang (Light)'}
-                    </p>
-                    <p className="text-[11px] text-brand-500">Sesuaikan tema visual dengan preferensi Anda</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={toggleTheme}
-                  className="px-4 py-2 rounded-xl bg-brand-100 dark:bg-brand-800 text-brand-950 dark:text-white hover:bg-brand-200 dark:hover:bg-brand-700 text-xs font-bold transition-colors cursor-pointer shrink-0"
-                >
-                  {isDarkMode ? 'Ganti ke Terang' : 'Ganti ke Gelap'}
-                </button>
-              </div>
-
-              {/* Item: Kategori Kustom */}
-              <div className="p-4 sm:p-5 bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 rounded-2xl flex items-center justify-between gap-4 shadow-sm">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-2xl bg-brand-50 dark:bg-brand-950 border border-brand-200/60 dark:border-brand-800 flex items-center justify-center text-brand-700 dark:text-brand-300 shrink-0">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-brand-400 uppercase tracking-wider">Kategori Keuangan</p>
-                    <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Kelola Kategori Kustom</p>
-                    <p className="text-[11px] text-brand-500">Atur kategori pemasukan & pengeluaran Anda</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={openCategoryModal}
-                  className="px-4 py-2 rounded-xl bg-brand-100 dark:bg-brand-800 text-brand-950 dark:text-white hover:bg-brand-200 dark:hover:bg-brand-700 text-xs font-bold transition-colors cursor-pointer shrink-0"
-                >
-                  Kelola
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Version Footer */}
           <div className="mt-8 text-center text-xs font-bold text-brand-400 dark:text-brand-600">
