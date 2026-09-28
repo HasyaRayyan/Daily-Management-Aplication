@@ -118,7 +118,7 @@ const IconTrash = () => (
 );
 
 const IconSun = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="5" />
     <line x1="12" y1="1" x2="12" y2="3" />
     <line x1="12" y1="21" x2="12" y2="23" />
@@ -132,7 +132,7 @@ const IconSun = () => (
 );
 
 const IconMoon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
   </svg>
 );
@@ -154,7 +154,7 @@ const IconEyeOff = () => (
 );
 
 const IconSparkles = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" />
   </svg>
 );
@@ -193,6 +193,9 @@ export default function Profile({ session, onBack }) {
   const [tasks, setTasks] = useState([]);
   const [customCategories, setCustomCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Current Active Section: null (shows Menu Buttons Hub) | 'account' | 'security' | 'preferences' | 'about' | 'danger'
+  const [currentSection, setCurrentSection] = useState(null);
 
   // Toast Notification State
   const [toast, setToast] = useState(null);
@@ -476,6 +479,14 @@ export default function Profile({ session, onBack }) {
   const taskPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
   const totalCustomCats = customCategories.length;
 
+  const sectionTitles = {
+    account: 'Akun & Identitas',
+    security: 'Keamanan & Akses',
+    preferences: 'Preferensi & Tampilan',
+    about: 'Tentang Aplikasi',
+    danger: 'Zona Bahaya',
+  };
+
   return (
     <div className="flex flex-col gap-6 px-4 sm:px-6 pt-6 pb-28 md:pb-12 animate-fade-in max-w-4xl mx-auto w-full">
       
@@ -495,8 +506,11 @@ export default function Profile({ session, onBack }) {
         </div>
       )}
 
-      {/* Page Header */}
-      <Header title="Profil Saya" onBack={onBack} />
+      {/* Page Header (Supports going back to Menu or to Dashboard) */}
+      <Header 
+        title={currentSection ? sectionTitles[currentSection] : "Profil Saya"} 
+        onBack={currentSection ? () => setCurrentSection(null) : onBack} 
+      />
 
       {loading && !profile ? (
         <div className="flex flex-col items-center justify-center py-28 gap-4">
@@ -507,12 +521,12 @@ export default function Profile({ session, onBack }) {
         <div className="flex flex-col gap-6">
 
           {/* ============================================================ */}
-          {/* HERO BANNER PROFILE CARD */}
+          {/* HERO BANNER PROFILE CARD (Always visible for brand identity) */}
           {/* ============================================================ */}
           <div className="w-full relative rounded-[2rem] bg-gradient-to-b from-white via-white to-brand-50/80 dark:from-brand-900 dark:via-brand-900 dark:to-brand-950 border border-brand-200/80 dark:border-brand-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.25)] overflow-hidden">
             
-            {/* Top Decorative Gradient Mesh / Cover Banner */}
-            <div className="h-32 sm:h-36 w-full relative overflow-hidden bg-gradient-to-r from-brand-950 via-brand-800 to-brand-900 dark:from-black dark:via-brand-950 dark:to-brand-900">
+            {/* Top Cover Banner */}
+            <div className="h-28 sm:h-32 w-full relative overflow-hidden bg-gradient-to-r from-brand-950 via-brand-800 to-brand-900 dark:from-black dark:via-brand-950 dark:to-brand-900">
               <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white via-transparent to-transparent pointer-events-none" />
               <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-white/10 blur-2xl pointer-events-none" />
               <div className="absolute top-4 left-6 text-white/40 flex items-center gap-2 text-xs font-black tracking-widest uppercase">
@@ -522,11 +536,11 @@ export default function Profile({ session, onBack }) {
             </div>
 
             {/* Avatar & Identity Info */}
-            <div className="px-6 sm:px-8 pb-7 pt-0 relative flex flex-col items-center text-center">
+            <div className="px-6 sm:px-8 pb-6 pt-0 relative flex flex-col items-center text-center">
               
               {/* Floating Avatar */}
-              <div className="relative -mt-16 sm:-mt-20 mb-4 group">
-                <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-brand-200 to-brand-100 dark:from-brand-800 dark:to-brand-700 flex items-center justify-center font-black text-4xl sm:text-5xl text-brand-950 dark:text-white shadow-xl overflow-hidden ring-4 ring-white dark:ring-brand-900 border-2 border-brand-200/60 dark:border-brand-700">
+              <div className="relative -mt-14 sm:-mt-16 mb-3 group">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-tr from-brand-200 to-brand-100 dark:from-brand-800 dark:to-brand-700 flex items-center justify-center font-black text-3xl sm:text-4xl text-brand-950 dark:text-white shadow-xl overflow-hidden ring-4 ring-white dark:ring-brand-900 border-2 border-brand-200/60 dark:border-brand-700">
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                   ) : (
@@ -535,7 +549,7 @@ export default function Profile({ session, onBack }) {
                 </div>
 
                 {/* Online status indicator */}
-                <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white dark:border-brand-900 flex items-center justify-center shadow-sm" title="Akun Aktif">
+                <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white dark:border-brand-900 flex items-center justify-center shadow-sm" title="Akun Aktif">
                   <span className="w-2 h-2 rounded-full bg-white animate-ping opacity-75" />
                 </div>
 
@@ -544,7 +558,7 @@ export default function Profile({ session, onBack }) {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   title="Ubah Foto Profil"
-                  className="absolute bottom-1 right-1 bg-brand-950 dark:bg-white text-white dark:text-brand-950 rounded-full w-10 h-10 flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all border-2 border-white dark:border-brand-900 cursor-pointer"
+                  className="absolute bottom-0 right-0 bg-brand-950 dark:bg-white text-white dark:text-brand-950 rounded-full w-9 h-9 flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all border-2 border-white dark:border-brand-900 cursor-pointer"
                 >
                   <IconCamera />
                 </button>
@@ -559,7 +573,7 @@ export default function Profile({ session, onBack }) {
 
               {/* Name & Quick Edit */}
               <div className="flex items-center justify-center gap-2 mb-1">
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-brand-950 dark:text-white">
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-brand-950 dark:text-white">
                   {displayName}
                 </h1>
                 <button
@@ -573,7 +587,7 @@ export default function Profile({ session, onBack }) {
               </div>
 
               {/* Email & Join Badge */}
-              <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
+              <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-100/70 dark:bg-brand-800/60 text-xs font-semibold text-brand-700 dark:text-brand-300 border border-brand-200/50 dark:border-brand-700">
                   <span className="text-emerald-500"><IconCheckCircle /></span>
                   <span>{userEmail}</span>
@@ -582,45 +596,29 @@ export default function Profile({ session, onBack }) {
                   <IconCalendar />
                   <span>Bergabung {joinDate}</span>
                 </div>
-                {avatarUrl && (
-                  <button
-                    type="button"
-                    onClick={handleRemoveAvatar}
-                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/40 text-xs font-semibold text-red-600 dark:text-red-400 border border-red-200/60 dark:border-red-900/60 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
-                  >
-                    <IconTrash />
-                    <span>Hapus Foto</span>
-                  </button>
-                )}
               </div>
 
-              {/* Quick Stat Highlights */}
-              <div className="w-full grid grid-cols-3 gap-2 sm:gap-4 pt-5 border-t border-brand-100 dark:border-brand-800">
-                <div className="flex flex-col items-center p-3 rounded-2xl bg-brand-50/70 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800/80">
-                  <span className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wider">Tugas Selesai</span>
-                  <div className="flex items-baseline gap-1 mt-1">
-                    <span className="text-xl sm:text-2xl font-black text-brand-950 dark:text-white">{completedTasks}</span>
-                    <span className="text-xs font-bold text-brand-400">/{totalTasks}</span>
-                  </div>
-                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{taskPercent}% Beres</span>
+              {/* Micro Stats Row */}
+              <div className="w-full grid grid-cols-3 gap-2 sm:gap-3 pt-4 border-t border-brand-100 dark:border-brand-800">
+                <div className="flex flex-col items-center p-2.5 rounded-2xl bg-brand-50/70 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800/80">
+                  <span className="text-[10px] font-semibold text-brand-400 uppercase tracking-wider">Tugas</span>
+                  <span className="text-base sm:text-lg font-black text-brand-950 dark:text-white mt-0.5">{completedTasks}/{totalTasks}</span>
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">{taskPercent}% Beres</span>
                 </div>
 
-                <div className="flex flex-col items-center p-3 rounded-2xl bg-brand-50/70 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800/80">
-                  <span className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wider">Kategori</span>
-                  <div className="flex items-baseline gap-1 mt-1">
-                    <span className="text-xl sm:text-2xl font-black text-brand-950 dark:text-white">{totalCustomCats}</span>
-                    <span className="text-xs font-bold text-brand-400">kustom</span>
-                  </div>
-                  <span className="text-[11px] font-bold text-brand-500 dark:text-brand-400 mt-0.5">Keuangan</span>
+                <div className="flex flex-col items-center p-2.5 rounded-2xl bg-brand-50/70 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800/80">
+                  <span className="text-[10px] font-semibold text-brand-400 uppercase tracking-wider">Kategori</span>
+                  <span className="text-base sm:text-lg font-black text-brand-950 dark:text-white mt-0.5">{totalCustomCats}</span>
+                  <span className="text-[10px] font-bold text-brand-400">Kustom</span>
                 </div>
 
-                <div className="flex flex-col items-center p-3 rounded-2xl bg-brand-50/70 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800/80">
-                  <span className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wider">Status Akun</span>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                    <span className="text-base sm:text-lg font-black text-emerald-600 dark:text-emerald-400">Aktif</span>
+                <div className="flex flex-col items-center p-2.5 rounded-2xl bg-brand-50/70 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800/80">
+                  <span className="text-[10px] font-semibold text-brand-400 uppercase tracking-wider">Status</span>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400">Aktif</span>
                   </div>
-                  <span className="text-[11px] font-medium text-brand-400 mt-0.5">Terverifikasi</span>
+                  <span className="text-[10px] font-medium text-brand-400">Online</span>
                 </div>
               </div>
 
@@ -629,354 +627,491 @@ export default function Profile({ session, onBack }) {
           </div>
 
           {/* ============================================================ */}
-          {/* VERTICAL SETTINGS GROUPS (SCALABLE & CLEAN - NO SIDE TABS) */}
+          {/* VIEW MODE 1: MAIN MENU BUTTONS (When no section is active) */}
           {/* ============================================================ */}
-          <div className="flex flex-col gap-6">
-
-            {/* ---------------------------------------------------------- */}
-            {/* GROUP 1: AKUN & IDENTITAS */}
-            {/* ---------------------------------------------------------- */}
-            <div className="flex flex-col gap-2.5">
-              <div className="px-2 flex items-center justify-between">
-                <span className="text-xs font-extrabold tracking-wider text-brand-400 dark:text-brand-500 uppercase">
-                  Akun & Identitas
-                </span>
-                <span className="text-[11px] text-brand-400">Data pribadi profil</span>
+          {currentSection === null && (
+            <div className="flex flex-col gap-3 animate-fade-in">
+              <div className="px-1 text-xs font-extrabold tracking-wider text-brand-400 dark:text-brand-500 uppercase">
+                Menu Pengaturan
               </div>
 
               <div className="bg-white dark:bg-brand-900 rounded-3xl border border-brand-100 dark:border-brand-800 shadow-sm overflow-hidden divide-y divide-brand-100 dark:divide-brand-800/80">
                 
-                {/* 1.1 Nama Lengkap */}
-                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
+                {/* 1. Tombol: Akun & Identitas */}
+                <button
+                  type="button"
+                  onClick={() => setCurrentSection('account')}
+                  className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 hover:bg-brand-50/70 dark:hover:bg-brand-800/40 active:bg-brand-100 dark:active:bg-brand-800 transition-colors text-left cursor-pointer group"
+                >
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0 group-hover:scale-105 transition-transform shadow-xs">
                       <IconUser />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">Nama Lengkap</p>
-                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white truncate">{displayName}</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => { setNewName(displayName); setShowNameModal(true); }}
-                    className="px-4 py-2 rounded-xl bg-brand-50 dark:bg-brand-800 border border-brand-200 dark:border-brand-700 text-xs font-bold text-brand-950 dark:text-white hover:bg-brand-100 dark:hover:bg-brand-700 transition-colors cursor-pointer shrink-0 shadow-xs"
-                  >
-                    Ubah
-                  </button>
-                </div>
-
-                {/* 1.2 Alamat Email */}
-                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
-                      <IconMail />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">Alamat Email</p>
-                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white truncate">{userEmail}</p>
-                    </div>
-                  </div>
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-xs font-bold shrink-0">
-                    <IconCheck />
-                    <span>Terverifikasi</span>
-                  </div>
-                </div>
-
-                {/* 1.3 User ID */}
-                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0 font-bold text-xs">
-                      ID
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">User ID</p>
-                      <p className="text-xs font-mono font-medium text-brand-600 dark:text-brand-400 truncate max-w-[180px] sm:max-w-sm">
-                        {session?.user?.id}
+                      <h3 className="text-sm sm:text-base font-bold text-brand-950 dark:text-white group-hover:text-brand-700 dark:group-hover:text-brand-200 transition-colors truncate">
+                        Akun & Identitas
+                      </h3>
+                      <p className="text-xs text-brand-400 dark:text-brand-500 mt-0.5 truncate">
+                        Nama lengkap, alamat email, User ID, dan avatar
                       </p>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleCopyId}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-brand-800 border border-brand-200 dark:border-brand-700 text-xs font-bold text-brand-950 dark:text-white hover:bg-brand-100 dark:hover:bg-brand-700 transition-colors cursor-pointer shrink-0 shadow-xs"
-                  >
-                    {copiedId ? <span className="text-emerald-500"><IconCheck /></span> : <IconCopy />}
-                    <span>{copiedId ? 'Tersalin' : 'Salin ID'}</span>
-                  </button>
-                </div>
-
-                {/* 1.4 Terakhir Masuk */}
-                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
-                      <IconClock />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">Sesi Terakhir</p>
-                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">{lastLogin}</p>
-                    </div>
+                  <div className="flex items-center gap-2 text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all shrink-0">
+                    <IconChevronRight />
                   </div>
-                  <span className="text-xs font-semibold text-brand-400 dark:text-brand-500">Sesi Aktif</span>
-                </div>
+                </button>
 
-              </div>
-            </div>
-
-            {/* ---------------------------------------------------------- */}
-            {/* GROUP 2: KEAMANAN & AKSES */}
-            {/* ---------------------------------------------------------- */}
-            <div className="flex flex-col gap-2.5">
-              <div className="px-2 flex items-center justify-between">
-                <span className="text-xs font-extrabold tracking-wider text-brand-400 dark:text-brand-500 uppercase">
-                  Keamanan & Akses
-                </span>
-                <span className="text-[11px] text-brand-400">Proteksi kata sandi</span>
-              </div>
-
-              <div className="bg-white dark:bg-brand-900 rounded-3xl border border-brand-100 dark:border-brand-800 shadow-sm overflow-hidden divide-y divide-brand-100 dark:divide-brand-800/80">
-                
-                {/* 2.1 Ubah Kata Sandi */}
-                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
+                {/* 2. Tombol: Keamanan & Akses */}
+                <button
+                  type="button"
+                  onClick={() => setCurrentSection('security')}
+                  className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 hover:bg-brand-50/70 dark:hover:bg-brand-800/40 active:bg-brand-100 dark:active:bg-brand-800 transition-colors text-left cursor-pointer group"
+                >
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0 group-hover:scale-105 transition-transform shadow-xs">
                       <IconKey />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Kata Sandi Akun</p>
-                      <p className="text-xs text-brand-400 dark:text-brand-500">••••••••••••••••</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNewPassword('');
-                      setConfirmPassword('');
-                      setPassError(null);
-                      setPassSuccess(null);
-                      setShowPasswordModal(true);
-                    }}
-                    className="px-4 py-2 rounded-xl bg-brand-950 dark:bg-white text-white dark:text-brand-950 text-xs font-bold hover:opacity-90 transition-opacity cursor-pointer shrink-0 shadow-xs"
-                  >
-                    Ganti Sandi
-                  </button>
-                </div>
-
-                {/* 2.2 Reset Sandi via Email */}
-                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
-                      <IconMail />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Reset Sandi via Email</p>
-                      <p className="text-xs text-brand-400 dark:text-brand-500">Kirim link pemulihan ke surel terdaftar</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleSendResetEmail}
-                    disabled={sendingResetLink}
-                    className="px-4 py-2 rounded-xl bg-white dark:bg-brand-800 border border-brand-200 dark:border-brand-700 text-xs font-bold text-brand-950 dark:text-white hover:bg-brand-100 dark:hover:bg-brand-700 transition-colors cursor-pointer shrink-0 disabled:opacity-50 shadow-xs"
-                  >
-                    {sendingResetLink ? 'Mengirim...' : 'Kirim Link'}
-                  </button>
-                </div>
-
-                {/* 2.3 Status Proteksi Sesi */}
-                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                      <IconShield />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Enkripsi & Proteksi Sesi</p>
-                      <p className="text-xs text-brand-400 dark:text-brand-500">Terenkripsi TLS 1.3 dengan Supabase Auth</p>
-                    </div>
-                  </div>
-                  <span className="px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-200 dark:border-emerald-800 shrink-0">
-                    Aman
-                  </span>
-                </div>
-
-              </div>
-            </div>
-
-            {/* ---------------------------------------------------------- */}
-            {/* GROUP 3: PREFERENSI & TAMPILAN */}
-            {/* ---------------------------------------------------------- */}
-            <div className="flex flex-col gap-2.5">
-              <div className="px-2 flex items-center justify-between">
-                <span className="text-xs font-extrabold tracking-wider text-brand-400 dark:text-brand-500 uppercase">
-                  Preferensi & Kustomisasi
-                </span>
-                <span className="text-[11px] text-brand-400">Pengaturan aplikasi</span>
-              </div>
-
-              <div className="bg-white dark:bg-brand-900 rounded-3xl border border-brand-100 dark:border-brand-800 shadow-sm overflow-hidden divide-y divide-brand-100 dark:divide-brand-800/80">
-                
-                {/* 3.1 Tema Visual Aplikasi (Inline Fast Switcher) */}
-                <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
-                      {isDarkMode ? <IconMoon /> : <IconSun />}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Tema Antarmuka</p>
-                      <p className="text-xs text-brand-400 dark:text-brand-500">
-                        {isDarkMode ? 'Saat ini: Mode Gelap (Dark)' : 'Saat ini: Mode Terang (Light)'}
+                      <h3 className="text-sm sm:text-base font-bold text-brand-950 dark:text-white group-hover:text-brand-700 dark:group-hover:text-brand-200 transition-colors truncate">
+                        Keamanan & Akses
+                      </h3>
+                      <p className="text-xs text-brand-400 dark:text-brand-500 mt-0.5 truncate">
+                        Ganti kata sandi, tautan reset via email, proteksi sesi
                       </p>
                     </div>
                   </div>
-
-                  {/* Inline Toggle Pill */}
-                  <div className="flex p-1 bg-brand-100 dark:bg-brand-950 rounded-2xl self-start sm:self-auto border border-brand-200/60 dark:border-brand-800">
-                    <button
-                      type="button"
-                      onClick={() => setThemeMode(false)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        !isDarkMode
-                          ? 'bg-white text-brand-950 shadow-xs'
-                          : 'text-brand-500 hover:text-brand-900 dark:hover:text-white'
-                      }`}
-                    >
-                      <IconSun />
-                      <span>Terang</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setThemeMode(true)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        isDarkMode
-                          ? 'bg-brand-800 text-white shadow-xs'
-                          : 'text-brand-500 hover:text-brand-900 dark:hover:text-white'
-                      }`}
-                    >
-                      <IconMoon />
-                      <span>Gelap</span>
-                    </button>
+                  <div className="flex items-center gap-2 text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all shrink-0">
+                    <IconChevronRight />
                   </div>
-                </div>
+                </button>
 
-                {/* 3.2 Kategori Keuangan Kustom */}
-                <div 
-                  onClick={() => setShowCategoryModal(true)}
-                  className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors cursor-pointer group"
+                {/* 3. Tombol: Preferensi & Kustomisasi */}
+                <button
+                  type="button"
+                  onClick={() => setCurrentSection('preferences')}
+                  className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 hover:bg-brand-50/70 dark:hover:bg-brand-800/40 active:bg-brand-100 dark:active:bg-brand-800 transition-colors text-left cursor-pointer group"
                 >
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0 group-hover:scale-105 transition-transform">
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0 group-hover:scale-105 transition-transform shadow-xs">
                       <IconSliders />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Kategori Keuangan Kustom</p>
-                      <p className="text-xs text-brand-400 dark:text-brand-500">Kelola kategori pengeluaran & pemasukan Anda</p>
+                      <h3 className="text-sm sm:text-base font-bold text-brand-950 dark:text-white group-hover:text-brand-700 dark:group-hover:text-brand-200 transition-colors truncate">
+                        Preferensi & Kustomisasi
+                      </h3>
+                      <p className="text-xs text-brand-400 dark:text-brand-500 mt-0.5 truncate">
+                        Tema antarmuka ({isDarkMode ? 'Gelap' : 'Terang'}) & kategori keuangan ({totalCustomCats} kustom)
+                      </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="px-3 py-1 rounded-full bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300 text-xs font-bold">
-                      {totalCustomCats} Kategori
-                    </span>
-                    <span className="text-brand-400 group-hover:translate-x-0.5 transition-transform">
-                      <IconChevronRight />
-                    </span>
+                  <div className="flex items-center gap-2 text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all shrink-0">
+                    <IconChevronRight />
                   </div>
-                </div>
+                </button>
 
-              </div>
-            </div>
-
-            {/* ---------------------------------------------------------- */}
-            {/* GROUP 4: TENTANG APLIKASI */}
-            {/* ---------------------------------------------------------- */}
-            <div className="flex flex-col gap-2.5">
-              <div className="px-2 flex items-center justify-between">
-                <span className="text-xs font-extrabold tracking-wider text-brand-400 dark:text-brand-500 uppercase">
-                  Tentang Aplikasi
-                </span>
-                <span className="text-[11px] text-brand-400">Informasi sistem</span>
-              </div>
-
-              <div className="bg-white dark:bg-brand-900 rounded-3xl border border-brand-100 dark:border-brand-800 shadow-sm overflow-hidden divide-y divide-brand-100 dark:divide-brand-800/80">
-                
-                {/* 4.1 Versi */}
-                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
+                {/* 4. Tombol: Tentang Aplikasi */}
+                <button
+                  type="button"
+                  onClick={() => setCurrentSection('about')}
+                  className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 hover:bg-brand-50/70 dark:hover:bg-brand-800/40 active:bg-brand-100 dark:active:bg-brand-800 transition-colors text-left cursor-pointer group"
+                >
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0 group-hover:scale-105 transition-transform shadow-xs">
                       <IconSparkles />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Daily Management Application</p>
-                      <p className="text-xs text-brand-400 dark:text-brand-500">Manajemen tugas, jadwal kalender, dan keuangan harian</p>
+                      <h3 className="text-sm sm:text-base font-bold text-brand-950 dark:text-white group-hover:text-brand-700 dark:group-hover:text-brand-200 transition-colors truncate">
+                        Tentang Aplikasi
+                      </h3>
+                      <p className="text-xs text-brand-400 dark:text-brand-500 mt-0.5 truncate">
+                        Versi rilis v{import.meta.env.VITE_APP_VERSION || '1.0.0'} & sistem
+                      </p>
                     </div>
                   </div>
-                  <span className="px-3 py-1 rounded-full bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300 text-xs font-bold shrink-0">
-                    v{import.meta.env.VITE_APP_VERSION || '1.0.0'}
-                  </span>
-                </div>
+                  <div className="flex items-center gap-2 text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all shrink-0">
+                    <IconChevronRight />
+                  </div>
+                </button>
+
+                {/* 5. Tombol: Zona Bahaya */}
+                <button
+                  type="button"
+                  onClick={() => setCurrentSection('danger')}
+                  className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 hover:bg-red-50/40 dark:hover:bg-red-950/20 active:bg-red-100 dark:active:bg-red-900/30 transition-colors text-left cursor-pointer group"
+                >
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                      <IconAlertTriangle />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-sm sm:text-base font-bold text-red-600 dark:text-red-400 truncate">
+                        Zona Bahaya
+                      </h3>
+                      <p className="text-xs text-red-500/70 dark:text-red-400/60 mt-0.5 truncate">
+                        Keluar dari sesi akun atau hapus akun permanen
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-red-400 group-hover:text-red-600 dark:group-hover:text-red-300 group-hover:translate-x-1 transition-all shrink-0">
+                    <IconChevronRight />
+                  </div>
+                </button>
 
               </div>
             </div>
+          )}
 
-            {/* ---------------------------------------------------------- */}
-            {/* GROUP 5: ZONA BAHAYA (DANGER ZONE) */}
-            {/* ---------------------------------------------------------- */}
-            <div className="flex flex-col gap-2.5">
-              <div className="px-2 flex items-center justify-between">
-                <span className="text-xs font-extrabold tracking-wider text-red-500 uppercase">
-                  Zona Bahaya
-                </span>
-                <span className="text-[11px] text-red-500/80">Tindakan akun penting</span>
-              </div>
+          {/* ============================================================ */}
+          {/* VIEW MODE 2: SECTION DRILL-DOWN (Opened when a button is clicked) */}
+          {/* ============================================================ */}
+          {currentSection !== null && (
+            <div className="flex flex-col gap-4 animate-fade-in">
+              
+              {/* Back to Menu Button */}
+              <button
+                type="button"
+                onClick={() => setCurrentSection(null)}
+                className="inline-flex items-center gap-2 text-xs font-bold text-brand-500 hover:text-brand-950 dark:hover:text-white transition-colors cursor-pointer w-fit py-1.5 px-3 -ml-2 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-800"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+                <span>Kembali ke Menu Profil</span>
+              </button>
 
-              <div className="bg-white dark:bg-brand-900 rounded-3xl border border-red-200 dark:border-red-950 shadow-sm overflow-hidden divide-y divide-brand-100 dark:divide-brand-800/80">
-                
-                {/* 5.1 Keluar Sesi */}
-                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-amber-50/40 dark:hover:bg-amber-950/20 transition-colors">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
-                      <IconLogout />
+              {/* ---------------- SECTION: AKUN & IDENTITAS ---------------- */}
+              {currentSection === 'account' && (
+                <div className="bg-white dark:bg-brand-900 rounded-3xl border border-brand-100 dark:border-brand-800 shadow-sm overflow-hidden divide-y divide-brand-100 dark:divide-brand-800/80">
+                  
+                  {/* Nama Lengkap */}
+                  <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
+                        <IconUser />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">Nama Lengkap</p>
+                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white truncate">{displayName}</p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Keluar dari Akun (Log Out)</p>
-                      <p className="text-xs text-brand-400 dark:text-brand-500">Akhiri sesi aktif Anda pada perangkat ini</p>
+                    <button
+                      type="button"
+                      onClick={() => { setNewName(displayName); setShowNameModal(true); }}
+                      className="px-4 py-2 rounded-xl bg-brand-50 dark:bg-brand-800 border border-brand-200 dark:border-brand-700 text-xs font-bold text-brand-950 dark:text-white hover:bg-brand-100 dark:hover:bg-brand-700 transition-colors cursor-pointer shrink-0 shadow-xs"
+                    >
+                      Ubah
+                    </button>
+                  </div>
+
+                  {/* Alamat Email */}
+                  <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
+                        <IconMail />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">Alamat Email</p>
+                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white truncate">{userEmail}</p>
+                      </div>
+                    </div>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-xs font-bold shrink-0">
+                      <IconCheck />
+                      <span>Terverifikasi</span>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowLogoutModal(true)}
-                    className="px-4 py-2 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 text-xs font-bold hover:bg-amber-200 dark:hover:bg-amber-900/60 transition-colors cursor-pointer shrink-0 shadow-xs"
-                  >
-                    Keluar
-                  </button>
-                </div>
 
-                {/* 5.2 Hapus Akun */}
-                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-red-50/40 dark:hover:bg-red-950/20 transition-colors">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
-                      <IconTrash />
+                  {/* User ID */}
+                  <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0 font-bold text-xs">
+                        ID
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">User ID</p>
+                        <p className="text-xs font-mono font-medium text-brand-600 dark:text-brand-400 truncate max-w-[180px] sm:max-w-sm">
+                          {session?.user?.id}
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-sm sm:text-base font-bold text-red-600 dark:text-red-400">Hapus Akun Permanen</p>
-                      <p className="text-xs text-red-500/80 dark:text-red-400/70">Hapus seluruh data tugas, jadwal, dan keuangan selamanya</p>
+                    <button
+                      type="button"
+                      onClick={handleCopyId}
+                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-brand-800 border border-brand-200 dark:border-brand-700 text-xs font-bold text-brand-950 dark:text-white hover:bg-brand-100 dark:hover:bg-brand-700 transition-colors cursor-pointer shrink-0 shadow-xs"
+                    >
+                      {copiedId ? <span className="text-emerald-500"><IconCheck /></span> : <IconCopy />}
+                      <span>{copiedId ? 'Tersalin' : 'Salin ID'}</span>
+                    </button>
+                  </div>
+
+                  {/* Terakhir Masuk */}
+                  <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
+                        <IconClock />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">Sesi Terakhir</p>
+                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">{lastLogin}</p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-semibold text-brand-400 dark:text-brand-500">Sesi Aktif</span>
+                  </div>
+
+                  {/* Kelola Foto Profil */}
+                  <div className="p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 bg-brand-50/50 dark:bg-brand-950/40">
+                    <p className="text-xs text-brand-400">Atur foto profil akun Anda</p>
+                    <div className="flex gap-2">
+                      {avatarUrl && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveAvatar}
+                          className="px-3 py-1.5 rounded-xl text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
+                        >
+                          Hapus Foto
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-4 py-2 rounded-xl bg-brand-950 dark:bg-white text-white dark:text-brand-950 text-xs font-bold hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-1.5 shadow-xs"
+                      >
+                        <IconCamera />
+                        <span>Ganti Foto</span>
+                      </button>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDeleteConfirmation('');
-                      setShowDeleteModal(true);
-                    }}
-                    className="px-4 py-2 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition-colors cursor-pointer shrink-0 shadow-xs"
-                  >
-                    Hapus
-                  </button>
-                </div>
 
-              </div>
+                </div>
+              )}
+
+              {/* ---------------- SECTION: KEAMANAN & AKSES ---------------- */}
+              {currentSection === 'security' && (
+                <div className="bg-white dark:bg-brand-900 rounded-3xl border border-brand-100 dark:border-brand-800 shadow-sm overflow-hidden divide-y divide-brand-100 dark:divide-brand-800/80">
+                  
+                  {/* Ubah Sandi */}
+                  <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
+                        <IconKey />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Kata Sandi Akun</p>
+                        <p className="text-xs text-brand-400 dark:text-brand-500">••••••••••••••••</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewPassword('');
+                        setConfirmPassword('');
+                        setPassError(null);
+                        setPassSuccess(null);
+                        setShowPasswordModal(true);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-brand-950 dark:bg-white text-white dark:text-brand-950 text-xs font-bold hover:opacity-90 transition-opacity cursor-pointer shrink-0 shadow-xs"
+                    >
+                      Ganti Sandi
+                    </button>
+                  </div>
+
+                  {/* Reset Sandi via Email */}
+                  <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
+                        <IconMail />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Reset Sandi via Email</p>
+                        <p className="text-xs text-brand-400 dark:text-brand-500">Kirim link pemulihan ke surel terdaftar</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSendResetEmail}
+                      disabled={sendingResetLink}
+                      className="px-4 py-2 rounded-xl bg-white dark:bg-brand-800 border border-brand-200 dark:border-brand-700 text-xs font-bold text-brand-950 dark:text-white hover:bg-brand-100 dark:hover:bg-brand-700 transition-colors cursor-pointer shrink-0 disabled:opacity-50 shadow-xs"
+                    >
+                      {sendingResetLink ? 'Mengirim...' : 'Kirim Link'}
+                    </button>
+                  </div>
+
+                  {/* Proteksi Sesi */}
+                  <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                        <IconShield />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Enkripsi & Proteksi Sesi</p>
+                        <p className="text-xs text-brand-400 dark:text-brand-500">Terenkripsi TLS 1.3 dengan Supabase Auth</p>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-200 dark:border-emerald-800 shrink-0">
+                      Aman
+                    </span>
+                  </div>
+
+                </div>
+              )}
+
+              {/* ---------------- SECTION: PREFERENSI & TAMPILAN ---------------- */}
+              {currentSection === 'preferences' && (
+                <div className="bg-white dark:bg-brand-900 rounded-3xl border border-brand-100 dark:border-brand-800 shadow-sm overflow-hidden divide-y divide-brand-100 dark:divide-brand-800/80">
+                  
+                  {/* Tema Visual Antarmuka */}
+                  <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
+                        {isDarkMode ? <IconMoon /> : <IconSun />}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Tema Antarmuka</p>
+                        <p className="text-xs text-brand-400 dark:text-brand-500">
+                          {isDarkMode ? 'Saat ini: Mode Gelap (Dark)' : 'Saat ini: Mode Terang (Light)'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Toggle Pill */}
+                    <div className="flex p-1 bg-brand-100 dark:bg-brand-950 rounded-2xl self-start sm:self-auto border border-brand-200/60 dark:border-brand-800">
+                      <button
+                        type="button"
+                        onClick={() => setThemeMode(false)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          !isDarkMode
+                            ? 'bg-white text-brand-950 shadow-xs'
+                            : 'text-brand-500 hover:text-brand-900 dark:hover:text-white'
+                        }`}
+                      >
+                        <IconSun />
+                        <span>Terang</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setThemeMode(true)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          isDarkMode
+                            ? 'bg-brand-800 text-white shadow-xs'
+                            : 'text-brand-500 hover:text-brand-900 dark:hover:text-white'
+                        }`}
+                      >
+                        <IconMoon />
+                        <span>Gelap</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Kategori Keuangan Kustom */}
+                  <div 
+                    onClick={() => setShowCategoryModal(true)}
+                    className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0 group-hover:scale-105 transition-transform">
+                        <IconSliders />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Kategori Keuangan Kustom</p>
+                        <p className="text-xs text-brand-400 dark:text-brand-500">Kelola kategori pengeluaran & pemasukan Anda</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="px-3 py-1 rounded-full bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300 text-xs font-bold">
+                        {totalCustomCats} Kategori
+                      </span>
+                      <span className="text-brand-400 group-hover:translate-x-0.5 transition-transform">
+                        <IconChevronRight />
+                      </span>
+                    </div>
+                  </div>
+
+                </div>
+              )}
+
+              {/* ---------------- SECTION: TENTANG APLIKASI ---------------- */}
+              {currentSection === 'about' && (
+                <div className="bg-white dark:bg-brand-900 rounded-3xl border border-brand-100 dark:border-brand-800 shadow-sm overflow-hidden divide-y divide-brand-100 dark:divide-brand-800/80">
+                  
+                  <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
+                        <IconSparkles />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Daily Management Application</p>
+                        <p className="text-xs text-brand-400 dark:text-brand-500">Aplikasi manajemen tugas, jadwal kalender, dan keuangan</p>
+                      </div>
+                    </div>
+                    <span className="px-3 py-1 rounded-full bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300 text-xs font-bold shrink-0">
+                      v{import.meta.env.VITE_APP_VERSION || '1.0.0'}
+                    </span>
+                  </div>
+
+                  <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold text-brand-400 uppercase tracking-wider">Teknologi & Basis Data</p>
+                      <p className="text-sm font-semibold text-brand-950 dark:text-white mt-0.5">React + Vite + Supabase</p>
+                    </div>
+                    <span className="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
+                      Terhubung
+                    </span>
+                  </div>
+
+                </div>
+              )}
+
+              {/* ---------------- SECTION: ZONA BAHAYA ---------------- */}
+              {currentSection === 'danger' && (
+                <div className="bg-white dark:bg-brand-900 rounded-3xl border border-red-200 dark:border-red-950 shadow-sm overflow-hidden divide-y divide-brand-100 dark:divide-brand-800/80">
+                  
+                  {/* Keluar Sesi */}
+                  <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-amber-50/40 dark:hover:bg-amber-950/20 transition-colors">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
+                        <IconLogout />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Keluar dari Akun (Log Out)</p>
+                        <p className="text-xs text-brand-400 dark:text-brand-500">Akhiri sesi aktif Anda pada perangkat ini</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowLogoutModal(true)}
+                      className="px-4 py-2 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 text-xs font-bold hover:bg-amber-200 dark:hover:bg-amber-900/60 transition-colors cursor-pointer shrink-0 shadow-xs"
+                    >
+                      Keluar
+                    </button>
+                  </div>
+
+                  {/* Hapus Akun */}
+                  <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-red-50/40 dark:hover:bg-red-950/20 transition-colors">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
+                        <IconTrash />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm sm:text-base font-bold text-red-600 dark:text-red-400">Hapus Akun Permanen</p>
+                        <p className="text-xs text-red-500/80 dark:text-red-400/70">Hapus seluruh data tugas, jadwal, dan keuangan selamanya</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDeleteConfirmation('');
+                        setShowDeleteModal(true);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition-colors cursor-pointer shrink-0 shadow-xs"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+
+                </div>
+              )}
+
             </div>
-
-          </div>
+          )}
 
           {/* Footer note */}
           <div className="mt-2 text-center text-xs font-bold text-brand-400 dark:text-brand-600">
