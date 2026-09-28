@@ -87,7 +87,7 @@ const IconCopy = () => (
 );
 
 const IconCheck = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="20 6 9 17 4 12" />
   </svg>
 );
@@ -118,7 +118,7 @@ const IconTrash = () => (
 );
 
 const IconSun = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="5" />
     <line x1="12" y1="1" x2="12" y2="3" />
     <line x1="12" y1="21" x2="12" y2="23" />
@@ -132,7 +132,7 @@ const IconSun = () => (
 );
 
 const IconMoon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
   </svg>
 );
@@ -167,7 +167,7 @@ const IconPlus = () => (
 );
 
 const IconCalendar = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
     <line x1="16" y1="2" x2="16" y2="6" />
     <line x1="8" y1="2" x2="8" y2="6" />
@@ -182,14 +182,17 @@ const IconClock = () => (
   </svg>
 );
 
+const IconChevronRight = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 18 15 12 9 6" />
+  </svg>
+);
+
 export default function Profile({ session, onBack }) {
   const [profile, setProfile] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [customCategories, setCustomCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // Active Tab: 'account' | 'security' | 'preferences' | 'danger'
-  const [activeTab, setActiveTab] = useState('account');
 
   // Toast Notification State
   const [toast, setToast] = useState(null);
@@ -218,10 +221,11 @@ export default function Profile({ session, onBack }) {
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [deletingAccount, setDeletingAccount] = useState(false);
 
-  // Logout Confirmation Modal
+  // Logout Confirmation Modal State
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  // Category Manager State
+  // Category Modal State
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [categoryType, setCategoryType] = useState('expense');
   const [newCategoryName, setNewCategoryName] = useState('');
   const [catLoading, setCatLoading] = useState(false);
@@ -578,6 +582,16 @@ export default function Profile({ session, onBack }) {
                   <IconCalendar />
                   <span>Bergabung {joinDate}</span>
                 </div>
+                {avatarUrl && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveAvatar}
+                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/40 text-xs font-semibold text-red-600 dark:text-red-400 border border-red-200/60 dark:border-red-900/60 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
+                  >
+                    <IconTrash />
+                    <span>Hapus Foto</span>
+                  </button>
+                )}
               </div>
 
               {/* Quick Stat Highlights */}
@@ -615,206 +629,122 @@ export default function Profile({ session, onBack }) {
           </div>
 
           {/* ============================================================ */}
-          {/* SEGMENTED TAB NAVIGATION */}
+          {/* VERTICAL SETTINGS GROUPS (SCALABLE & CLEAN - NO SIDE TABS) */}
           {/* ============================================================ */}
-          <div className="w-full flex items-center p-1.5 bg-brand-100/80 dark:bg-brand-900/80 backdrop-blur-md rounded-2xl border border-brand-200/60 dark:border-brand-800 overflow-x-auto scrollbar-none">
-            
-            <button
-              type="button"
-              onClick={() => setActiveTab('account')}
-              className={`flex-1 min-w-[90px] py-3 px-3 sm:px-4 rounded-xl flex items-center justify-center gap-2 text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
-                activeTab === 'account'
-                  ? 'bg-white dark:bg-brand-950 text-brand-950 dark:text-white shadow-sm scale-[1.02]'
-                  : 'text-brand-500 dark:text-brand-400 hover:text-brand-900 dark:hover:text-white'
-              }`}
-            >
-              <IconUser />
-              <span>Akun</span>
-            </button>
+          <div className="flex flex-col gap-6">
 
-            <button
-              type="button"
-              onClick={() => setActiveTab('security')}
-              className={`flex-1 min-w-[100px] py-3 px-3 sm:px-4 rounded-xl flex items-center justify-center gap-2 text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
-                activeTab === 'security'
-                  ? 'bg-white dark:bg-brand-950 text-brand-950 dark:text-white shadow-sm scale-[1.02]'
-                  : 'text-brand-500 dark:text-brand-400 hover:text-brand-900 dark:hover:text-white'
-              }`}
-            >
-              <IconShield />
-              <span>Keamanan</span>
-            </button>
+            {/* ---------------------------------------------------------- */}
+            {/* GROUP 1: AKUN & IDENTITAS */}
+            {/* ---------------------------------------------------------- */}
+            <div className="flex flex-col gap-2.5">
+              <div className="px-2 flex items-center justify-between">
+                <span className="text-xs font-extrabold tracking-wider text-brand-400 dark:text-brand-500 uppercase">
+                  Akun & Identitas
+                </span>
+                <span className="text-[11px] text-brand-400">Data pribadi profil</span>
+              </div>
 
-            <button
-              type="button"
-              onClick={() => setActiveTab('preferences')}
-              className={`flex-1 min-w-[110px] py-3 px-3 sm:px-4 rounded-xl flex items-center justify-center gap-2 text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
-                activeTab === 'preferences'
-                  ? 'bg-white dark:bg-brand-950 text-brand-950 dark:text-white shadow-sm scale-[1.02]'
-                  : 'text-brand-500 dark:text-brand-400 hover:text-brand-900 dark:hover:text-white'
-              }`}
-            >
-              <IconSliders />
-              <span>Preferensi</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('danger')}
-              className={`flex-1 min-w-[110px] py-3 px-3 sm:px-4 rounded-xl flex items-center justify-center gap-2 text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
-                activeTab === 'danger'
-                  ? 'bg-red-600 text-white shadow-sm scale-[1.02]'
-                  : 'text-red-500/80 hover:text-red-600 dark:text-red-400/80 dark:hover:text-red-300'
-              }`}
-            >
-              <IconAlertTriangle />
-              <span>Zona Bahaya</span>
-            </button>
-
-          </div>
-
-          {/* ============================================================ */}
-          {/* TAB 1: INFORMASI AKUN */}
-          {/* ============================================================ */}
-          {activeTab === 'account' && (
-            <div className="flex flex-col gap-4 animate-fade-in">
-              
-              {/* Account Detail Cards */}
-              <div className="bg-white dark:bg-brand-900 rounded-3xl p-6 border border-brand-100 dark:border-brand-800 shadow-sm flex flex-col gap-5">
-                <div className="flex items-center justify-between pb-3 border-b border-brand-100 dark:border-brand-800">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white">
+              <div className="bg-white dark:bg-brand-900 rounded-3xl border border-brand-100 dark:border-brand-800 shadow-sm overflow-hidden divide-y divide-brand-100 dark:divide-brand-800/80">
+                
+                {/* 1.1 Nama Lengkap */}
+                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
                       <IconUser />
                     </div>
-                    <div>
-                      <h3 className="text-base font-extrabold text-brand-950 dark:text-white">Detail Pengguna</h3>
-                      <p className="text-xs text-brand-400">Informasi identitas akun dan profil Anda</p>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">Nama Lengkap</p>
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white truncate">{displayName}</p>
                     </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setNewName(displayName); setShowNameModal(true); }}
+                    className="px-4 py-2 rounded-xl bg-brand-50 dark:bg-brand-800 border border-brand-200 dark:border-brand-700 text-xs font-bold text-brand-950 dark:text-white hover:bg-brand-100 dark:hover:bg-brand-700 transition-colors cursor-pointer shrink-0 shadow-xs"
+                  >
+                    Ubah
+                  </button>
+                </div>
+
+                {/* 1.2 Alamat Email */}
+                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
+                      <IconMail />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">Alamat Email</p>
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white truncate">{userEmail}</p>
+                    </div>
+                  </div>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-xs font-bold shrink-0">
+                    <IconCheck />
+                    <span>Terverifikasi</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  
-                  {/* Nama Lengkap */}
-                  <div className="p-4 rounded-2xl bg-brand-50/70 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800 flex items-center justify-between">
-                    <div>
-                      <span className="text-[11px] font-bold text-brand-400 dark:text-brand-500 uppercase tracking-wider">Nama Lengkap</span>
-                      <p className="text-base font-bold text-brand-950 dark:text-white mt-0.5">{displayName}</p>
+                {/* 1.3 User ID */}
+                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0 font-bold text-xs">
+                      ID
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => { setNewName(displayName); setShowNameModal(true); }}
-                      className="px-3 py-1.5 rounded-xl bg-white dark:bg-brand-800 border border-brand-200 dark:border-brand-700 text-xs font-bold hover:bg-brand-100 dark:hover:bg-brand-700 transition-colors cursor-pointer"
-                    >
-                      Ubah
-                    </button>
-                  </div>
-
-                  {/* Email */}
-                  <div className="p-4 rounded-2xl bg-brand-50/70 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800 flex items-center justify-between">
-                    <div>
-                      <span className="text-[11px] font-bold text-brand-400 dark:text-brand-500 uppercase tracking-wider">Email Utama</span>
-                      <p className="text-base font-bold text-brand-950 dark:text-white mt-0.5">{userEmail}</p>
-                    </div>
-                    <span className="p-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-1">
-                      <IconCheck />
-                    </span>
-                  </div>
-
-                  {/* User ID */}
-                  <div className="p-4 rounded-2xl bg-brand-50/70 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800 flex items-center justify-between">
-                    <div className="overflow-hidden pr-2">
-                      <span className="text-[11px] font-bold text-brand-400 dark:text-brand-500 uppercase tracking-wider">User ID</span>
-                      <p className="text-xs font-mono font-semibold text-brand-700 dark:text-brand-300 mt-1 truncate max-w-[200px] sm:max-w-xs">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">User ID</p>
+                      <p className="text-xs font-mono font-medium text-brand-600 dark:text-brand-400 truncate max-w-[180px] sm:max-w-sm">
                         {session?.user?.id}
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleCopyId}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-brand-800 border border-brand-200 dark:border-brand-700 text-xs font-bold hover:bg-brand-100 dark:hover:bg-brand-700 transition-colors cursor-pointer shrink-0"
-                    >
-                      {copiedId ? <IconCheck /> : <IconCopy />}
-                      <span>{copiedId ? 'Tersalin' : 'Salin'}</span>
-                    </button>
                   </div>
-
-                  {/* Terakhir Masuk */}
-                  <div className="p-4 rounded-2xl bg-brand-50/70 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800 flex items-center justify-between">
-                    <div>
-                      <span className="text-[11px] font-bold text-brand-400 dark:text-brand-500 uppercase tracking-wider">Terakhir Masuk</span>
-                      <p className="text-sm font-bold text-brand-950 dark:text-white mt-0.5 flex items-center gap-1.5">
-                        <IconClock />
-                        <span>{lastLogin}</span>
-                      </p>
-                    </div>
-                  </div>
-
+                  <button
+                    type="button"
+                    onClick={handleCopyId}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-brand-800 border border-brand-200 dark:border-brand-700 text-xs font-bold text-brand-950 dark:text-white hover:bg-brand-100 dark:hover:bg-brand-700 transition-colors cursor-pointer shrink-0 shadow-xs"
+                  >
+                    {copiedId ? <span className="text-emerald-500"><IconCheck /></span> : <IconCopy />}
+                    <span>{copiedId ? 'Tersalin' : 'Salin ID'}</span>
+                  </button>
                 </div>
 
-                {/* Avatar Quick Options */}
-                <div className="mt-2 pt-4 border-t border-brand-100 dark:border-brand-800 flex flex-wrap items-center justify-between gap-3">
-                  <div className="text-xs text-brand-500">
-                    Format gambar avatar yang didukung: JPG, PNG, WEBP (Maks 5MB)
+                {/* 1.4 Terakhir Masuk */}
+                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
+                      <IconClock />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">Sesi Terakhir</p>
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">{lastLogin}</p>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    {avatarUrl && (
-                      <button
-                        type="button"
-                        onClick={handleRemoveAvatar}
-                        className="px-3.5 py-2 rounded-xl text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
-                      >
-                        Hapus Foto Profil
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="px-4 py-2 rounded-xl bg-brand-950 dark:bg-white text-white dark:text-brand-950 text-xs font-bold hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-1.5"
-                    >
-                      <IconCamera />
-                      <span>Ganti Foto</span>
-                    </button>
-                  </div>
+                  <span className="text-xs font-semibold text-brand-400 dark:text-brand-500">Sesi Aktif</span>
                 </div>
 
               </div>
-
             </div>
-          )}
 
-          {/* ============================================================ */}
-          {/* TAB 2: KEAMANAN */}
-          {/* ============================================================ */}
-          {activeTab === 'security' && (
-            <div className="flex flex-col gap-4 animate-fade-in">
-              
-              {/* Password Management Card */}
-              <div className="bg-white dark:bg-brand-900 rounded-3xl p-6 border border-brand-100 dark:border-brand-800 shadow-sm flex flex-col gap-5">
-                <div className="flex items-center justify-between pb-3 border-b border-brand-100 dark:border-brand-800">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white">
+            {/* ---------------------------------------------------------- */}
+            {/* GROUP 2: KEAMANAN & AKSES */}
+            {/* ---------------------------------------------------------- */}
+            <div className="flex flex-col gap-2.5">
+              <div className="px-2 flex items-center justify-between">
+                <span className="text-xs font-extrabold tracking-wider text-brand-400 dark:text-brand-500 uppercase">
+                  Keamanan & Akses
+                </span>
+                <span className="text-[11px] text-brand-400">Proteksi kata sandi</span>
+              </div>
+
+              <div className="bg-white dark:bg-brand-900 rounded-3xl border border-brand-100 dark:border-brand-800 shadow-sm overflow-hidden divide-y divide-brand-100 dark:divide-brand-800/80">
+                
+                {/* 2.1 Ubah Kata Sandi */}
+                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
                       <IconKey />
                     </div>
-                    <div>
-                      <h3 className="text-base font-extrabold text-brand-950 dark:text-white">Kata Sandi & Akses</h3>
-                      <p className="text-xs text-brand-400">Atur kredensial keamanan masuk akun Anda</p>
-                    </div>
-                  </div>
-                  <span className="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-xs font-bold">
-                    Terenkripsi
-                  </span>
-                </div>
-
-                <div className="p-4 sm:p-5 rounded-2xl bg-brand-50/70 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-white dark:bg-brand-900 border border-brand-200 dark:border-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0 shadow-xs">
-                      <IconKey />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-brand-950 dark:text-white">Kata Sandi Akun</p>
-                      <p className="text-xs text-brand-500 mt-0.5">••••••••••••••••</p>
-                      <p className="text-[11px] text-brand-400 mt-1">Gunakan kombinasi sandi yang unik untuk perlindungan maksimal</p>
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Kata Sandi Akun</p>
+                      <p className="text-xs text-brand-400 dark:text-brand-500">••••••••••••••••</p>
                     </div>
                   </div>
                   <button
@@ -826,285 +756,209 @@ export default function Profile({ session, onBack }) {
                       setPassSuccess(null);
                       setShowPasswordModal(true);
                     }}
-                    className="px-5 py-2.5 rounded-xl bg-brand-950 dark:bg-white text-white dark:text-brand-950 text-xs font-bold hover:opacity-90 transition-opacity cursor-pointer shrink-0 shadow-sm"
+                    className="px-4 py-2 rounded-xl bg-brand-950 dark:bg-white text-white dark:text-brand-950 text-xs font-bold hover:opacity-90 transition-opacity cursor-pointer shrink-0 shadow-xs"
                   >
-                    Ganti Kata Sandi
+                    Ganti Sandi
                   </button>
                 </div>
 
-                {/* Email Reset Link Option */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-brand-50/70 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-white dark:bg-brand-900 border border-brand-200 dark:border-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0 shadow-xs">
+                {/* 2.2 Reset Sandi via Email */}
+                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
                       <IconMail />
                     </div>
-                    <div>
-                      <p className="text-sm font-bold text-brand-950 dark:text-white">Kirim Tautan Reset ke Email</p>
-                      <p className="text-xs text-brand-500 mt-0.5">Tautan reset aman akan dikirim ke <span className="font-semibold">{userEmail}</span></p>
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Reset Sandi via Email</p>
+                      <p className="text-xs text-brand-400 dark:text-brand-500">Kirim link pemulihan ke surel terdaftar</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={handleSendResetEmail}
                     disabled={sendingResetLink}
-                    className="px-4 py-2.5 rounded-xl bg-white dark:bg-brand-800 text-brand-950 dark:text-white border border-brand-200 dark:border-brand-700 text-xs font-bold hover:bg-brand-100 dark:hover:bg-brand-700 transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+                    className="px-4 py-2 rounded-xl bg-white dark:bg-brand-800 border border-brand-200 dark:border-brand-700 text-xs font-bold text-brand-950 dark:text-white hover:bg-brand-100 dark:hover:bg-brand-700 transition-colors cursor-pointer shrink-0 disabled:opacity-50 shadow-xs"
                   >
-                    {sendingResetLink ? 'Mengirim...' : 'Kirim Link Reset'}
+                    {sendingResetLink ? 'Mengirim...' : 'Kirim Link'}
                   </button>
                 </div>
 
-                {/* Security Advisory */}
-                <div className="flex items-start gap-3 p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-900/60 text-emerald-800 dark:text-emerald-300 text-xs">
-                  <div className="mt-0.5 text-emerald-600 dark:text-emerald-400 shrink-0">
-                    <IconShield />
+                {/* 2.3 Status Proteksi Sesi */}
+                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                      <IconShield />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Enkripsi & Proteksi Sesi</p>
+                      <p className="text-xs text-brand-400 dark:text-brand-500">Terenkripsi TLS 1.3 dengan Supabase Auth</p>
+                    </div>
                   </div>
-                  <p className="leading-relaxed">
-                    Sesi autentikasi Anda dilindungi dengan standar protokol Supabase OAuth 2.0 / JWT. Seluruh pertukaran data dilindungi oleh enkripsi TLS 1.3.
-                  </p>
+                  <span className="px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-200 dark:border-emerald-800 shrink-0">
+                    Aman
+                  </span>
                 </div>
 
               </div>
-
             </div>
-          )}
 
-          {/* ============================================================ */}
-          {/* TAB 3: PREFERENSI */}
-          {/* ============================================================ */}
-          {activeTab === 'preferences' && (
-            <div className="flex flex-col gap-6 animate-fade-in">
-              
-              {/* Theme Selector Card */}
-              <div className="bg-white dark:bg-brand-900 rounded-3xl p-6 border border-brand-100 dark:border-brand-800 shadow-sm flex flex-col gap-5">
-                <div className="flex items-center gap-2.5 pb-3 border-b border-brand-100 dark:border-brand-800">
-                  <div className="w-8 h-8 rounded-lg bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white">
-                    <IconSliders />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-extrabold text-brand-950 dark:text-white">Tampilan Tema</h3>
-                    <p className="text-xs text-brand-400">Pilih tema antarmuka sesuai kenyamanan mata Anda</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  
-                  {/* Light Theme Card */}
-                  <button
-                    type="button"
-                    onClick={() => setThemeMode(false)}
-                    className={`p-5 rounded-2xl border-2 flex flex-col gap-3 text-left transition-all duration-200 cursor-pointer ${
-                      !isDarkMode
-                        ? 'border-brand-950 dark:border-white bg-brand-50 dark:bg-brand-800/80 shadow-md ring-2 ring-brand-950/10'
-                        : 'border-brand-200 dark:border-brand-800 bg-white dark:bg-brand-900 hover:border-brand-300 dark:hover:border-brand-700'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shadow-xs">
-                        <IconSun />
-                      </div>
-                      {!isDarkMode && (
-                        <span className="w-6 h-6 rounded-full bg-brand-950 text-white flex items-center justify-center text-xs">
-                          <IconCheck />
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <h4 className="text-base font-bold text-brand-950 dark:text-white">Mode Terang (Light)</h4>
-                      <p className="text-xs text-brand-500 mt-1">Latar belakang bersih dan kontras tinggi untuk siang hari</p>
-                    </div>
-                  </button>
-
-                  {/* Dark Theme Card */}
-                  <button
-                    type="button"
-                    onClick={() => setThemeMode(true)}
-                    className={`p-5 rounded-2xl border-2 flex flex-col gap-3 text-left transition-all duration-200 cursor-pointer ${
-                      isDarkMode
-                        ? 'border-brand-950 dark:border-white bg-brand-50 dark:bg-brand-800/80 shadow-md ring-2 ring-white/10'
-                        : 'border-brand-200 dark:border-brand-800 bg-white dark:bg-brand-900 hover:border-brand-300 dark:hover:border-brand-700'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="w-10 h-10 rounded-xl bg-indigo-900 text-indigo-200 flex items-center justify-center shadow-xs">
-                        <IconMoon />
-                      </div>
-                      {isDarkMode && (
-                        <span className="w-6 h-6 rounded-full bg-white text-brand-950 flex items-center justify-center text-xs">
-                          <IconCheck />
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <h4 className="text-base font-bold text-brand-950 dark:text-white">Mode Gelap (Dark)</h4>
-                      <p className="text-xs text-brand-500 mt-1">Nuansa gelap monokromatik yang nyaman untuk mata di malam hari</p>
-                    </div>
-                  </button>
-
-                </div>
+            {/* ---------------------------------------------------------- */}
+            {/* GROUP 3: PREFERENSI & TAMPILAN */}
+            {/* ---------------------------------------------------------- */}
+            <div className="flex flex-col gap-2.5">
+              <div className="px-2 flex items-center justify-between">
+                <span className="text-xs font-extrabold tracking-wider text-brand-400 dark:text-brand-500 uppercase">
+                  Preferensi & Kustomisasi
+                </span>
+                <span className="text-[11px] text-brand-400">Pengaturan aplikasi</span>
               </div>
 
-              {/* Custom Financial Categories */}
-              <div className="bg-white dark:bg-brand-900 rounded-3xl p-6 border border-brand-100 dark:border-brand-800 shadow-sm flex flex-col gap-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-brand-100 dark:border-brand-800">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+              <div className="bg-white dark:bg-brand-900 rounded-3xl border border-brand-100 dark:border-brand-800 shadow-sm overflow-hidden divide-y divide-brand-100 dark:divide-brand-800/80">
+                
+                {/* 3.1 Tema Visual Aplikasi (Inline Fast Switcher) */}
+                <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
+                      {isDarkMode ? <IconMoon /> : <IconSun />}
                     </div>
-                    <div>
-                      <h3 className="text-base font-extrabold text-brand-950 dark:text-white">Kategori Keuangan Kustom</h3>
-                      <p className="text-xs text-brand-400">Tambah kategori pengeluaran & pemasukan sesuai kebutuhan Anda</p>
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Tema Antarmuka</p>
+                      <p className="text-xs text-brand-400 dark:text-brand-500">
+                        {isDarkMode ? 'Saat ini: Mode Gelap (Dark)' : 'Saat ini: Mode Terang (Light)'}
+                      </p>
                     </div>
                   </div>
 
-                  {/* Type Filter */}
-                  <div className="flex p-1 bg-brand-100 dark:bg-brand-800 rounded-xl self-start sm:self-auto">
+                  {/* Inline Toggle Pill */}
+                  <div className="flex p-1 bg-brand-100 dark:bg-brand-950 rounded-2xl self-start sm:self-auto border border-brand-200/60 dark:border-brand-800">
                     <button
                       type="button"
-                      onClick={() => setCategoryType('expense')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        categoryType === 'expense'
-                          ? 'bg-white dark:bg-brand-950 text-brand-950 dark:text-white shadow-xs'
+                      onClick={() => setThemeMode(false)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        !isDarkMode
+                          ? 'bg-white text-brand-950 shadow-xs'
                           : 'text-brand-500 hover:text-brand-900 dark:hover:text-white'
                       }`}
                     >
-                      Pengeluaran ({customCategories.filter(c => c.type === 'expense').length})
+                      <IconSun />
+                      <span>Terang</span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => setCategoryType('income')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        categoryType === 'income'
-                          ? 'bg-white dark:bg-brand-950 text-brand-950 dark:text-white shadow-xs'
+                      onClick={() => setThemeMode(true)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        isDarkMode
+                          ? 'bg-brand-800 text-white shadow-xs'
                           : 'text-brand-500 hover:text-brand-900 dark:hover:text-white'
                       }`}
                     >
-                      Pemasukan ({customCategories.filter(c => c.type === 'income').length})
+                      <IconMoon />
+                      <span>Gelap</span>
                     </button>
                   </div>
                 </div>
 
-                {/* Add Category Form */}
-                <form onSubmit={handleAddCategory} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newCategoryName}
-                    onChange={(e) => setNewCategoryName(e.target.value)}
-                    placeholder={`Tambah kategori ${categoryType === 'expense' ? 'pengeluaran' : 'pemasukan'} baru...`}
-                    className="flex-1 px-4 py-3 rounded-xl bg-brand-50 dark:bg-brand-950 border border-brand-200 dark:border-brand-800 text-sm focus:border-brand-950 dark:focus:border-white focus:outline-none"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!newCategoryName.trim() || catLoading}
-                    className="px-5 py-3 rounded-xl bg-brand-950 dark:bg-white text-white dark:text-brand-950 text-xs font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-1.5 cursor-pointer shrink-0"
-                  >
-                    <IconPlus />
-                    <span>Tambah</span>
-                  </button>
-                </form>
-
-                {/* Category List */}
-                <div className="flex flex-col gap-2 min-h-[100px]">
-                  {catLoading && customCategories.length === 0 ? (
-                    <div className="py-8 flex justify-center"><Spinner size="sm" /></div>
-                  ) : customCategories.filter(c => c.type === categoryType).length === 0 ? (
-                    <div className="py-8 px-4 text-center rounded-2xl border border-dashed border-brand-200 dark:border-brand-800 bg-brand-50/50 dark:bg-brand-950/30">
-                      <p className="text-xs font-bold text-brand-400">Belum ada kategori kustom untuk {categoryType === 'expense' ? 'pengeluaran' : 'pemasukan'}.</p>
-                      <p className="text-[11px] text-brand-400/80 mt-1">Kategori bawaan sistem tetap tersedia saat mencatat transaksi.</p>
+                {/* 3.2 Kategori Keuangan Kustom */}
+                <div 
+                  onClick={() => setShowCategoryModal(true)}
+                  className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0 group-hover:scale-105 transition-transform">
+                      <IconSliders />
                     </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      {customCategories
-                        .filter(c => c.type === categoryType)
-                        .map((cat) => (
-                          <div 
-                            key={cat.id} 
-                            className="p-3.5 rounded-2xl bg-brand-50/70 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800 flex items-center justify-between gap-3 group"
-                          >
-                            <div className="flex items-center gap-2.5">
-                              <span className="w-8 h-8 rounded-lg bg-white dark:bg-brand-900 border border-brand-200 dark:border-brand-800 flex items-center justify-center text-xs">
-                                🏷️
-                              </span>
-                              <span className="text-sm font-bold text-brand-950 dark:text-white">{cat.name}</span>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteCategory(cat.id)}
-                              className="w-8 h-8 rounded-full flex items-center justify-center text-brand-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
-                              title="Hapus Kategori"
-                            >
-                              <IconTrash />
-                            </button>
-                          </div>
-                        ))}
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Kategori Keuangan Kustom</p>
+                      <p className="text-xs text-brand-400 dark:text-brand-500">Kelola kategori pengeluaran & pemasukan Anda</p>
                     </div>
-                  )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="px-3 py-1 rounded-full bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300 text-xs font-bold">
+                      {totalCustomCats} Kategori
+                    </span>
+                    <span className="text-brand-400 group-hover:translate-x-0.5 transition-transform">
+                      <IconChevronRight />
+                    </span>
+                  </div>
                 </div>
 
               </div>
-
-              {/* App Info Box */}
-              <div className="p-5 rounded-3xl bg-brand-50/70 dark:bg-brand-900/40 border border-brand-200/60 dark:border-brand-800/80 flex items-center justify-between text-xs">
-                <div>
-                  <p className="font-extrabold text-brand-950 dark:text-white">Daily Management Application</p>
-                  <p className="text-brand-400 mt-0.5">Versi {import.meta.env.VITE_APP_VERSION || '1.0.0'} • Powered by Supabase & React</p>
-                </div>
-                <div className="px-3 py-1 rounded-full bg-brand-200/70 dark:bg-brand-800 text-brand-700 dark:text-brand-300 font-bold">
-                  Release v{import.meta.env.VITE_APP_VERSION || '1.0.0'}
-                </div>
-              </div>
-
             </div>
-          )}
 
-          {/* ============================================================ */}
-          {/* TAB 4: ZONA BAHAYA */}
-          {/* ============================================================ */}
-          {activeTab === 'danger' && (
-            <div className="flex flex-col gap-4 animate-fade-in">
-              
-              {/* Danger Box */}
-              <div className="bg-red-50/40 dark:bg-red-950/20 rounded-3xl p-6 border border-red-200 dark:border-red-900/60 shadow-sm flex flex-col gap-5">
-                <div className="flex items-center gap-2.5 pb-3 border-b border-red-200 dark:border-red-900/60">
-                  <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/50 flex items-center justify-center text-red-600 dark:text-red-400">
-                    <IconAlertTriangle />
+            {/* ---------------------------------------------------------- */}
+            {/* GROUP 4: TENTANG APLIKASI */}
+            {/* ---------------------------------------------------------- */}
+            <div className="flex flex-col gap-2.5">
+              <div className="px-2 flex items-center justify-between">
+                <span className="text-xs font-extrabold tracking-wider text-brand-400 dark:text-brand-500 uppercase">
+                  Tentang Aplikasi
+                </span>
+                <span className="text-[11px] text-brand-400">Informasi sistem</span>
+              </div>
+
+              <div className="bg-white dark:bg-brand-900 rounded-3xl border border-brand-100 dark:border-brand-800 shadow-sm overflow-hidden divide-y divide-brand-100 dark:divide-brand-800/80">
+                
+                {/* 4.1 Versi */}
+                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
+                      <IconSparkles />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Daily Management Application</p>
+                      <p className="text-xs text-brand-400 dark:text-brand-500">Manajemen tugas, jadwal kalender, dan keuangan harian</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-base font-extrabold text-red-700 dark:text-red-400">Zona Bahaya (Danger Zone)</h3>
-                    <p className="text-xs text-red-600/70 dark:text-red-400/60">Tindakan berikut dapat mengakhiri sesi atau menghapus data Anda</p>
-                  </div>
+                  <span className="px-3 py-1 rounded-full bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300 text-xs font-bold shrink-0">
+                    v{import.meta.env.VITE_APP_VERSION || '1.0.0'}
+                  </span>
                 </div>
 
-                {/* 1. Log Out */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-brand-900/80 border border-red-100 dark:border-red-950 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+              </div>
+            </div>
+
+            {/* ---------------------------------------------------------- */}
+            {/* GROUP 5: ZONA BAHAYA (DANGER ZONE) */}
+            {/* ---------------------------------------------------------- */}
+            <div className="flex flex-col gap-2.5">
+              <div className="px-2 flex items-center justify-between">
+                <span className="text-xs font-extrabold tracking-wider text-red-500 uppercase">
+                  Zona Bahaya
+                </span>
+                <span className="text-[11px] text-red-500/80">Tindakan akun penting</span>
+              </div>
+
+              <div className="bg-white dark:bg-brand-900 rounded-3xl border border-red-200 dark:border-red-950 shadow-sm overflow-hidden divide-y divide-brand-100 dark:divide-brand-800/80">
+                
+                {/* 5.1 Keluar Sesi */}
+                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-amber-50/40 dark:hover:bg-amber-950/20 transition-colors">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
                       <IconLogout />
                     </div>
-                    <div>
-                      <p className="text-sm font-bold text-brand-950 dark:text-white">Keluar dari Akun (Log Out)</p>
-                      <p className="text-xs text-brand-500 mt-0.5">Akhiri sesi saat ini. Anda dapat masuk kembali kapan saja dengan email & sandi Anda.</p>
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Keluar dari Akun (Log Out)</p>
+                      <p className="text-xs text-brand-400 dark:text-brand-500">Akhiri sesi aktif Anda pada perangkat ini</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowLogoutModal(true)}
-                    className="px-5 py-2.5 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-800 text-xs font-bold hover:bg-amber-200 dark:hover:bg-amber-900/80 transition-colors cursor-pointer shrink-0 shadow-xs"
+                    className="px-4 py-2 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 text-xs font-bold hover:bg-amber-200 dark:hover:bg-amber-900/60 transition-colors cursor-pointer shrink-0 shadow-xs"
                   >
-                    Keluar Sesi
+                    Keluar
                   </button>
                 </div>
 
-                {/* 2. Permanent Account Deletion */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-brand-900/80 border border-red-200 dark:border-red-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/40 border border-red-200 dark:border-red-800 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0">
+                {/* 5.2 Hapus Akun */}
+                <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-red-50/40 dark:hover:bg-red-950/20 transition-colors">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-2xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
                       <IconTrash />
                     </div>
-                    <div>
-                      <p className="text-sm font-bold text-red-700 dark:text-red-400">Hapus Akun Permanen</p>
-                      <p className="text-xs text-red-600/80 dark:text-red-400/80 mt-0.5">
-                        Menghapus seluruh tugas, jadwal harian, data keuangan, foto profil, dan kredensial secara permanen.
-                      </p>
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-bold text-red-600 dark:text-red-400">Hapus Akun Permanen</p>
+                      <p className="text-xs text-red-500/80 dark:text-red-400/70">Hapus seluruh data tugas, jadwal, dan keuangan selamanya</p>
                     </div>
                   </div>
                   <button
@@ -1113,19 +967,19 @@ export default function Profile({ session, onBack }) {
                       setDeleteConfirmation('');
                       setShowDeleteModal(true);
                     }}
-                    className="px-5 py-2.5 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition-colors cursor-pointer shrink-0 shadow-xs"
+                    className="px-4 py-2 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition-colors cursor-pointer shrink-0 shadow-xs"
                   >
-                    Hapus Akun
+                    Hapus
                   </button>
                 </div>
 
               </div>
-
             </div>
-          )}
 
-          {/* Version Footer */}
-          <div className="mt-4 text-center text-xs font-bold text-brand-400 dark:text-brand-600">
+          </div>
+
+          {/* Footer note */}
+          <div className="mt-2 text-center text-xs font-bold text-brand-400 dark:text-brand-600">
             DAILY MANAGER • Versi {import.meta.env.VITE_APP_VERSION || '1.0.0'}
           </div>
 
@@ -1272,6 +1126,106 @@ export default function Profile({ session, onBack }) {
               className="text-xs font-bold text-brand-900 dark:text-white hover:underline cursor-pointer"
             >
               {sendingResetLink ? 'Mengirim link...' : 'Kirim Tautan Reset ke Email'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ============================================================ */}
+      {/* MODAL: KELOLA KATEGORI KEUANGAN KUSTOM */}
+      {/* ============================================================ */}
+      <Modal isOpen={showCategoryModal} onClose={() => setShowCategoryModal(false)} title="Kategori Keuangan Kustom">
+        <div className="flex flex-col gap-4">
+          <p className="text-xs text-brand-500">
+            Tambah atau hapus kategori kustom untuk pencatatan transaksi pemasukan dan pengeluaran Anda.
+          </p>
+
+          {/* Type Toggle */}
+          <div className="flex p-1 bg-brand-100 dark:bg-brand-900 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setCategoryType('expense')}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                categoryType === 'expense'
+                  ? 'bg-white dark:bg-brand-950 text-brand-950 dark:text-white shadow-xs'
+                  : 'text-brand-500 hover:text-brand-900 dark:hover:text-white'
+              }`}
+            >
+              Pengeluaran ({customCategories.filter(c => c.type === 'expense').length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setCategoryType('income')}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                categoryType === 'income'
+                  ? 'bg-white dark:bg-brand-950 text-brand-950 dark:text-white shadow-xs'
+                  : 'text-brand-500 hover:text-brand-900 dark:hover:text-white'
+              }`}
+            >
+              Pemasukan ({customCategories.filter(c => c.type === 'income').length})
+            </button>
+          </div>
+
+          {/* Add Form */}
+          <form onSubmit={handleAddCategory} className="flex gap-2">
+            <input
+              type="text"
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              placeholder={`Tambah kategori ${categoryType === 'expense' ? 'pengeluaran' : 'pemasukan'}...`}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-white dark:bg-brand-900 border border-brand-200 dark:border-brand-800 text-xs focus:border-brand-950 dark:focus:border-white focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={!newCategoryName.trim() || catLoading}
+              className="px-4 py-2.5 rounded-xl bg-brand-950 dark:bg-white text-white dark:text-brand-950 text-xs font-bold hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shrink-0 flex items-center gap-1.5"
+            >
+              <IconPlus />
+              <span>Tambah</span>
+            </button>
+          </form>
+
+          {/* Category List */}
+          <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1">
+            {catLoading && customCategories.length === 0 ? (
+              <div className="py-6 flex justify-center"><Spinner size="sm" /></div>
+            ) : customCategories.filter(c => c.type === categoryType).length === 0 ? (
+              <div className="py-8 px-4 text-center rounded-2xl border border-dashed border-brand-200 dark:border-brand-800 bg-brand-50/50 dark:bg-brand-950/30">
+                <p className="text-xs font-bold text-brand-400">Belum ada kategori kustom.</p>
+                <p className="text-[11px] text-brand-400/80 mt-1">Kategori bawaan sistem tetap tersedia di formulir transaksi.</p>
+              </div>
+            ) : (
+              customCategories
+                .filter(c => c.type === categoryType)
+                .map((cat) => (
+                  <div
+                    key={cat.id}
+                    className="p-3 rounded-xl bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 flex items-center justify-between gap-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs">🏷️</span>
+                      <span className="text-xs font-bold text-brand-950 dark:text-white">{cat.name}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteCategory(cat.id)}
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-brand-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
+                      title="Hapus Kategori"
+                    >
+                      <IconTrash />
+                    </button>
+                  </div>
+                ))
+            )}
+          </div>
+
+          <div className="pt-2 border-t border-brand-100 dark:border-brand-800 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setShowCategoryModal(false)}
+              className="px-5 py-2.5 rounded-xl bg-brand-100 dark:bg-brand-800 text-brand-950 dark:text-white font-bold text-xs hover:bg-brand-200 dark:hover:bg-brand-700 transition-colors cursor-pointer"
+            >
+              Tutup
             </button>
           </div>
         </div>
