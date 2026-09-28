@@ -9,44 +9,74 @@ import {
   getCustomCategories, 
   addCustomCategory, 
   deleteCustomCategory, 
-  deleteAccount,
-  getTasks
+  deleteAccount 
 } from '../utils/storage';
 import { logout, sendPasswordResetOtp, updatePassword } from '../lib/auth';
 
-// Icons
-const IconShield = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+// Functional Icons
+const IconCamera = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+    <circle cx="12" cy="13" r="4"/>
   </svg>
 );
 
-const IconUser = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-    <circle cx="12" cy="7" r="4" />
+const IconEdit = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 20h9" />
+    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
   </svg>
 );
 
-const IconKey = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="7.5" cy="15.5" r="5.5" />
-    <path d="m21 2-9.6 9.6" />
-    <path d="m15.5 7.5 3 3L22 7l-3-3" />
+const IconCopy = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
   </svg>
 );
 
-const IconSliders = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="4" y1="21" x2="4" y2="14" />
-    <line x1="4" y1="10" x2="4" y2="3" />
-    <line x1="12" y1="21" x2="12" y2="12" />
-    <line x1="12" y1="8" x2="12" y2="3" />
-    <line x1="20" y1="21" x2="20" y2="16" />
-    <line x1="20" y1="12" x2="20" y2="3" />
-    <line x1="1" y1="14" x2="7" y2="14" />
-    <line x1="9" y1="8" x2="15" y2="8" />
-    <line x1="17" y1="16" x2="23" y2="16" />
+const IconCheck = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
+const IconTrash = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 6h18" />
+    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+    <line x1="10" y1="11" x2="10" y2="17" />
+    <line x1="14" y1="11" x2="14" y2="17" />
+  </svg>
+);
+
+const IconEye = () => (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const IconEyeOff = () => (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+    <line x1="2" y1="2" x2="22" y2="22" />
+  </svg>
+);
+
+const IconPlus = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="5" x2="12" y2="19" />
+    <line x1="5" y1="12" x2="19" y2="12" />
+  </svg>
+);
+
+const IconChevronRight = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 18 15 12 9 6" />
   </svg>
 );
 
@@ -58,139 +88,8 @@ const IconAlertTriangle = () => (
   </svg>
 );
 
-const IconMail = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect width="20" height="16" x="2" y="4" rx="2" />
-    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-  </svg>
-);
-
-const IconCamera = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-    <circle cx="12" cy="13" r="4"/>
-  </svg>
-);
-
-const IconEdit = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 20h9" />
-    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-  </svg>
-);
-
-const IconCopy = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-  </svg>
-);
-
-const IconCheck = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-);
-
-const IconCheckCircle = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-    <polyline points="22 4 12 14.01 9 11.01" />
-  </svg>
-);
-
-const IconLogout = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-    <polyline points="16 17 21 12 16 7" />
-    <line x1="21" y1="12" x2="9" y2="12" />
-  </svg>
-);
-
-const IconTrash = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 6h18" />
-    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-    <line x1="10" y1="11" x2="10" y2="17" />
-    <line x1="14" y1="11" x2="14" y2="17" />
-  </svg>
-);
-
-const IconSun = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="5" />
-    <line x1="12" y1="1" x2="12" y2="3" />
-    <line x1="12" y1="21" x2="12" y2="23" />
-    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-    <line x1="1" y1="12" x2="3" y2="12" />
-    <line x1="21" y1="12" x2="23" y2="12" />
-    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-  </svg>
-);
-
-const IconMoon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-  </svg>
-);
-
-const IconEye = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
-const IconEyeOff = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-    <line x1="2" y1="2" x2="22" y2="22" />
-  </svg>
-);
-
-const IconSparkles = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" />
-  </svg>
-);
-
-const IconPlus = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="12" y1="5" x2="12" y2="19" />
-    <line x1="5" y1="12" x2="19" y2="12" />
-  </svg>
-);
-
-const IconCalendar = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-    <line x1="16" y1="2" x2="16" y2="6" />
-    <line x1="8" y1="2" x2="8" y2="6" />
-    <line x1="3" y1="10" x2="21" y2="10" />
-  </svg>
-);
-
-const IconClock = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <polyline points="12 6 12 12 16 14" />
-  </svg>
-);
-
-const IconChevronRight = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="9 18 15 12 9 6" />
-  </svg>
-);
-
 export default function Profile({ session, onBack }) {
   const [profile, setProfile] = useState(null);
-  const [tasks, setTasks] = useState([]);
   const [customCategories, setCustomCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -241,13 +140,11 @@ export default function Profile({ session, onBack }) {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [profData, taskData, catData] = await Promise.all([
+      const [profData, catData] = await Promise.all([
         getProfile(),
-        getTasks().catch(() => []),
         getCustomCategories().catch(() => [])
       ]);
       setProfile(profData);
-      setTasks(taskData || []);
       setCustomCategories(catData || []);
     } catch (err) {
       console.error('Error loading profile data:', err);
@@ -472,11 +369,6 @@ export default function Profile({ session, onBack }) {
   const userEmail = session?.user?.email || '-';
   const joinDate = session?.user?.created_at ? formatIndoDate(session.user.created_at) : 'Baru saja';
   const lastLogin = session?.user?.last_sign_in_at ? formatLastSignIn(session.user.last_sign_in_at) : 'Hari ini';
-
-  // Stats
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(t => t.completed).length;
-  const taskPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
   const totalCustomCats = customCategories.length;
 
   const sectionTitles = {
@@ -497,11 +389,6 @@ export default function Profile({ session, onBack }) {
             ? 'bg-red-950/90 text-red-100 border-red-800 shadow-red-950/30'
             : 'bg-brand-950/90 dark:bg-white/95 text-white dark:text-brand-950 border-brand-800 dark:border-white/50 shadow-brand-950/20'
         }`}>
-          {toast.type === 'error' ? (
-            <span className="text-red-400"><IconAlertTriangle /></span>
-          ) : (
-            <span className="text-emerald-400 dark:text-emerald-600"><IconCheckCircle /></span>
-          )}
           <span>{toast.message}</span>
         </div>
       )}
@@ -521,25 +408,18 @@ export default function Profile({ session, onBack }) {
         <div className="flex flex-col gap-6">
 
           {/* ============================================================ */}
-          {/* HERO BANNER PROFILE CARD (Always visible for brand identity) */}
+          {/* HERO PROFILE CARD */}
           {/* ============================================================ */}
-          <div className="w-full relative rounded-[2rem] bg-gradient-to-b from-white via-white to-brand-50/80 dark:from-brand-900 dark:via-brand-900 dark:to-brand-950 border border-brand-200/80 dark:border-brand-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.25)] overflow-hidden">
+          <div className="w-full relative rounded-[2rem] bg-gradient-to-b from-white via-white to-brand-50/80 dark:from-brand-900 dark:via-brand-900 dark:to-brand-950 border border-brand-200/80 dark:border-brand-800 shadow-sm overflow-hidden">
             
             {/* Top Cover Banner */}
-            <div className="h-28 sm:h-32 w-full relative overflow-hidden bg-gradient-to-r from-brand-950 via-brand-800 to-brand-900 dark:from-black dark:via-brand-950 dark:to-brand-900">
-              <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white via-transparent to-transparent pointer-events-none" />
-              <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-white/10 blur-2xl pointer-events-none" />
-              <div className="absolute top-4 left-6 text-white/40 flex items-center gap-2 text-xs font-black tracking-widest uppercase">
-                <IconSparkles />
-                <span>Daily Assistant Account</span>
-              </div>
-            </div>
+            <div className="h-24 sm:h-28 w-full relative overflow-hidden bg-gradient-to-r from-brand-950 via-brand-800 to-brand-900 dark:from-black dark:via-brand-950 dark:to-brand-900" />
 
             {/* Avatar & Identity Info */}
             <div className="px-6 sm:px-8 pb-6 pt-0 relative flex flex-col items-center text-center">
               
               {/* Floating Avatar */}
-              <div className="relative -mt-14 sm:-mt-16 mb-3 group">
+              <div className="relative -mt-12 sm:-mt-14 mb-3 group">
                 <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-tr from-brand-200 to-brand-100 dark:from-brand-800 dark:to-brand-700 flex items-center justify-center font-black text-3xl sm:text-4xl text-brand-950 dark:text-white shadow-xl overflow-hidden ring-4 ring-white dark:ring-brand-900 border-2 border-brand-200/60 dark:border-brand-700">
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
@@ -548,17 +428,12 @@ export default function Profile({ session, onBack }) {
                   )}
                 </div>
 
-                {/* Online status indicator */}
-                <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white dark:border-brand-900 flex items-center justify-center shadow-sm" title="Akun Aktif">
-                  <span className="w-2 h-2 rounded-full bg-white animate-ping opacity-75" />
-                </div>
-
                 {/* Change Avatar Button */}
                 <button 
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   title="Ubah Foto Profil"
-                  className="absolute bottom-0 right-0 bg-brand-950 dark:bg-white text-white dark:text-brand-950 rounded-full w-9 h-9 flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all border-2 border-white dark:border-brand-900 cursor-pointer"
+                  className="absolute bottom-0 right-0 bg-brand-950 dark:bg-white text-white dark:text-brand-950 rounded-full w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all border-2 border-white dark:border-brand-900 cursor-pointer"
                 >
                   <IconCamera />
                 </button>
@@ -586,39 +461,13 @@ export default function Profile({ session, onBack }) {
                 </button>
               </div>
 
-              {/* Email & Join Badge */}
-              <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-100/70 dark:bg-brand-800/60 text-xs font-semibold text-brand-700 dark:text-brand-300 border border-brand-200/50 dark:border-brand-700">
-                  <span className="text-emerald-500"><IconCheckCircle /></span>
+              {/* Email & Join Badge (Clean Text Badges) */}
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <div className="inline-flex items-center px-3 py-1 rounded-full bg-brand-100/70 dark:bg-brand-800/60 text-xs font-semibold text-brand-700 dark:text-brand-300 border border-brand-200/50 dark:border-brand-700">
                   <span>{userEmail}</span>
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-50 dark:bg-brand-950 text-xs font-medium text-brand-500 dark:text-brand-400 border border-brand-200/60 dark:border-brand-800">
-                  <IconCalendar />
+                <div className="inline-flex items-center px-3 py-1 rounded-full bg-brand-50 dark:bg-brand-950 text-xs font-medium text-brand-500 dark:text-brand-400 border border-brand-200/60 dark:border-brand-800">
                   <span>Bergabung {joinDate}</span>
-                </div>
-              </div>
-
-              {/* Micro Stats Row */}
-              <div className="w-full grid grid-cols-3 gap-2 sm:gap-3 pt-4 border-t border-brand-100 dark:border-brand-800">
-                <div className="flex flex-col items-center p-2.5 rounded-2xl bg-brand-50/70 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800/80">
-                  <span className="text-[10px] font-semibold text-brand-400 uppercase tracking-wider">Tugas</span>
-                  <span className="text-base sm:text-lg font-black text-brand-950 dark:text-white mt-0.5">{completedTasks}/{totalTasks}</span>
-                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">{taskPercent}% Beres</span>
-                </div>
-
-                <div className="flex flex-col items-center p-2.5 rounded-2xl bg-brand-50/70 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800/80">
-                  <span className="text-[10px] font-semibold text-brand-400 uppercase tracking-wider">Kategori</span>
-                  <span className="text-base sm:text-lg font-black text-brand-950 dark:text-white mt-0.5">{totalCustomCats}</span>
-                  <span className="text-[10px] font-bold text-brand-400">Kustom</span>
-                </div>
-
-                <div className="flex flex-col items-center p-2.5 rounded-2xl bg-brand-50/70 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800/80">
-                  <span className="text-[10px] font-semibold text-brand-400 uppercase tracking-wider">Status</span>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <span className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400">Aktif</span>
-                  </div>
-                  <span className="text-[10px] font-medium text-brand-400">Online</span>
                 </div>
               </div>
 
@@ -627,7 +476,7 @@ export default function Profile({ session, onBack }) {
           </div>
 
           {/* ============================================================ */}
-          {/* VIEW MODE 1: MAIN MENU BUTTONS (When no section is active) */}
+          {/* VIEW MODE 1: MAIN MENU BUTTONS (Clean Text & Arrow Buttons) */}
           {/* ============================================================ */}
           {currentSection === null && (
             <div className="flex flex-col gap-3 animate-fade-in">
@@ -643,20 +492,15 @@ export default function Profile({ session, onBack }) {
                   onClick={() => setCurrentSection('account')}
                   className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 hover:bg-brand-50/70 dark:hover:bg-brand-800/40 active:bg-brand-100 dark:active:bg-brand-800 transition-colors text-left cursor-pointer group"
                 >
-                  <div className="flex items-center gap-4 min-w-0">
-                    <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0 group-hover:scale-105 transition-transform shadow-xs">
-                      <IconUser />
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="text-sm sm:text-base font-bold text-brand-950 dark:text-white group-hover:text-brand-700 dark:group-hover:text-brand-200 transition-colors truncate">
-                        Akun & Identitas
-                      </h3>
-                      <p className="text-xs text-brand-400 dark:text-brand-500 mt-0.5 truncate">
-                        Nama lengkap, alamat email, User ID, dan avatar
-                      </p>
-                    </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm sm:text-base font-bold text-brand-950 dark:text-white group-hover:text-brand-700 dark:group-hover:text-brand-200 transition-colors truncate">
+                      Akun & Identitas
+                    </h3>
+                    <p className="text-xs text-brand-400 dark:text-brand-500 mt-0.5 truncate">
+                      Nama lengkap, alamat email, User ID, dan avatar
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2 text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all shrink-0">
+                  <div className="text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all shrink-0">
                     <IconChevronRight />
                   </div>
                 </button>
@@ -667,20 +511,15 @@ export default function Profile({ session, onBack }) {
                   onClick={() => setCurrentSection('security')}
                   className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 hover:bg-brand-50/70 dark:hover:bg-brand-800/40 active:bg-brand-100 dark:active:bg-brand-800 transition-colors text-left cursor-pointer group"
                 >
-                  <div className="flex items-center gap-4 min-w-0">
-                    <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0 group-hover:scale-105 transition-transform shadow-xs">
-                      <IconKey />
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="text-sm sm:text-base font-bold text-brand-950 dark:text-white group-hover:text-brand-700 dark:group-hover:text-brand-200 transition-colors truncate">
-                        Keamanan & Akses
-                      </h3>
-                      <p className="text-xs text-brand-400 dark:text-brand-500 mt-0.5 truncate">
-                        Ganti kata sandi, tautan reset via email, proteksi sesi
-                      </p>
-                    </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm sm:text-base font-bold text-brand-950 dark:text-white group-hover:text-brand-700 dark:group-hover:text-brand-200 transition-colors truncate">
+                      Keamanan & Akses
+                    </h3>
+                    <p className="text-xs text-brand-400 dark:text-brand-500 mt-0.5 truncate">
+                      Ganti kata sandi, tautan reset via email, proteksi sesi
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2 text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all shrink-0">
+                  <div className="text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all shrink-0">
                     <IconChevronRight />
                   </div>
                 </button>
@@ -691,20 +530,15 @@ export default function Profile({ session, onBack }) {
                   onClick={() => setCurrentSection('preferences')}
                   className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 hover:bg-brand-50/70 dark:hover:bg-brand-800/40 active:bg-brand-100 dark:active:bg-brand-800 transition-colors text-left cursor-pointer group"
                 >
-                  <div className="flex items-center gap-4 min-w-0">
-                    <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0 group-hover:scale-105 transition-transform shadow-xs">
-                      <IconSliders />
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="text-sm sm:text-base font-bold text-brand-950 dark:text-white group-hover:text-brand-700 dark:group-hover:text-brand-200 transition-colors truncate">
-                        Preferensi & Kustomisasi
-                      </h3>
-                      <p className="text-xs text-brand-400 dark:text-brand-500 mt-0.5 truncate">
-                        Tema antarmuka ({isDarkMode ? 'Gelap' : 'Terang'}) & kategori keuangan ({totalCustomCats} kustom)
-                      </p>
-                    </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm sm:text-base font-bold text-brand-950 dark:text-white group-hover:text-brand-700 dark:group-hover:text-brand-200 transition-colors truncate">
+                      Preferensi & Kustomisasi
+                    </h3>
+                    <p className="text-xs text-brand-400 dark:text-brand-500 mt-0.5 truncate">
+                      Tema antarmuka ({isDarkMode ? 'Gelap' : 'Terang'}) & kategori keuangan ({totalCustomCats} kustom)
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2 text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all shrink-0">
+                  <div className="text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all shrink-0">
                     <IconChevronRight />
                   </div>
                 </button>
@@ -715,20 +549,15 @@ export default function Profile({ session, onBack }) {
                   onClick={() => setCurrentSection('about')}
                   className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 hover:bg-brand-50/70 dark:hover:bg-brand-800/40 active:bg-brand-100 dark:active:bg-brand-800 transition-colors text-left cursor-pointer group"
                 >
-                  <div className="flex items-center gap-4 min-w-0">
-                    <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0 group-hover:scale-105 transition-transform shadow-xs">
-                      <IconSparkles />
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="text-sm sm:text-base font-bold text-brand-950 dark:text-white group-hover:text-brand-700 dark:group-hover:text-brand-200 transition-colors truncate">
-                        Tentang Aplikasi
-                      </h3>
-                      <p className="text-xs text-brand-400 dark:text-brand-500 mt-0.5 truncate">
-                        Versi rilis v{import.meta.env.VITE_APP_VERSION || '1.0.0'} & sistem
-                      </p>
-                    </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm sm:text-base font-bold text-brand-950 dark:text-white group-hover:text-brand-700 dark:group-hover:text-brand-200 transition-colors truncate">
+                      Tentang Aplikasi
+                    </h3>
+                    <p className="text-xs text-brand-400 dark:text-brand-500 mt-0.5 truncate">
+                      Versi rilis v{import.meta.env.VITE_APP_VERSION || '1.0.0'} & informasi sistem
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2 text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all shrink-0">
+                  <div className="text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all shrink-0">
                     <IconChevronRight />
                   </div>
                 </button>
@@ -739,20 +568,15 @@ export default function Profile({ session, onBack }) {
                   onClick={() => setCurrentSection('danger')}
                   className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 hover:bg-red-50/40 dark:hover:bg-red-950/20 active:bg-red-100 dark:active:bg-red-900/30 transition-colors text-left cursor-pointer group"
                 >
-                  <div className="flex items-center gap-4 min-w-0">
-                    <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
-                      <IconAlertTriangle />
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="text-sm sm:text-base font-bold text-red-600 dark:text-red-400 truncate">
-                        Zona Bahaya
-                      </h3>
-                      <p className="text-xs text-red-500/70 dark:text-red-400/60 mt-0.5 truncate">
-                        Keluar dari sesi akun atau hapus akun permanen
-                      </p>
-                    </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm sm:text-base font-bold text-red-600 dark:text-red-400 truncate">
+                      Zona Bahaya
+                    </h3>
+                    <p className="text-xs text-red-500/70 dark:text-red-400/60 mt-0.5 truncate">
+                      Keluar dari sesi akun atau hapus akun permanen
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2 text-red-400 group-hover:text-red-600 dark:group-hover:text-red-300 group-hover:translate-x-1 transition-all shrink-0">
+                  <div className="text-red-400 group-hover:text-red-600 dark:group-hover:text-red-300 group-hover:translate-x-1 transition-all shrink-0">
                     <IconChevronRight />
                   </div>
                 </button>
@@ -785,14 +609,9 @@ export default function Profile({ session, onBack }) {
                   
                   {/* Nama Lengkap */}
                   <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
-                        <IconUser />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">Nama Lengkap</p>
-                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white truncate">{displayName}</p>
-                      </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">Nama Lengkap</p>
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white truncate">{displayName}</p>
                     </div>
                     <button
                       type="button"
@@ -805,33 +624,22 @@ export default function Profile({ session, onBack }) {
 
                   {/* Alamat Email */}
                   <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
-                        <IconMail />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">Alamat Email</p>
-                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white truncate">{userEmail}</p>
-                      </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">Alamat Email</p>
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white truncate">{userEmail}</p>
                     </div>
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-xs font-bold shrink-0">
-                      <IconCheck />
+                    <div className="inline-flex items-center px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-xs font-bold shrink-0">
                       <span>Terverifikasi</span>
                     </div>
                   </div>
 
                   {/* User ID */}
                   <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0 font-bold text-xs">
-                        ID
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">User ID</p>
-                        <p className="text-xs font-mono font-medium text-brand-600 dark:text-brand-400 truncate max-w-[180px] sm:max-w-sm">
-                          {session?.user?.id}
-                        </p>
-                      </div>
+                    <div className="min-w-0 pr-2">
+                      <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">User ID</p>
+                      <p className="text-xs font-mono font-medium text-brand-600 dark:text-brand-400 truncate max-w-[200px] sm:max-w-md">
+                        {session?.user?.id}
+                      </p>
                     </div>
                     <button
                       type="button"
@@ -845,14 +653,9 @@ export default function Profile({ session, onBack }) {
 
                   {/* Terakhir Masuk */}
                   <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
-                        <IconClock />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">Sesi Terakhir</p>
-                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">{lastLogin}</p>
-                      </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-brand-400 dark:text-brand-500 uppercase tracking-wide">Sesi Terakhir</p>
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">{lastLogin}</p>
                     </div>
                     <span className="text-xs font-semibold text-brand-400 dark:text-brand-500">Sesi Aktif</span>
                   </div>
@@ -890,14 +693,9 @@ export default function Profile({ session, onBack }) {
                   
                   {/* Ubah Sandi */}
                   <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
-                        <IconKey />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Kata Sandi Akun</p>
-                        <p className="text-xs text-brand-400 dark:text-brand-500">••••••••••••••••</p>
-                      </div>
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Kata Sandi Akun</p>
+                      <p className="text-xs text-brand-400 dark:text-brand-500">••••••••••••••••</p>
                     </div>
                     <button
                       type="button"
@@ -916,14 +714,9 @@ export default function Profile({ session, onBack }) {
 
                   {/* Reset Sandi via Email */}
                   <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
-                        <IconMail />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Reset Sandi via Email</p>
-                        <p className="text-xs text-brand-400 dark:text-brand-500">Kirim link pemulihan ke surel terdaftar</p>
-                      </div>
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Reset Sandi via Email</p>
+                      <p className="text-xs text-brand-400 dark:text-brand-500">Kirim link pemulihan ke surel terdaftar</p>
                     </div>
                     <button
                       type="button"
@@ -937,16 +730,11 @@ export default function Profile({ session, onBack }) {
 
                   {/* Proteksi Sesi */}
                   <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                        <IconShield />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Enkripsi & Proteksi Sesi</p>
-                        <p className="text-xs text-brand-400 dark:text-brand-500">Terenkripsi TLS 1.3 dengan Supabase Auth</p>
-                      </div>
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Enkripsi & Proteksi Sesi</p>
+                      <p className="text-xs text-brand-400 dark:text-brand-500">Terenkripsi TLS 1.3 dengan Supabase Auth</p>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-200 dark:border-emerald-800 shrink-0">
+                    <span className="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-200 dark:border-emerald-800 shrink-0">
                       Aman
                     </span>
                   </div>
@@ -960,16 +748,11 @@ export default function Profile({ session, onBack }) {
                   
                   {/* Tema Visual Antarmuka */}
                   <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
-                        {isDarkMode ? <IconMoon /> : <IconSun />}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Tema Antarmuka</p>
-                        <p className="text-xs text-brand-400 dark:text-brand-500">
-                          {isDarkMode ? 'Saat ini: Mode Gelap (Dark)' : 'Saat ini: Mode Terang (Light)'}
-                        </p>
-                      </div>
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Tema Antarmuka</p>
+                      <p className="text-xs text-brand-400 dark:text-brand-500">
+                        {isDarkMode ? 'Saat ini: Mode Gelap (Dark)' : 'Saat ini: Mode Terang (Light)'}
+                      </p>
                     </div>
 
                     {/* Toggle Pill */}
@@ -977,26 +760,24 @@ export default function Profile({ session, onBack }) {
                       <button
                         type="button"
                         onClick={() => setThemeMode(false)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                           !isDarkMode
                             ? 'bg-white text-brand-950 shadow-xs'
                             : 'text-brand-500 hover:text-brand-900 dark:hover:text-white'
                         }`}
                       >
-                        <IconSun />
-                        <span>Terang</span>
+                        Terang
                       </button>
                       <button
                         type="button"
                         onClick={() => setThemeMode(true)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                           isDarkMode
                             ? 'bg-brand-800 text-white shadow-xs'
                             : 'text-brand-500 hover:text-brand-900 dark:hover:text-white'
                         }`}
                       >
-                        <IconMoon />
-                        <span>Gelap</span>
+                        Gelap
                       </button>
                     </div>
                   </div>
@@ -1006,14 +787,9 @@ export default function Profile({ session, onBack }) {
                     onClick={() => setShowCategoryModal(true)}
                     className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-brand-50/50 dark:hover:bg-brand-800/30 transition-colors cursor-pointer group"
                   >
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0 group-hover:scale-105 transition-transform">
-                        <IconSliders />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Kategori Keuangan Kustom</p>
-                        <p className="text-xs text-brand-400 dark:text-brand-500">Kelola kategori pengeluaran & pemasukan Anda</p>
-                      </div>
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Kategori Keuangan Kustom</p>
+                      <p className="text-xs text-brand-400 dark:text-brand-500">Kelola kategori pengeluaran & pemasukan Anda</p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className="px-3 py-1 rounded-full bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300 text-xs font-bold">
@@ -1033,14 +809,9 @@ export default function Profile({ session, onBack }) {
                 <div className="bg-white dark:bg-brand-900 rounded-3xl border border-brand-100 dark:border-brand-800 shadow-sm overflow-hidden divide-y divide-brand-100 dark:divide-brand-800/80">
                   
                   <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-brand-100 dark:bg-brand-800 flex items-center justify-center text-brand-900 dark:text-white shrink-0">
-                        <IconSparkles />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Daily Management Application</p>
-                        <p className="text-xs text-brand-400 dark:text-brand-500">Aplikasi manajemen tugas, jadwal kalender, dan keuangan</p>
-                      </div>
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Daily Management Application</p>
+                      <p className="text-xs text-brand-400 dark:text-brand-500">Aplikasi manajemen tugas, jadwal kalender, dan keuangan</p>
                     </div>
                     <span className="px-3 py-1 rounded-full bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300 text-xs font-bold shrink-0">
                       v{import.meta.env.VITE_APP_VERSION || '1.0.0'}
@@ -1066,14 +837,9 @@ export default function Profile({ session, onBack }) {
                   
                   {/* Keluar Sesi */}
                   <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-amber-50/40 dark:hover:bg-amber-950/20 transition-colors">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
-                        <IconLogout />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Keluar dari Akun (Log Out)</p>
-                        <p className="text-xs text-brand-400 dark:text-brand-500">Akhiri sesi aktif Anda pada perangkat ini</p>
-                      </div>
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-bold text-brand-950 dark:text-white">Keluar dari Akun (Log Out)</p>
+                      <p className="text-xs text-brand-400 dark:text-brand-500">Akhiri sesi aktif Anda pada perangkat ini</p>
                     </div>
                     <button
                       type="button"
@@ -1086,14 +852,9 @@ export default function Profile({ session, onBack }) {
 
                   {/* Hapus Akun */}
                   <div className="p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-red-50/40 dark:hover:bg-red-950/20 transition-colors">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
-                        <IconTrash />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm sm:text-base font-bold text-red-600 dark:text-red-400">Hapus Akun Permanen</p>
-                        <p className="text-xs text-red-500/80 dark:text-red-400/70">Hapus seluruh data tugas, jadwal, dan keuangan selamanya</p>
-                      </div>
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-bold text-red-600 dark:text-red-400">Hapus Akun Permanen</p>
+                      <p className="text-xs text-red-500/80 dark:text-red-400/70">Hapus seluruh data tugas, jadwal, dan keuangan selamanya</p>
                     </div>
                     <button
                       type="button"
@@ -1171,7 +932,6 @@ export default function Profile({ session, onBack }) {
           )}
           {passSuccess && (
             <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 rounded-xl text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2">
-              <IconCheckCircle />
               <span>{passSuccess}</span>
             </div>
           )}
@@ -1337,10 +1097,7 @@ export default function Profile({ session, onBack }) {
                     key={cat.id}
                     className="p-3 rounded-xl bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 flex items-center justify-between gap-2"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs">🏷️</span>
-                      <span className="text-xs font-bold text-brand-950 dark:text-white">{cat.name}</span>
-                    </div>
+                    <span className="text-xs font-bold text-brand-950 dark:text-white">{cat.name}</span>
                     <button
                       type="button"
                       onClick={() => handleDeleteCategory(cat.id)}
@@ -1371,16 +1128,11 @@ export default function Profile({ session, onBack }) {
       {/* ============================================================ */}
       <Modal isOpen={showLogoutModal} onClose={() => setShowLogoutModal(false)} title="Konfirmasi Keluar">
         <div className="flex flex-col gap-4">
-          <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-2xl flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
-              <IconLogout />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-amber-900 dark:text-amber-200">Keluar dari Akun</h4>
-              <p className="text-xs text-amber-700 dark:text-amber-300/80 mt-0.5">
-                Apakah Anda yakin ingin mengakhiri sesi aktif pada perangkat ini?
-              </p>
-            </div>
+          <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-2xl">
+            <h4 className="text-sm font-bold text-amber-900 dark:text-amber-200">Keluar dari Akun</h4>
+            <p className="text-xs text-amber-700 dark:text-amber-300/80 mt-1">
+              Apakah Anda yakin ingin mengakhiri sesi aktif pada perangkat ini?
+            </p>
           </div>
 
           <div className="flex gap-2 pt-2">
