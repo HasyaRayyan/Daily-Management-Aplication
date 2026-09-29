@@ -343,6 +343,8 @@ export async function deleteAccount() {
       supabase.from('transactions').delete().eq('user_id', userId),
       supabase.from('custom_categories').delete().eq('user_id', userId),
       supabase.from('profiles').delete().eq('id', userId),
+      supabase.from('user_follows').delete().eq('follower_id', userId),
+      supabase.from('user_follows').delete().eq('following_id', userId),
     ]);
 
     await supabase.auth.signOut();
@@ -352,3 +354,214 @@ export async function deleteAccount() {
     return { error: err };
   }
 }
+
+// ==========================================
+// FOLLOWERS & FOLLOWING
+// ==========================================
+const LOCAL_FOLLOWS_KEY = 'daily_user_follows';
+
+function getLocalFollows() {
+  try {
+    const raw = localStorage.getItem(LOCAL_FOLLOWS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalFollows(follows) {
+  try {
+    localStorage.setItem(LOCAL_FOLLOWS_KEY, JSON.stringify(follows));
+  } catch (e) {
+    console.error('Failed to save follows locally', e);
+  }
+}
+
+/**
+ * Get all profiles for discovery
+ */
+export async function getDiscoverProfiles() {
+  const { data: { session } } = await supabase.auth.getSession();
+  const currentUserId = session?.user?.id;
+
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, display_name, avatar_url, updated_at');
+
+    if (!error && data) {
+      return data.filter(p => p.id !== currentUserId);
+    }
+  } catch (err) {
+    console.warn('Error fetching profiles from supabase:', err);
+  }
+
+  // Fallback to local follows known users
+  const local = getLocalFollows();
+  const known = [];
+  local.forEach(f => {
+    if (f.following_id !== currentUserId && !known.some(k => k.id === f.following_id)) {
+      known.push({ id: f.following_id, display_name: f.following_name || 'Pengguna', avatar_url: f.following_avatar || null });
+    }
+    if (f.follower_id !== currentUserId && !known.some(k => k.id === f.follower_id)) {
+      known.push({ id: f.follower_id, display_name: f.follower_name || 'Pengguna', avatar_url: f.follower_avatar || null });
+    }
+  });
+  return known;
+}
+
+/**
+ * Get followers list for a user
+ */
+export async function getFollowers(userId) {
+  if (!userId) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from('user_follows')
+      .select('follower_id, created_at')
+      .eq('following_id', userId);
+
+    if (!error && data && data.length > 0) {
+      const followerIds = data.map(d => d.follower_id);
+      const { data: profs } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url')
+        .in('id', followerIds);
+
+      return (profs || []).map(p => ({
+        ...p,
+        followed_at: data.find(d => d.follower_id === p.id)?.created_at
+      }));
+    }
+  } catch (err) {
+    console.warn('Supabase follows query fallback to local:', err);
+  }
+
+  // Fallback to LocalStorage
+  const localFollows = getLocalFollows();
+  return localFollows
+    .filter(f => f.following_id === userId)
+    .map(f => ({
+      id: f.follower_id,
+      display_name: f.follower_name || 'Pengguna',
+      avatar_url: f.follower_avatar || null,
+      followed_at: f.created_at
+    }));
+}
+
+/**
+ * Get list of users that userId is following
+ */
+export async function getFollowing(userId) {
+  if (!userId) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from('user_follows')
+      .select('following_id, created_at')
+      .eq('follower_id', userId);
+
+    if (!error && data && data.length > 0) {
+      const followingIds = data.map(d => d.following_id);
+      const { data: profs } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url')
+        .in('id', followingIds);
+
+      return (profs || []).map(p => ({
+        ...p,
+        followed_at: data.find(d => d.following_id === p.id)?.created_at
+      }));
+    }
+  } catch (err) {
+    console.warn('Supabase following query fallback to local:', err);
+  }
+
+  // Fallback to LocalStorage
+  const localFollows = getLocalFollows();
+  return localFollows
+    .filter(f => f.follower_id === userId)
+    .map(f => ({
+      id: f.following_id,
+      display_name: f.following_name || 'Pengguna',
+      avatar_url: f.following_avatar || null,
+      followed_at: f.created_at
+    }));
+}
+
+/**
+ * Follow a user
+ */
+export async function followUser(targetUser) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user?.id) return { error: 'No session' };
+
+  const currentUserId = session.user.id;
+  const targetId = typeof targetUser === 'string' ? targetUser : targetUser.id;
+  if (currentUserId === targetId) return { error: 'Tidak dapat mengikuti diri sendiri' };
+
+  const currentUserName = session.user.user_metadata?.username || 'Saya';
+  const targetName = typeof targetUser === 'object' ? targetUser.display_name : 'Pengguna';
+  const targetAvatar = typeof targetUser === 'object' ? targetUser.avatar_url : null;
+
+  // Try Supabase first
+  try {
+    const { data, error } = await supabase
+      .from('user_follows')
+      .insert({ follower_id: currentUserId, following_id: targetId })
+      .select()
+      .maybeSingle();
+
+    if (!error) {
+      return { success: true, data };
+    }
+  } catch (err) {
+    console.warn('Supabase follow error, saving locally:', err);
+  }
+
+  // LocalStorage fallback
+  const localFollows = getLocalFollows();
+  const alreadyFollows = localFollows.some(f => f.follower_id === currentUserId && f.following_id === targetId);
+  if (!alreadyFollows) {
+    localFollows.push({
+      id: `${currentUserId}_${targetId}`,
+      follower_id: currentUserId,
+      follower_name: currentUserName,
+      following_id: targetId,
+      following_name: targetName,
+      following_avatar: targetAvatar,
+      created_at: new Date().toISOString()
+    });
+    saveLocalFollows(localFollows);
+  }
+  return { success: true };
+}
+
+/**
+ * Unfollow a user
+ */
+export async function unfollowUser(targetUserId) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user?.id) return { error: 'No session' };
+
+  const currentUserId = session.user.id;
+
+  // Try Supabase
+  try {
+    await supabase
+      .from('user_follows')
+      .delete()
+      .eq('follower_id', currentUserId)
+      .eq('following_id', targetUserId);
+  } catch (err) {
+    console.warn('Supabase unfollow error:', err);
+  }
+
+  // LocalStorage fallback
+  const localFollows = getLocalFollows();
+  const filtered = localFollows.filter(f => !(f.follower_id === currentUserId && f.following_id === targetUserId));
+  saveLocalFollows(filtered);
+  return { success: true };
+}
+

@@ -9,7 +9,12 @@ import {
   getCustomCategories, 
   addCustomCategory, 
   deleteCustomCategory, 
-  deleteAccount 
+  deleteAccount,
+  getFollowers,
+  getFollowing,
+  followUser,
+  unfollowUser,
+  getDiscoverProfiles
 } from '../utils/storage';
 import { logout, sendPasswordResetOtp, updatePassword } from '../lib/auth';
 
@@ -91,9 +96,12 @@ const IconAlertTriangle = () => (
 export default function Profile({ session, onBack }) {
   const [profile, setProfile] = useState(null);
   const [customCategories, setCustomCategories] = useState([]);
+  const [followers, setFollowers] = useState([]);
+  const [following, setFollowing] = useState([]);
+  const [discoverUsers, setDiscoverUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Current Active Section: null (shows Menu Buttons Hub) | 'account' | 'security' | 'preferences' | 'about' | 'danger'
+  // Current Active Section: null (shows Menu Buttons Hub) | 'social' | 'account' | 'security' | 'preferences' | 'about' | 'danger'
   const [currentSection, setCurrentSection] = useState(null);
 
   // Toast Notification State
@@ -132,6 +140,14 @@ export default function Profile({ session, onBack }) {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [catLoading, setCatLoading] = useState(false);
 
+  // Social / Followers / Following Modals
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
+  const [showDiscoverModal, setShowDiscoverModal] = useState(false);
+  const [searchUserQuery, setSearchUserQuery] = useState('');
+  const [targetIdInput, setTargetIdInput] = useState('');
+  const [socialLoading, setSocialLoading] = useState(false);
+
   // Copy User ID feedback
   const [copiedId, setCopiedId] = useState(false);
 
@@ -140,17 +156,29 @@ export default function Profile({ session, onBack }) {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [profData, catData] = await Promise.all([
+      const userId = session?.user?.id;
+      const [profData, catData, followersData, followingData] = await Promise.all([
         getProfile(),
-        getCustomCategories().catch(() => [])
+        getCustomCategories().catch(() => []),
+        getFollowers(userId).catch(() => []),
+        getFollowing(userId).catch(() => [])
       ]);
       setProfile(profData);
       setCustomCategories(catData || []);
+      setFollowers(followersData || []);
+      setFollowing(followingData || []);
     } catch (err) {
       console.error('Error loading profile data:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadDiscover = async () => {
+    setSocialLoading(true);
+    const users = await getDiscoverProfiles();
+    setDiscoverUsers(users || []);
+    setSocialLoading(false);
   };
 
   useEffect(() => {
@@ -204,6 +232,55 @@ export default function Profile({ session, onBack }) {
     setLoading(false);
     showToast('Foto profil telah dihapus');
   };
+
+  // Follow User Action
+  const handleFollowUser = async (user) => {
+    setSocialLoading(true);
+    const res = await followUser(user);
+    if (res?.error) {
+      showToast(res.error, 'error');
+    } else {
+      showToast(`Berhasil mengikuti ${user.display_name || 'pengguna'}!`);
+      const updatedFollowing = await getFollowing(session?.user?.id);
+      setFollowing(updatedFollowing || []);
+    }
+    setSocialLoading(false);
+  };
+
+  // Unfollow User Action
+  const handleUnfollowUser = async (userId, userName) => {
+    if (!window.confirm(`Berhenti mengikuti ${userName || 'pengguna ini'}?`)) return;
+    setSocialLoading(true);
+    await unfollowUser(userId);
+    showToast(`Berhenti mengikuti ${userName || 'pengguna'}`);
+    const updatedFollowing = await getFollowing(session?.user?.id);
+    setFollowing(updatedFollowing || []);
+    setSocialLoading(false);
+  };
+
+  // Follow by Manual Input ID
+  const handleFollowManualId = async (e) => {
+    e.preventDefault();
+    const idToFollow = targetIdInput.trim();
+    if (!idToFollow) return;
+    if (idToFollow === session?.user?.id) {
+      showToast('Tidak dapat mengikuti diri sendiri', 'error');
+      return;
+    }
+    setSocialLoading(true);
+    const res = await followUser({ id: idToFollow, display_name: `User ${idToFollow.slice(0, 6)}` });
+    if (res?.error) {
+      showToast(res.error, 'error');
+    } else {
+      showToast('Pengguna berhasil diikuti!');
+      setTargetIdInput('');
+      const updatedFollowing = await getFollowing(session?.user?.id);
+      setFollowing(updatedFollowing || []);
+    }
+    setSocialLoading(false);
+  };
+
+  const isUserFollowed = (id) => following.some(f => f.id === id);
 
   // Direct Update Password
   const handleDirectPasswordChange = async (e) => {
@@ -372,12 +449,20 @@ export default function Profile({ session, onBack }) {
   const totalCustomCats = customCategories.length;
 
   const sectionTitles = {
+    social: 'Teman & Pengikut',
     account: 'Akun & Identitas',
     security: 'Keamanan & Akses',
     preferences: 'Preferensi & Tampilan',
     about: 'Tentang Aplikasi',
     danger: 'Zona Bahaya',
   };
+
+  // Filtered discover users
+  const filteredDiscover = discoverUsers.filter(u => {
+    if (!searchUserQuery.trim()) return true;
+    const q = searchUserQuery.toLowerCase();
+    return (u.display_name && u.display_name.toLowerCase().includes(q)) || (u.id && u.id.toLowerCase().includes(q));
+  });
 
   return (
     <div className="flex flex-col gap-6 px-4 sm:px-6 pt-6 pb-28 md:pb-12 animate-fade-in max-w-4xl mx-auto w-full">
@@ -461,8 +546,8 @@ export default function Profile({ session, onBack }) {
                 </button>
               </div>
 
-              {/* Email & Join Badge (Clean Text Badges) */}
-              <div className="flex flex-wrap items-center justify-center gap-2">
+              {/* Email & Join Badge */}
+              <div className="flex flex-wrap items-center justify-center gap-2 mb-3">
                 <div className="inline-flex items-center px-3 py-1 rounded-full bg-brand-100/70 dark:bg-brand-800/60 text-xs font-semibold text-brand-700 dark:text-brand-300 border border-brand-200/50 dark:border-brand-700">
                   <span>{userEmail}</span>
                 </div>
@@ -471,12 +556,44 @@ export default function Profile({ session, onBack }) {
                 </div>
               </div>
 
+              {/* Followers & Following Bar */}
+              <div className="flex items-center justify-center gap-2 sm:gap-3 mt-2 pt-3 border-t border-brand-100 dark:border-brand-800/80 w-full max-w-sm">
+                <button
+                  type="button"
+                  onClick={() => setShowFollowersModal(true)}
+                  className="flex-1 py-1.5 px-3 rounded-xl bg-brand-50 dark:bg-brand-950/70 hover:bg-brand-100 dark:hover:bg-brand-800 border border-brand-200/60 dark:border-brand-800 transition-colors cursor-pointer flex flex-col items-center"
+                >
+                  <span className="font-black text-sm text-brand-950 dark:text-white">{followers.length}</span>
+                  <span className="text-[11px] text-brand-500 font-medium">Pengikut</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowFollowingModal(true)}
+                  className="flex-1 py-1.5 px-3 rounded-xl bg-brand-50 dark:bg-brand-950/70 hover:bg-brand-100 dark:hover:bg-brand-800 border border-brand-200/60 dark:border-brand-800 transition-colors cursor-pointer flex flex-col items-center"
+                >
+                  <span className="font-black text-sm text-brand-950 dark:text-white">{following.length}</span>
+                  <span className="text-[11px] text-brand-500 font-medium">Mengikuti</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    loadDiscover();
+                    setShowDiscoverModal(true);
+                  }}
+                  className="py-2.5 px-3.5 rounded-xl bg-brand-950 dark:bg-white text-white dark:text-brand-950 text-xs font-bold hover:opacity-90 transition-opacity cursor-pointer shadow-xs whitespace-nowrap"
+                >
+                  + Teman
+                </button>
+              </div>
+
             </div>
 
           </div>
 
           {/* ============================================================ */}
-          {/* VIEW MODE 1: MAIN MENU BUTTONS (Clean Text & Arrow Buttons) */}
+          {/* VIEW MODE 1: MAIN MENU BUTTONS */}
           {/* ============================================================ */}
           {currentSection === null && (
             <div className="flex flex-col gap-3 animate-fade-in">
@@ -486,7 +603,29 @@ export default function Profile({ session, onBack }) {
 
               <div className="bg-white dark:bg-brand-900 rounded-3xl border border-brand-100 dark:border-brand-800 shadow-sm overflow-hidden divide-y divide-brand-100 dark:divide-brand-800/80">
                 
-                {/* 1. Tombol: Akun & Identitas */}
+                {/* 1. Tombol: Teman & Pengikut */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    loadDiscover();
+                    setCurrentSection('social');
+                  }}
+                  className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 hover:bg-brand-50/70 dark:hover:bg-brand-800/40 active:bg-brand-100 dark:active:bg-brand-800 transition-colors text-left cursor-pointer group"
+                >
+                  <div className="min-w-0">
+                    <h3 className="text-sm sm:text-base font-bold text-brand-950 dark:text-white group-hover:text-brand-700 dark:group-hover:text-brand-200 transition-colors truncate">
+                      Teman & Pengikut (Followers & Following)
+                    </h3>
+                    <p className="text-xs text-brand-400 dark:text-brand-500 mt-0.5 truncate">
+                      {followers.length} Pengikut • {following.length} Mengikuti • Temukan dan ikuti pengguna lain
+                    </p>
+                  </div>
+                  <div className="text-brand-400 group-hover:text-brand-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all shrink-0">
+                    <IconChevronRight />
+                  </div>
+                </button>
+
+                {/* 2. Tombol: Akun & Identitas */}
                 <button
                   type="button"
                   onClick={() => setCurrentSection('account')}
@@ -505,7 +644,7 @@ export default function Profile({ session, onBack }) {
                   </div>
                 </button>
 
-                {/* 2. Tombol: Keamanan & Akses */}
+                {/* 3. Tombol: Keamanan & Akses */}
                 <button
                   type="button"
                   onClick={() => setCurrentSection('security')}
@@ -524,7 +663,7 @@ export default function Profile({ session, onBack }) {
                   </div>
                 </button>
 
-                {/* 3. Tombol: Preferensi & Kustomisasi */}
+                {/* 4. Tombol: Preferensi & Kustomisasi */}
                 <button
                   type="button"
                   onClick={() => setCurrentSection('preferences')}
@@ -543,7 +682,7 @@ export default function Profile({ session, onBack }) {
                   </div>
                 </button>
 
-                {/* 4. Tombol: Tentang Aplikasi */}
+                {/* 5. Tombol: Tentang Aplikasi */}
                 <button
                   type="button"
                   onClick={() => setCurrentSection('about')}
@@ -562,7 +701,7 @@ export default function Profile({ session, onBack }) {
                   </div>
                 </button>
 
-                {/* 5. Tombol: Zona Bahaya */}
+                {/* 6. Tombol: Zona Bahaya */}
                 <button
                   type="button"
                   onClick={() => setCurrentSection('danger')}
@@ -586,7 +725,7 @@ export default function Profile({ session, onBack }) {
           )}
 
           {/* ============================================================ */}
-          {/* VIEW MODE 2: SECTION DRILL-DOWN (Opened when a button is clicked) */}
+          {/* VIEW MODE 2: SECTION DRILL-DOWN */}
           {/* ============================================================ */}
           {currentSection !== null && (
             <div className="flex flex-col gap-4 animate-fade-in">
@@ -602,6 +741,138 @@ export default function Profile({ session, onBack }) {
                 </svg>
                 <span>Kembali ke Menu Profil</span>
               </button>
+
+              {/* ---------------- SECTION: TEMAN & PENGIKUT ---------------- */}
+              {currentSection === 'social' && (
+                <div className="flex flex-col gap-4">
+                  
+                  {/* Follow stats cards */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div 
+                      onClick={() => setShowFollowersModal(true)}
+                      className="p-5 rounded-3xl bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 shadow-sm cursor-pointer hover:border-brand-300 dark:hover:border-brand-700 transition-colors"
+                    >
+                      <p className="text-xs font-bold text-brand-400 uppercase tracking-wider">Pengikut (Followers)</p>
+                      <p className="text-2xl font-black text-brand-950 dark:text-white mt-1">{followers.length}</p>
+                      <p className="text-[11px] text-brand-500 mt-1">Orang yang mengikuti Anda</p>
+                    </div>
+
+                    <div 
+                      onClick={() => setShowFollowingModal(true)}
+                      className="p-5 rounded-3xl bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 shadow-sm cursor-pointer hover:border-brand-300 dark:hover:border-brand-700 transition-colors"
+                    >
+                      <p className="text-xs font-bold text-brand-400 uppercase tracking-wider">Mengikuti (Following)</p>
+                      <p className="text-2xl font-black text-brand-950 dark:text-white mt-1">{following.length}</p>
+                      <p className="text-[11px] text-brand-500 mt-1">Orang yang Anda ikuti</p>
+                    </div>
+                  </div>
+
+                  {/* Follow by User ID Card */}
+                  <div className="bg-white dark:bg-brand-900 rounded-3xl p-5 sm:p-6 border border-brand-100 dark:border-brand-800 shadow-sm flex flex-col gap-3">
+                    <div>
+                      <h4 className="text-sm font-bold text-brand-950 dark:text-white">Ikuti Menggunakan User ID</h4>
+                      <p className="text-xs text-brand-400 mt-0.5">Masukkan User ID teman Anda untuk langsung mengikutinya.</p>
+                    </div>
+
+                    <form onSubmit={handleFollowManualId} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={targetIdInput}
+                        onChange={(e) => setTargetIdInput(e.target.value)}
+                        placeholder="Tempel / ketik User ID teman..."
+                        className="flex-1 px-4 py-2.5 rounded-xl bg-brand-50 dark:bg-brand-950 border border-brand-200 dark:border-brand-800 text-xs focus:border-brand-950 dark:focus:border-white focus:outline-none font-mono"
+                      />
+                      <button
+                        type="submit"
+                        disabled={!targetIdInput.trim() || socialLoading}
+                        className="px-5 py-2.5 rounded-xl bg-brand-950 dark:bg-white text-white dark:text-brand-950 text-xs font-bold hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shrink-0"
+                      >
+                        Ikuti
+                      </button>
+                    </form>
+
+                    <div className="pt-2 border-t border-brand-100 dark:border-brand-800 flex items-center justify-between text-xs">
+                      <span className="text-brand-500">ID Anda: <span className="font-mono font-bold text-brand-800 dark:text-brand-200">{session?.user?.id?.slice(0, 12)}...</span></span>
+                      <button
+                        type="button"
+                        onClick={handleCopyId}
+                        className="font-bold text-brand-950 dark:text-white hover:underline cursor-pointer"
+                      >
+                        {copiedId ? 'Tersalin!' : 'Salin ID Saya'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Discover Users List */}
+                  <div className="bg-white dark:bg-brand-900 rounded-3xl p-5 sm:p-6 border border-brand-100 dark:border-brand-800 shadow-sm flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-sm font-bold text-brand-950 dark:text-white">Temukan Pengguna Lain</h4>
+                        <p className="text-xs text-brand-400 mt-0.5">Daftar pengguna terdaftar di aplikasi Daily Manager</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={loadDiscover}
+                        className="text-xs font-bold text-brand-500 hover:text-brand-950 dark:hover:text-white"
+                      >
+                        Perbarui
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col gap-2.5">
+                      {socialLoading ? (
+                        <div className="py-8 flex justify-center"><Spinner size="sm" /></div>
+                      ) : discoverUsers.length === 0 ? (
+                        <div className="py-8 text-center rounded-2xl border border-dashed border-brand-200 dark:border-brand-800 bg-brand-50/50 dark:bg-brand-950/30">
+                          <p className="text-xs font-bold text-brand-400">Belum ada pengguna lain yang ditemukan.</p>
+                          <p className="text-[11px] text-brand-400/80 mt-1">Gunakan fitur input User ID di atas untuk menambahkan teman Anda secara langsung.</p>
+                        </div>
+                      ) : (
+                        discoverUsers.map((user) => {
+                          const followed = isUserFollowed(user.id);
+                          return (
+                            <div 
+                              key={user.id} 
+                              className="p-3.5 rounded-2xl bg-brand-50/70 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800 flex items-center justify-between gap-3"
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className="w-10 h-10 rounded-full bg-brand-200 dark:bg-brand-800 flex items-center justify-center font-bold text-sm text-brand-900 dark:text-white shrink-0 overflow-hidden">
+                                  {user.avatar_url ? (
+                                    <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+                                  ) : (
+                                    (user.display_name || 'U').charAt(0).toUpperCase()
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-xs sm:text-sm font-bold text-brand-950 dark:text-white truncate">
+                                    {user.display_name || 'Pengguna'}
+                                  </p>
+                                  <p className="text-[11px] font-mono text-brand-400 truncate">
+                                    ID: {user.id?.slice(0, 10)}...
+                                  </p>
+                                </div>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => followed ? handleUnfollowUser(user.id, user.display_name) : handleFollowUser(user)}
+                                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 shadow-xs ${
+                                  followed
+                                    ? 'bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600'
+                                    : 'bg-brand-950 dark:bg-white text-white dark:text-brand-950 hover:opacity-90'
+                                }`}
+                              >
+                                {followed ? 'Mengikuti' : 'Ikuti'}
+                              </button>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+
+                </div>
+              )}
 
               {/* ---------------- SECTION: AKUN & IDENTITAS ---------------- */}
               {currentSection === 'account' && (
@@ -881,6 +1152,180 @@ export default function Profile({ session, onBack }) {
 
         </div>
       )}
+
+      {/* ============================================================ */}
+      {/* MODAL: DAFTAR PENGIKUT (FOLLOWERS) */}
+      {/* ============================================================ */}
+      <Modal isOpen={showFollowersModal} onClose={() => setShowFollowersModal(false)} title={`Pengikut (${followers.length})`}>
+        <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto pr-1">
+          {followers.length === 0 ? (
+            <div className="py-10 text-center rounded-2xl border border-dashed border-brand-200 dark:border-brand-800 bg-brand-50/50 dark:bg-brand-950/30">
+              <p className="text-xs font-bold text-brand-400">Belum ada pengikut.</p>
+              <p className="text-[11px] text-brand-400/80 mt-1">Bagikan User ID Anda agar teman dapat mengikuti Anda.</p>
+            </div>
+          ) : (
+            followers.map(f => {
+              const followed = isUserFollowed(f.id);
+              return (
+                <div key={f.id} className="p-3.5 rounded-2xl bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-brand-200 dark:bg-brand-800 flex items-center justify-center font-bold text-sm text-brand-900 dark:text-white shrink-0 overflow-hidden">
+                      {f.avatar_url ? <img src={f.avatar_url} alt="" className="w-full h-full object-cover" /> : (f.display_name || 'U').charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-bold text-brand-950 dark:text-white truncate">{f.display_name || 'Pengguna'}</p>
+                      <p className="text-[10px] font-mono text-brand-400 truncate">ID: {f.id?.slice(0, 10)}...</p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => followed ? handleUnfollowUser(f.id, f.display_name) : handleFollowUser(f)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                      followed
+                        ? 'bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300'
+                        : 'bg-brand-950 dark:bg-white text-white dark:text-brand-950'
+                    }`}
+                  >
+                    {followed ? 'Mengikuti' : 'Ikuti Balik'}
+                  </button>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </Modal>
+
+      {/* ============================================================ */}
+      {/* MODAL: DAFTAR MENGIKUTI (FOLLOWING) */}
+      {/* ============================================================ */}
+      <Modal isOpen={showFollowingModal} onClose={() => setShowFollowingModal(false)} title={`Mengikuti (${following.length})`}>
+        <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto pr-1">
+          {following.length === 0 ? (
+            <div className="py-10 text-center rounded-2xl border border-dashed border-brand-200 dark:border-brand-800 bg-brand-50/50 dark:bg-brand-950/30">
+              <p className="text-xs font-bold text-brand-400">Anda belum mengikuti siapa pun.</p>
+              <p className="text-[11px] text-brand-400/80 mt-1">Cari teman menggunakan User ID mereka untuk mulai mengikuti.</p>
+            </div>
+          ) : (
+            following.map(f => (
+              <div key={f.id} className="p-3.5 rounded-2xl bg-white dark:bg-brand-900 border border-brand-100 dark:border-brand-800 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-full bg-brand-200 dark:bg-brand-800 flex items-center justify-center font-bold text-sm text-brand-900 dark:text-white shrink-0 overflow-hidden">
+                    {f.avatar_url ? <img src={f.avatar_url} alt="" className="w-full h-full object-cover" /> : (f.display_name || 'U').charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm font-bold text-brand-950 dark:text-white truncate">{f.display_name || 'Pengguna'}</p>
+                    <p className="text-[10px] font-mono text-brand-400 truncate">ID: {f.id?.slice(0, 10)}...</p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleUnfollowUser(f.id, f.display_name)}
+                  className="px-3 py-1.5 rounded-xl bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 text-xs font-bold transition-all cursor-pointer shrink-0"
+                >
+                  Berhenti
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </Modal>
+
+      {/* ============================================================ */}
+      {/* MODAL: CARI TEMAN & PENGGUNA */}
+      {/* ============================================================ */}
+      <Modal isOpen={showDiscoverModal} onClose={() => setShowDiscoverModal(false)} title="Cari & Ikuti Teman">
+        <div className="flex flex-col gap-4">
+          
+          {/* Quick Input By ID */}
+          <form onSubmit={handleFollowManualId} className="flex gap-2">
+            <input
+              type="text"
+              value={targetIdInput}
+              onChange={(e) => setTargetIdInput(e.target.value)}
+              placeholder="Tempel User ID teman..."
+              className="flex-1 px-4 py-2.5 rounded-xl bg-brand-50 dark:bg-brand-950 border border-brand-200 dark:border-brand-800 text-xs focus:border-brand-950 dark:focus:border-white focus:outline-none font-mono"
+            />
+            <button
+              type="submit"
+              disabled={!targetIdInput.trim() || socialLoading}
+              className="px-4 py-2.5 rounded-xl bg-brand-950 dark:bg-white text-white dark:text-brand-950 text-xs font-bold hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shrink-0"
+            >
+              Ikuti ID
+            </button>
+          </form>
+
+          {/* Search bar */}
+          <div className="pt-2 border-t border-brand-100 dark:border-brand-800 flex flex-col gap-2">
+            <input
+              type="text"
+              value={searchUserQuery}
+              onChange={(e) => setSearchUserQuery(e.target.value)}
+              placeholder="Cari berdasarkan nama..."
+              className="w-full px-4 py-2 rounded-xl bg-white dark:bg-brand-900 border border-brand-200 dark:border-brand-800 text-xs focus:border-brand-950 dark:focus:border-white focus:outline-none"
+            />
+          </div>
+
+          {/* Discover List */}
+          <div className="flex flex-col gap-2.5 max-h-[45vh] overflow-y-auto pr-1">
+            {socialLoading ? (
+              <div className="py-6 flex justify-center"><Spinner size="sm" /></div>
+            ) : filteredDiscover.length === 0 ? (
+              <div className="py-8 text-center rounded-2xl border border-dashed border-brand-200 dark:border-brand-800 bg-brand-50/50 dark:bg-brand-950/30">
+                <p className="text-xs font-bold text-brand-400">Tidak ada pengguna ditemukan.</p>
+                <p className="text-[11px] text-brand-400/80 mt-1">Gunakan formulir User ID di atas untuk menambahkan teman Anda secara langsung.</p>
+              </div>
+            ) : (
+              filteredDiscover.map(user => {
+                const followed = isUserFollowed(user.id);
+                return (
+                  <div key={user.id} className="p-3 rounded-2xl bg-brand-50/70 dark:bg-brand-950/60 border border-brand-100 dark:border-brand-800 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-9 h-9 rounded-full bg-brand-200 dark:bg-brand-800 flex items-center justify-center font-bold text-xs text-brand-900 dark:text-white shrink-0 overflow-hidden">
+                        {user.avatar_url ? <img src={user.avatar_url} alt="" className="w-full h-full object-cover" /> : (user.display_name || 'U').charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-brand-950 dark:text-white truncate">{user.display_name || 'Pengguna'}</p>
+                        <p className="text-[10px] font-mono text-brand-400 truncate">ID: {user.id?.slice(0, 10)}...</p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => followed ? handleUnfollowUser(user.id, user.display_name) : handleFollowUser(user)}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                        followed
+                          ? 'bg-brand-100 dark:bg-brand-800 text-brand-700 dark:text-brand-300'
+                          : 'bg-brand-950 dark:bg-white text-white dark:text-brand-950'
+                      }`}
+                    >
+                      {followed ? 'Mengikuti' : 'Ikuti'}
+                    </button>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          <div className="pt-2 border-t border-brand-100 dark:border-brand-800 flex justify-between items-center text-xs">
+            <button
+              type="button"
+              onClick={handleCopyId}
+              className="text-brand-500 font-bold hover:underline cursor-pointer"
+            >
+              {copiedId ? 'Tersalin!' : 'Salin User ID Saya'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowDiscoverModal(false)}
+              className="px-4 py-2 rounded-xl bg-brand-100 dark:bg-brand-800 text-brand-950 dark:text-white font-bold cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* ============================================================ */}
       {/* MODAL: UBAH NAMA LENGKAP */}
