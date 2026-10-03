@@ -1,27 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { login, register, sendPasswordResetOtp } from '../lib/auth';
 
-// Icons
-const IconSun = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="5" />
-    <line x1="12" y1="1" x2="12" y2="3" />
-    <line x1="12" y1="21" x2="12" y2="23" />
-    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-    <line x1="1" y1="12" x2="3" y2="12" />
-    <line x1="21" y1="12" x2="23" y2="12" />
-    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-  </svg>
-);
-
-const IconMoon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-  </svg>
-);
-
+// Clean Minimalist Icons
 const IconUser = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -100,24 +80,10 @@ export default function Auth() {
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
 
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark');
-    }
-    return false;
-  });
-
-  const toggleDarkMode = () => {
-    if (isDark) {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-      setIsDark(false);
-    } else {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-      setIsDark(true);
-    }
-  };
+  // Set Light Mode for Login Screen
+  useEffect(() => {
+    document.documentElement.classList.remove('dark');
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -163,45 +129,38 @@ export default function Auth() {
   const titles = {
     login: {
       title: 'Masuk ke Akun',
-      sub: 'Masukkan email dan kata sandi untuk melanjutkan.'
+      sub: 'Masukkan email dan kata sandi Anda'
     },
     register: {
-      title: 'Daftar Akun',
-      sub: 'Lengkapi data berikut untuk membuat akun baru.'
+      title: 'Buat Akun Baru',
+      sub: 'Daftar untuk mulai mengelola aktivitas harian'
     },
     forgot_password: {
       title: 'Lupa Kata Sandi',
-      sub: 'Masukkan email terdaftar untuk menerima tautan reset.'
+      sub: 'Masukkan email Anda untuk menerima link reset'
     }
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col justify-center items-center px-4 py-8 bg-brand-50 dark:bg-brand-950 transition-colors">
+    <div className="min-h-screen w-full flex flex-col justify-center items-center px-4 py-10 bg-[#FAFAFA] text-zinc-900">
       
-      {/* Theme Switcher Button */}
-      <div className="fixed top-5 right-5 z-20">
-        <button
-          type="button"
-          onClick={toggleDarkMode}
-          aria-label={isDark ? 'Beralih ke mode terang' : 'Beralih ke mode gelap'}
-          className="p-2.5 rounded-xl bg-white dark:bg-brand-900 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800 shadow-xs hover:bg-brand-100 dark:hover:bg-brand-800 transition-all cursor-pointer"
-        >
-          {isDark ? <IconSun /> : <IconMoon />}
-        </button>
-      </div>
-
-      {/* Main Form Container */}
-      <div className="w-full max-w-[420px] bg-white dark:bg-brand-900 border border-brand-200/90 dark:border-brand-800 rounded-3xl p-6 sm:p-8 shadow-xs animate-fade-in">
+      {/* Centered Login Card */}
+      <div className="w-full max-w-[390px] bg-white border border-zinc-200/90 rounded-3xl p-7 sm:p-9 shadow-[0_4px_25px_rgba(0,0,0,0.04)] animate-fade-in">
         
-        {/* Brand Header */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-brand-950 dark:bg-white text-white dark:text-brand-950 font-black text-xl mb-3 shadow-xs">
-            D
-          </div>
-          <h1 className="text-2xl font-black tracking-tight text-brand-950 dark:text-white">
+        {/* Real App Brand Header */}
+        <div className="flex flex-col items-center text-center mb-6">
+          <img
+            src="/logo.png"
+            alt="Daily Management"
+            className="w-14 h-14 rounded-2xl object-cover shadow-sm mb-3 border border-zinc-100"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900">
             {titles[view].title}
           </h1>
-          <p className="text-xs sm:text-sm text-brand-500 dark:text-brand-400 mt-1.5 leading-relaxed">
+          <p className="text-xs sm:text-sm text-zinc-500 mt-1">
             {titles[view].sub}
           </p>
         </div>
@@ -211,7 +170,7 @@ export default function Auth() {
           <button
             type="button"
             onClick={() => { setView('login'); setError(null); setSuccessMsg(null); }}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-500 hover:text-brand-950 dark:hover:text-white mb-5 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-600 hover:text-zinc-950 mb-5 transition-colors cursor-pointer"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M15 18l-6-6 6-6" />
@@ -220,16 +179,16 @@ export default function Auth() {
           </button>
         )}
 
-        {/* Tab Switcher (Masuk / Daftar) */}
+        {/* Tab Segment (Masuk / Daftar) */}
         {view !== 'forgot_password' && (
-          <div className="grid grid-cols-2 p-1 rounded-xl bg-brand-100 dark:bg-brand-950 border border-brand-200 dark:border-brand-800 mb-6">
+          <div className="grid grid-cols-2 p-1 rounded-xl bg-zinc-100 border border-zinc-200/60 mb-6">
             <button
               type="button"
               onClick={() => { setView('login'); setError(null); setSuccessMsg(null); }}
-              className={`py-2 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              className={`py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                 view === 'login'
-                  ? 'bg-white dark:bg-brand-800 text-brand-950 dark:text-white shadow-xs'
-                  : 'text-brand-500 hover:text-brand-950 dark:hover:text-brand-200'
+                  ? 'bg-white text-zinc-950 shadow-xs font-bold'
+                  : 'text-zinc-500 hover:text-zinc-900'
               }`}
             >
               Masuk
@@ -237,10 +196,10 @@ export default function Auth() {
             <button
               type="button"
               onClick={() => { setView('register'); setError(null); setSuccessMsg(null); }}
-              className={`py-2 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              className={`py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                 view === 'register'
-                  ? 'bg-white dark:bg-brand-800 text-brand-950 dark:text-white shadow-xs'
-                  : 'text-brand-500 hover:text-brand-950 dark:hover:text-brand-200'
+                  ? 'bg-white text-zinc-950 shadow-xs font-bold'
+                  : 'text-zinc-500 hover:text-zinc-900'
               }`}
             >
               Daftar
@@ -248,51 +207,51 @@ export default function Auth() {
           </div>
         )}
 
-        {/* Error Alert */}
+        {/* Alert Error */}
         {error && (
-          <div className="flex items-start gap-2.5 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-red-700 dark:text-red-300 p-3.5 rounded-xl text-xs sm:text-sm font-medium mb-5 animate-slide-up">
+          <div className="flex items-start gap-2.5 bg-red-50 border border-red-200/80 text-red-700 p-3 rounded-xl text-xs sm:text-sm font-medium mb-5 animate-slide-up">
             <div className="text-red-500 shrink-0 mt-0.5">
               <IconAlertCircle />
             </div>
-            <div className="flex-1">{error.message}</div>
+            <div className="flex-1 leading-snug">{error.message}</div>
             <button
               type="button"
               onClick={() => setError(null)}
-              className="text-red-400 hover:text-red-700 dark:hover:text-red-200 shrink-0 cursor-pointer"
+              className="text-red-400 hover:text-red-700 shrink-0 cursor-pointer"
             >
               ✕
             </button>
           </div>
         )}
 
-        {/* Success Alert */}
+        {/* Alert Success */}
         {successMsg && (
-          <div className="flex items-start gap-2.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 text-emerald-800 dark:text-emerald-300 p-3.5 rounded-xl text-xs sm:text-sm font-medium mb-5 animate-slide-up">
+          <div className="flex items-start gap-2.5 bg-emerald-50 border border-emerald-200/80 text-emerald-800 p-3 rounded-xl text-xs sm:text-sm font-medium mb-5 animate-slide-up">
             <div className="text-emerald-500 shrink-0 mt-0.5">
               <IconCheckCircle />
             </div>
-            <div className="flex-1">{successMsg}</div>
+            <div className="flex-1 leading-snug">{successMsg}</div>
             <button
               type="button"
               onClick={() => setSuccessMsg(null)}
-              className="text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-200 shrink-0 cursor-pointer"
+              className="text-emerald-400 hover:text-emerald-700 shrink-0 cursor-pointer"
             >
               ✕
             </button>
           </div>
         )}
 
-        {/* Form Fields */}
+        {/* Auth Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           
           {/* Full Name (Register Only) */}
           {view === 'register' && (
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-brand-700 dark:text-brand-300">
+              <label className="text-xs font-semibold text-zinc-700">
                 Nama Lengkap
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-brand-400 dark:text-brand-500">
+              <div className="relative flex items-center">
+                <div className="absolute left-3.5 text-zinc-400 pointer-events-none">
                   <IconUser />
                 </div>
                 <input
@@ -301,7 +260,7 @@ export default function Auth() {
                   placeholder="Nama Anda"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-brand-50/50 dark:bg-brand-950 border border-brand-200 dark:border-brand-800 focus:border-brand-950 dark:focus:border-white focus:bg-white dark:focus:bg-brand-900 focus:outline-none transition-all text-sm text-brand-950 dark:text-white placeholder:text-brand-400"
+                  className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 rounded-xl bg-zinc-50/70 border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:bg-white focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/5 focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -309,11 +268,11 @@ export default function Auth() {
 
           {/* Email */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-brand-700 dark:text-brand-300">
+            <label className="text-xs font-semibold text-zinc-700">
               Email
             </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-brand-400 dark:text-brand-500">
+            <div className="relative flex items-center">
+              <div className="absolute left-3.5 text-zinc-400 pointer-events-none">
                 <IconMail />
               </div>
               <input
@@ -322,7 +281,7 @@ export default function Auth() {
                 placeholder="nama@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-brand-50/50 dark:bg-brand-950 border border-brand-200 dark:border-brand-800 focus:border-brand-950 dark:focus:border-white focus:bg-white dark:focus:bg-brand-900 focus:outline-none transition-all text-sm text-brand-950 dark:text-white placeholder:text-brand-400"
+                className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 rounded-xl bg-zinc-50/70 border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:bg-white focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/5 focus:outline-none transition-all"
               />
             </div>
           </div>
@@ -331,21 +290,21 @@ export default function Auth() {
           {(view === 'login' || view === 'register') && (
             <div className="flex flex-col gap-1.5">
               <div className="flex justify-between items-center">
-                <label className="text-xs font-bold text-brand-700 dark:text-brand-300">
+                <label className="text-xs font-semibold text-zinc-700">
                   Kata Sandi
                 </label>
                 {view === 'login' && (
                   <button
                     type="button"
                     onClick={() => { setView('forgot_password'); setError(null); setSuccessMsg(null); }}
-                    className="text-xs font-semibold text-brand-500 hover:text-brand-950 dark:hover:text-white transition-colors cursor-pointer"
+                    className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors cursor-pointer"
                   >
                     Lupa kata sandi?
                   </button>
                 )}
               </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-brand-400 dark:text-brand-500">
+              <div className="relative flex items-center">
+                <div className="absolute left-3.5 text-zinc-400 pointer-events-none">
                   <IconLock />
                 </div>
                 <input
@@ -355,13 +314,13 @@ export default function Auth() {
                   placeholder="Minimal 6 karakter"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-11 py-3 rounded-xl bg-brand-50/50 dark:bg-brand-950 border border-brand-200 dark:border-brand-800 focus:border-brand-950 dark:focus:border-white focus:bg-white dark:focus:bg-brand-900 focus:outline-none transition-all text-sm text-brand-950 dark:text-white placeholder:text-brand-400"
+                  className="w-full pl-10 pr-11 py-2.5 sm:py-3 rounded-xl bg-zinc-50/70 border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:bg-white focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/5 focus:outline-none transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Lihat kata sandi'}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-brand-400 hover:text-brand-700 dark:hover:text-brand-200 transition-colors cursor-pointer"
+                  className="absolute right-3.5 text-zinc-400 hover:text-zinc-700 transition-colors cursor-pointer"
                 >
                   {showPassword ? <IconEyeOff /> : <IconEye />}
                 </button>
@@ -373,7 +332,7 @@ export default function Auth() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-3 px-5 rounded-xl bg-brand-950 dark:bg-white text-white dark:text-brand-950 font-bold text-sm flex items-center justify-center gap-2 hover:opacity-95 active:scale-[0.99] transition-all disabled:opacity-60 disabled:pointer-events-none cursor-pointer shadow-xs"
+            className="w-full mt-2 py-3 px-4 rounded-xl bg-zinc-900 hover:bg-black active:scale-[0.99] text-white font-semibold text-sm transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-60 disabled:pointer-events-none cursor-pointer"
           >
             {loading && <IconSpinner />}
             <span>
@@ -382,21 +341,21 @@ export default function Auth() {
                 : view === 'login'
                 ? 'Masuk'
                 : view === 'register'
-                ? 'Daftar'
-                : 'Kirim Tautan'}
+                ? 'Buat Akun'
+                : 'Kirim Link Reset'}
             </span>
           </button>
         </form>
 
-        {/* Footer Switcher */}
-        <div className="mt-6 pt-5 border-t border-brand-100 dark:border-brand-800 text-center text-xs text-brand-500 dark:text-brand-400">
+        {/* Footer Toggle Text */}
+        <div className="mt-6 pt-5 border-t border-zinc-100 text-center text-xs text-zinc-500">
           {view === 'login' ? (
             <>
               Belum punya akun?{' '}
               <button
                 type="button"
                 onClick={() => { setView('register'); setError(null); setSuccessMsg(null); }}
-                className="font-bold text-brand-950 dark:text-white hover:underline cursor-pointer"
+                className="font-bold text-zinc-900 hover:underline cursor-pointer"
               >
                 Daftar sekarang
               </button>
@@ -407,7 +366,7 @@ export default function Auth() {
               <button
                 type="button"
                 onClick={() => { setView('login'); setError(null); setSuccessMsg(null); }}
-                className="font-bold text-brand-950 dark:text-white hover:underline cursor-pointer"
+                className="font-bold text-zinc-900 hover:underline cursor-pointer"
               >
                 Masuk
               </button>
@@ -416,7 +375,7 @@ export default function Auth() {
             <button
               type="button"
               onClick={() => { setView('login'); setError(null); setSuccessMsg(null); }}
-              className="font-bold text-brand-950 dark:text-white hover:underline cursor-pointer"
+              className="font-bold text-zinc-900 hover:underline cursor-pointer"
             >
               Kembali ke halaman masuk
             </button>
@@ -425,9 +384,9 @@ export default function Auth() {
 
       </div>
 
-      {/* Subtle Micro Footer */}
+      {/* Clean Bottom Label */}
       <div className="mt-6 text-center">
-        <p className="text-xs text-brand-400 dark:text-brand-600">
+        <p className="text-xs text-zinc-400 font-medium">
           Daily Management
         </p>
       </div>
