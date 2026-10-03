@@ -147,16 +147,8 @@ export default function Auth() {
       {/* Centered Login Card */}
       <div className="w-full max-w-[390px] bg-white border border-zinc-200/90 rounded-3xl p-7 sm:p-9 shadow-[0_4px_25px_rgba(0,0,0,0.04)] animate-fade-in">
         
-        {/* Real App Brand Header */}
-        <div className="flex flex-col items-center text-center mb-6">
-          <img
-            src="/logo.png"
-            alt="Daily Management"
-            className="w-14 h-14 rounded-2xl object-cover shadow-sm mb-3 border border-zinc-100"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-            }}
-          />
+        {/* Header */}
+        <div className="text-center mb-6">
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900">
             {titles[view].title}
           </h1>
