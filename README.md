@@ -1,1 +1,1 @@
-Daily Management Aplication
+
